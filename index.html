@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Celestial Transit Tracker</title>
+<style>
+    body {
+      font-family: sans-serif;
+      background-color: #121212;
+      color: #ffffff;
+      margin: 2rem;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+    }
+    h1 {
+      color: #00bfff;
+    }
+    .data {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #1e1e1e;
+      border-radius: 8px;
+    }
+    .highlight {
+      color: #ffcc00;
+    }
+    select, button, input[type="number"], input[type="range"], input[type="text"], input[type="password"] {
+      margin-top: 0.5rem;
+      padding: 0.4rem 0.6rem;
+      background-color: #2a2a2a;
+      color: #ffffff;
+      border: 1px solid #444;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+    }
+    input[type="number"] {
+      width: 100px;
+    }
+    #marginFeedback {
+      margin-top: 0.2rem;
+      font-size: 0.9em;
+      color: #aaa;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      column-gap: 2rem;
+      margin-top: 0.5rem;
+    }
+    .info-grid > div {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+      <h1 style="margin: 0;"><span id="trackerTitle">🌙 Moon</span> Transit Tracker</h1>
+      <a href="https://www.paypal.com/donate?business=sandu.godakumbura@gmail.com" target="_blank"
+         style="background-color: #2d4f36; color: #121212; padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: bold; text-decoration: none;">
+         🫰 Donate
+      </a>
+    </div>
+    
+<!-- 🚨 Transit Alert Status -->
+<div class="highlight" id="transitStatus" style="margin: 1rem 0; font-size: 1.4rem; font-weight: bold;">
+      Checking flights near the Moon...
+    </div>
+
+<div class="data" id="loginBox">
+  <details open>
+    <summary><strong>OpenSky Login</strong></summary>
+    <p style="font-size: 0.9rem; color: #ccc;">
+      You need an account with <a href="https://opensky-network.org/" target="_blank" style="color:#00bfff;">OpenSky Network</a> to use this app.<br>
+      Please <a href="https://opensky-network.org/user/register" target="_blank" style="color:#00bfff;">sign up here</a> if you haven't already.
+    </p>
+    <label>Username: <input type="text" id="osUsername" /></label><br>
+    <label>Password: <input type="password" id="osPassword" /></label><br>
+    <button onclick="saveCredentials()">🔐 Save Credentials</button><br>
+    <small>We do not store your credentials. Used only to access OpenSky securely during this session.</small>
+  </details>
+</div>
+
+<div class="data">
+<label for="locationMode"><strong>Location Mode:</strong></label>
+<select id="locationMode">
+<option selected="" value="auto">Auto (GPS)</option>
+<option value="manual">Manual</option>
+</select><button id="refreshBtn" style="margin-left: 1rem;">🔄 Refresh</button>
+<div id="manualLocationFields" style="display: none; margin-top: 1rem;">
+<label>Latitude: <input id="manualLat" step="0.000001" type="number"/></label><br/>
+<label>Longitude: <input id="manualLon" step="0.000001" type="number"/></label><br/>
+<label>Elevation (m): <input id="manualElev" step="1" type="number" value="10"/></label>
+</div>
+</div>
+<div class="data">
+<div class="controls">
+<label for="bodyToggle"><strong>Celestial Body:</strong></label>
+<select id="bodyToggle">
+<option selected="" value="moon">🌙 Moon</option>
+<option value="sun">☀️ Sun</option>
+</select>
+<label for="radiusSelect"><strong>Search Radius:</strong></label>
+<select id="radiusSelect">
+<option value="10">10 km</option>
+<option value="20">20 km</option>
+<option selected="" value="30">30 km</option>
+<option value="40">40 km</option>
+<option value="50">50 km</option>
+</select>
+<label for="predictToggle"><strong>Prediction Mode:</strong></label>
+<select id="predictToggle">
+<option selected="" value="0">Off</option>
+<option value="5">5 sec</option>
+<option value="10" selected>10 sec</option>
+<option value="15">15 sec</option>
+<option value="20">20 sec</option>
+</select>
+<label for="autoRefreshToggle"><strong>Auto Refresh:</strong></label>
+<select id="autoRefreshToggle">
+<option selected="" value="on">On</option>
+<option value="off">Off</option>
+</select>
+</div>
+<div style="margin-top: 0.5rem;">
+<span id="countdownTimer">Next check in: 5s</span>
+</div>
+</div>
+<div class="data">
+<label for="marginSlider"><strong>Detection Margin:</strong></label><br/>
+<input id="marginSlider" max="20.5" min="1" step="0.5" type="range" value="2.5"/>
+<span id="marginValue">2.5°</span>
+<div id="marginFeedback">🌟 Very strict (photography)</div>
+</div>
+<div class="data" id="locationInfo">
+<strong>Your Location &amp; <span id="bodyLabel">Moon</span> Info:</strong>
+<div class="info-grid">
+<div>
+<div>Latitude: <span id="lat">...</span></div>
+<div>Longitude: <span id="lon">...</span></div>
+<div>Elevation: <span id="elevation">...</span> m</div>
+</div>
+<div>
+<div>Azimuth: <span id="moonAz">...</span>°</div>
+<div>Altitude: <span id="moonAlt">...</span>°</div>
+</div>
+</div>
+</div>
+<div class="data">
+<details>
+<summary><strong>⚙️ Advanced Settings</strong></summary><br/>
+
+<button id="viewLogBtn">🕒 View Transit Log</button>
+<button id="clearLogBtn">🗑️ Clear Log</button>
+<button id="downloadLogBtn">📥 Download Log</button><br/><br/>
+<label><input id="muteToggle" type="checkbox"/> 🔇 Mute Alert Sound</label>
+<br/><br/>
+<label>
+          🔁 Auto Refresh Interval (sec):
+          <input id="refreshIntervalInput" min="3" style="width:60px" type="number" value="5">
+</input></label>
+</details>
+</div>
+</div>
+<!-- 🔊 Alert Sound -->
+<audio id="alertSound" preload="auto" src="alert.mp3"></audio>
+<!-- Libraries & Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/suncalc/1.8.0/suncalc.min.js"></script>
+<script src="script.js"></script>
+<script>
+    function saveCredentials() {
+      const username = document.getElementById('osUsername').value;
+      const password = document.getElementById('osPassword').value;
+
+      if (!username || !password) {
+        alert('Please enter both username and password.');
+        return;
+      }
+
+      sessionStorage.setItem('osUser', username);
+      sessionStorage.setItem('osPass', password);
+      alert('✅ Credentials saved for this session.');
+
+      document.querySelector('#loginBox details').open = false;
+    }
+  </script>
+
+  
+  <footer style="margin-top: 3rem; text-align: center; font-size: 0.9rem; color: #aaa;">
+    <p>Copyright © Rey Sandu Godakumbura</p>
+    <p>
+      <a href="#" style="color: #aaa; text-decoration: none; margin: 0 0.5rem;">About Us</a> |
+      <a href="https://www.lifebeyondstars.com/about-me" target="_blank" style="color: #aaa; text-decoration: none; margin: 0 0.5rem;">About Creator</a> |
+      <a href="#" style="color: #aaa; text-decoration: none; margin: 0 0.5rem;">Terms of Use</a> |
+      <a href="#" style="color: #aaa; text-decoration: none; margin: 0 0.5rem;">Privacy & Cookies</a> |
+      <a href="mailto:sandu.godakumbura@gmail.com" style="color: #aaa; text-decoration: none; margin: 0 0.5rem;">Contact</a> | <a href="how_to_use.html" style="color: #aaa; text-decoration: none; margin: 0 0.5rem;">How to Use</a>
+    </p>
+  </footer>
+</body>
+</html>
+
+
