@@ -1,11 +1,16 @@
+window.useAviationstack = false;
+
 let selectedBody = 'moon';
 let autoRefresh = true;
-let refreshInterval;
 let countdown = 5;
 let countdownInterval;
 let locationMode = 'auto';
 let predictSeconds = 0;
 let margin = 2.5;
+
+function getAviationstackKey() {
+  return sessionStorage.getItem('aviationstackKey');
+}
 
 document.getElementById('bodyToggle').addEventListener('change', (e) => {
   selectedBody = e.target.value;
@@ -16,55 +21,43 @@ document.getElementById('bodyToggle').addEventListener('change', (e) => {
   getCurrentLocationAndRun();
 });
 
-document.getElementById('radiusSelect').addEventListener('change', (e) => {
-  const radiusKm = parseInt(e.target.value);
-  if (radiusKm > 30) {
-    alert("⚠️ Warning: Search radius beyond 30 km may cause slower performance and reduce prediction accuracy.");
-  }
-  getCurrentLocationAndRun();
-});
-
-document.getElementById('predictToggle').addEventListener('change', (e) => {
+document.getElementById('radiusSelect').addEventListener('change', getCurrentLocationAndRun);
+document.getElementById('predictToggle').addEventListener('change', e => {
   predictSeconds = parseInt(e.target.value) || 0;
-  if (predictSeconds > 10 && predictSeconds <= 20) {
-    alert('⚠️ Predictions beyond 10s can be inaccurate for fast-moving or low-flying aircraft.');
-  } else if (predictSeconds > 20) {
-    alert('🚨 Predictions over 20s may be unreliable and should only be used for high-altitude jets.');
-  }
 });
-
 document.getElementById('autoRefreshToggle').addEventListener('change', (e) => {
   autoRefresh = e.target.value === 'on';
-  if (autoRefresh) startAutoRefresh();
-  else stopAutoRefresh();
+  autoRefresh ? startAutoRefresh() : stopAutoRefresh();
 });
-
 document.getElementById('locationMode').addEventListener('change', (e) => {
   locationMode = e.target.value;
   const manualFields = document.getElementById('manualLocationFields');
-  if (locationMode === 'manual') {
-    manualFields.style.display = 'block';
-    stopAutoRefresh();
-  } else {
-    manualFields.style.display = 'none';
-    navigator.geolocation.getCurrentPosition(success, error);
-  }
+  manualFields.style.display = locationMode === 'manual' ? 'block' : 'none';
+  if (locationMode === 'auto') navigator.geolocation.getCurrentPosition(success, error);
 });
-
 document.getElementById('refreshBtn').addEventListener('click', getCurrentLocationAndRun);
+
+document.getElementById('marginSlider').addEventListener('input', (e) => {
+  margin = parseFloat(e.target.value);
+  document.getElementById('marginValue').textContent = `${margin.toFixed(1)}°`;
+
+  const feedback =
+    margin <= 2.5 ? "🎯 Very strict (photography)" :
+    margin <= 5   ? "📸 Loose silhouette range" :
+    margin <= 10  ? "🔭 General awareness" :
+    margin <= 15  ? "📡 Visual tracking zone" :
+                    "🛑 Too loose — radar sweep only";
+
+  document.getElementById('marginFeedback').textContent = feedback;
+});
 
 document.getElementById('viewLogBtn').addEventListener('click', () => {
   const log = JSON.parse(localStorage.getItem('transitLog') || '[]');
-  if (log.length === 0) {
-    alert('No detections logged yet.');
-  } else {
-    const messages = log.map(entry => `${entry.time}: ${entry.message}`).join('\n');
-    alert(messages);
-  }
+  alert(log.length ? log.map(entry => `${entry.time}: ${entry.message}`).join('\n') : 'No detections logged yet.');
 });
 
 document.getElementById('clearLogBtn').addEventListener('click', () => {
-  if (confirm('Are you sure you want to clear the transit log? This cannot be undone.')) {
+  if (confirm('Are you sure you want to clear the transit log?')) {
     localStorage.removeItem('transitLog');
     alert('🗑️ Transit log cleared.');
   }
@@ -72,51 +65,27 @@ document.getElementById('clearLogBtn').addEventListener('click', () => {
 
 document.getElementById('downloadLogBtn').addEventListener('click', () => {
   const log = JSON.parse(localStorage.getItem('transitLog') || '[]');
-  if (log.length === 0) {
-    alert('No detections to download.');
-    return;
-  }
+  if (!log.length) return alert('No detections to download.');
 
   const format = document.getElementById('logFormat').value;
-  let blob, filename;
+  const filename = `transit_log.${format}`;
+  const content = format === 'json'
+    ? JSON.stringify(log, null, 2)
+    : log.map(entry => Object.entries(entry).map(([k, v]) => `${k}: ${v}`).join('\n')).join('\n\n');
 
-  if (format === 'json') {
-    blob = new Blob([JSON.stringify(log, null, 2)], { type: 'application/json' });
-    filename = 'transit_log.json';
-  } else {
-    const plainText = log.map(entry => `${entry.time}: ${entry.message}`).join('\n');
-    blob = new Blob([plainText], { type: 'text/plain' });
-    filename = 'transit_log.txt';
-  }
-
-  const url = URL.createObjectURL(blob);
+  const blob = new Blob([content], { type: format === 'json' ? 'application/json' : 'text/plain' });
   const a = document.createElement('a');
-  a.href = url;
+  a.href = URL.createObjectURL(blob);
   a.download = filename;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-});
-
-document.getElementById('marginSlider').addEventListener('input', (e) => {
-  margin = parseFloat(e.target.value);
-  document.getElementById('marginValue').textContent = `${margin.toFixed(1)}°`;
-
-  let feedback = "🎯 Very strict (photography)";
-  if (margin > 2.5 && margin <= 5) feedback = "📸 Loose silhouette range";
-  else if (margin > 5 && margin <= 10) feedback = "🔭 General awareness";
-  else if (margin > 10 && margin <= 15) feedback = "📡 Visual tracking zone";
-  else if (margin > 15) feedback = "🛑 Too loose — radar sweep only";
-
-  document.getElementById('marginFeedback').textContent = feedback;
 });
 
 function success(position) {
   const lat = position.coords.latitude;
   const lon = position.coords.longitude;
   const elevation = position.coords.altitude || 10;
-
   window.userCoords = { lat, lon, elev: elevation };
   updateLocationUI(lat, lon, elevation);
   getCelestialPosition(lat, lon, elevation);
@@ -124,7 +93,6 @@ function success(position) {
 }
 
 function error(err) {
-  console.error('Geolocation error:', err);
   alert(`Could not get your location. Reason: ${err.message}`);
 }
 
@@ -139,7 +107,6 @@ function getCurrentLocationAndRun() {
     const lat = parseFloat(document.getElementById('manualLat').value);
     const lon = parseFloat(document.getElementById('manualLon').value);
     const elev = parseFloat(document.getElementById('manualElev').value) || 10;
-
     if (!isNaN(lat) && !isNaN(lon)) {
       window.userCoords = { lat, lon, elev };
       updateLocationUI(lat, lon, elev);
@@ -154,17 +121,11 @@ function getCurrentLocationAndRun() {
 
 function getCelestialPosition(lat, lon, elev) {
   const now = new Date();
-  let az, alt;
-
-  if (selectedBody === 'moon') {
-    const moonPos = SunCalc.getMoonPosition(now, lat, lon);
-    az = (moonPos.azimuth * 180) / Math.PI + 180;
-    alt = (moonPos.altitude * 180) / Math.PI;
-  } else {
-    const sunPos = SunCalc.getPosition(now, lat, lon);
-    az = (sunPos.azimuth * 180) / Math.PI + 180;
-    alt = (sunPos.altitude * 180) / Math.PI;
-  }
+  const pos = selectedBody === 'moon'
+    ? SunCalc.getMoonPosition(now, lat, lon)
+    : SunCalc.getPosition(now, lat, lon);
+  const az = (pos.azimuth * 180) / Math.PI + 180;
+  const alt = (pos.altitude * 180) / Math.PI;
 
   document.getElementById('moonAz').textContent = az.toFixed(2);
   document.getElementById('moonAlt').textContent = alt.toFixed(2);
@@ -172,7 +133,183 @@ function getCelestialPosition(lat, lon, elev) {
   checkNearbyFlights(lat, lon, elev, az, alt);
 }
 
-function projectPosition(lat, lon, heading, speed, seconds, verticalRate = 0, geoAlt = 0) {
+function checkNearbyFlights(userLat, userLon, userElev, bodyAz, bodyAlt) {
+  const radiusKm = parseInt(document.getElementById('radiusSelect').value);
+  document.getElementById('transitStatus').textContent = `Checking flights near the ${selectedBody}...`;
+
+  if (window.useAviationstack) {
+    // Aviationstack mode
+
+    const key = getAviationstackKey();
+    if (!key) {
+      document.getElementById('transitStatus').textContent = '❌ Missing Aviationstack API key.';
+      return;
+    }
+
+    fetch(`http://api.aviationstack.com/v1/flights?access_key=${key}&limit=100`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          const msg = data.error.message || "Unknown Aviationstack error.";
+          document.getElementById('transitStatus').textContent = `❌ Aviationstack error: ${msg}`;
+          return;
+        }
+        handleAviationstackData(data, userLat, userLon, userElev, bodyAz, bodyAlt);
+      })
+      .catch(() => {
+        document.getElementById('transitStatus').textContent = '🚫 Error fetching Aviationstack data.';
+      });
+    return;
+  }
+
+  if (window.useAdsbexchange) {
+    checkAdsbExchangeFlights(userLat, userLon, userElev, bodyAz, bodyAlt);
+    return;
+  }
+
+  const username = sessionStorage.getItem('osUser');
+  const password = sessionStorage.getItem('osPass');
+  if (!username || !password) {
+    document.getElementById('transitStatus').textContent = '❌ Missing OpenSky login.';
+    return;
+  }
+
+  const range = radiusKm / 111;
+  const lamin = userLat - range;
+  const lamax = userLat + range;
+  const lomin = userLon - range;
+  const lomax = userLon + range;
+
+  fetch('https://opensky-proxy.onrender.com/api/flights', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password, lamin, lomin, lamax, lomax })
+  })
+    .then(res => {
+      if (!res.ok) throw new Error("Fetch failed");
+      return res.json();
+    })
+    .then(data => handleFlightData(data, userLat, userLon, userElev, bodyAz, bodyAlt))
+    .catch(() => {
+      document.getElementById('transitStatus').textContent = '🚫 Error fetching OpenSky flight data.';
+    });
+}
+
+
+function checkAdsbExchangeFlights(userLat, userLon, userElev, bodyAz, bodyAlt) {
+  const key = sessionStorage.getItem('adsbApiKey');
+  const host = sessionStorage.getItem('adsbApiHost');
+  const radiusKm = parseInt(document.getElementById('radiusSelect').value);
+
+  if (!key || !host) {
+    document.getElementById('transitStatus').textContent = '❌ Missing ADS-B Exchange API settings.';
+    return;
+  }
+
+  const url = `https://${host}/v2/lat/${userLat}/lon/${userLon}/dist/${radiusKm}/`;
+
+  fetch(url, {
+    method: 'GET',
+    headers: {
+      'x-rapidapi-host': host,
+      'x-rapidapi-key': key
+    }
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (!data || !data.ac || !Array.isArray(data.ac)) {
+        document.getElementById('transitStatus').textContent = '❌ Invalid or empty ADS-B response.';
+        return;
+      }
+
+      // Correctly mapped fields to match handleFlightData expectations
+      const flights = data.ac.map(ac => ([
+        ac.hex || '',        // 0: ICAO address (not used)
+        ac.flight || '',     // 1: callsign
+        null,                // 2: unused
+        null,                // 3: unused
+        null,                // 4: unused
+        ac.lon,              // 5: longitude
+        ac.lat,              // 6: latitude
+        null,                // 7: unused
+        null,                // 8: unused
+        ac.gs,               // 9: ground speed (m/s or knots)
+        ac.track,            // 10: heading
+        null,                // 11: unused
+        null,                // 12: unused
+        ac.alt_geom || 0     // 13: geometric altitude
+      ]));
+
+      handleFlightData({ states: flights }, userLat, userLon, userElev, bodyAz, bodyAlt);
+    })
+    .catch(err => {
+      document.getElementById('transitStatus').textContent = '🚫 Error fetching ADS-B Exchange data.';
+      console.error(err);
+    });
+}
+
+
+
+function handleFlightData(data, userLat, userLon, userElev, bodyAz, bodyAlt) {
+  const matches = [];
+
+  if (!data.states || !Array.isArray(data.states) || data.states.length === 0) {
+    document.getElementById('transitStatus').textContent = 'No aircraft found in the search zone.';
+    return;
+  }
+
+  for (const plane of data.states) {
+    const callsign = plane[1];
+    const lat = plane[6];
+    const lon = plane[5];
+    const geoAlt = plane[13] || 0;
+    const heading = plane[10];
+    const speed = plane[9];
+
+    if (lat === null || lon === null || geoAlt === null) continue;
+
+    let targetLat = lat;
+    let targetLon = lon;
+
+    if (predictSeconds > 0 && heading !== null && speed !== null) {
+      const projected = projectPosition(lat, lon, heading, speed, predictSeconds);
+      targetLat = projected.lat;
+      targetLon = projected.lon;
+    }
+
+    const azimuth = calculateAzimuth(userLat, userLon, targetLat, targetLon);
+    const distance = haversine(userLat, userLon, targetLat, targetLon);
+    const angle = Math.atan2(geoAlt - userElev, distance) * (180 / Math.PI);
+    const azDiff = Math.abs(normalizeAngle(azimuth - bodyAz));
+    const altDiff = Math.abs(angle - bodyAlt);
+
+    if (azDiff < margin && altDiff < margin) {
+      const label = predictSeconds > 0
+        ? `⚠️ Possible ${selectedBody} transit in ~${predictSeconds} sec:`
+        : `🔭 Possible ${selectedBody} transit:`;
+      const message = `${callsign} (Az ${azimuth.toFixed(1)}°, Alt ${angle.toFixed(1)}°)`;
+      matches.push(message);
+      document.getElementById('transitStatus').innerHTML = `${label}<br>${matches.join('<br>')}`;
+      if (!document.getElementById('muteToggle').checked) {
+        document.getElementById('alertSound').play().catch(() => {});
+      }
+      logDetectionLocally(`${label} ${message}`, {
+        callsign,
+        azimuth: azimuth.toFixed(1),
+        altitudeAngle: angle.toFixed(1),
+        body: selectedBody,
+        predictionSeconds: predictSeconds,
+        margin
+      });
+    }
+  }
+
+  if (!matches.length) {
+    document.getElementById('transitStatus').textContent = `No aircraft aligned with the ${selectedBody} right now.`;
+  }
+}
+
+function projectPosition(lat, lon, heading, speed, seconds) {
   const R = 6371000;
   const d = speed * seconds;
   const θ = heading * Math.PI / 180;
@@ -186,122 +323,20 @@ function projectPosition(lat, lon, heading, speed, seconds, verticalRate = 0, ge
 
   return {
     lat: φ2 * 180 / Math.PI,
-    lon: λ2 * 180 / Math.PI,
-    alt: geoAlt + (verticalRate * seconds)
+    lon: λ2 * 180 / Math.PI
   };
 }
 
-function checkNearbyFlights(userLat, userLon, userElev, bodyAz, bodyAlt) {
-  const radiusKm = parseInt(document.getElementById('radiusSelect').value);
-  const range = radiusKm / 111;
-  const lamin = userLat - range;
-  const lamax = userLat + range;
-  const lomin = userLon - range;
-  const lomax = userLon + range;
-
-  const username = sessionStorage.getItem('osUser');
-  const password = sessionStorage.getItem('osPass');
-
-  if (!username || !password) {
-    document.getElementById('transitStatus').textContent = '❌ Missing OpenSky login.';
-    return;
-  }
-
-  
-fetch('https://opensky-proxy.onrender.com/api/flights', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password, lamin, lomin, lamax, lomax })
-})
-.then(res => {
-    if (!res.ok) {
-        if (res.status === 401 || res.status === 403) {
-            document.getElementById('transitStatus').textContent = '❌ Invalid OpenSky credentials. Please re-enter them.';
-            sessionStorage.removeItem('osUser');
-            sessionStorage.removeItem('osPass');
-        } else {
-            document.getElementById('transitStatus').textContent = '🚫 Error fetching flight data.';
-        }
-        throw new Error("Fetch error: " + res.status);
-    }
-    return res.json();
-})
-
-    .then(data => {
-      const matches = [];
-
-      if (!data.states || !Array.isArray(data.states) || data.states.length === 0) {
-        document.getElementById('transitStatus').textContent = 'No aircraft aligned with the Moon right now.';
-        return;
-      }
-
-      for (const plane of data.states) {
-        const callsign = plane[1];
-        const lat = plane[6];
-        const lon = plane[5];
-        const geoAlt = plane[13] || 0;
-        const heading = plane[10];
-        const speed = plane[9];
-        const verticalRate = plane[11] ?? 0;
-
-        if (lat === null || lon === null || geoAlt === null) continue;
-
-        let targetLat = lat;
-        let targetLon = lon;
-        let targetAlt = geoAlt;
-
-        if (predictSeconds > 0 && heading !== null && speed !== null) {
-          const projected = projectPosition(lat, lon, heading, speed, predictSeconds, verticalRate, geoAlt);
-          targetLat = projected.lat;
-          targetLon = projected.lon;
-          targetAlt = projected.alt;
-        }
-
-        const azimuth = calculateAzimuth(userLat, userLon, targetLat, targetLon);
-        const distance = haversine(userLat, userLon, targetLat, targetLon);
-        const angle = Math.atan2(targetAlt - userElev, distance) * (180 / Math.PI);
-        const azDiff = Math.abs(normalizeAngle(azimuth - bodyAz));
-        const altDiff = Math.abs(angle - bodyAlt);
-
-        if (azDiff < margin && altDiff < margin) {
-          const label = predictSeconds > 0
-            ? `⚠️ Possible ${selectedBody} transit in ~${predictSeconds} sec:`
-            : `🔭 Possible ${selectedBody} transit:`;
-          const message = `${callsign} (Az ${azimuth.toFixed(1)}°, Alt ${angle.toFixed(1)}°)`;
-          matches.push(message);
-          document.getElementById('transitStatus').innerHTML = `${label}<br>${matches.join('<br>')}`;
-
-          if (!document.getElementById('muteToggle').checked) {
-            document.getElementById('alertSound').play().catch(err => {
-              console.warn('Sound play failed:', err);
-            });
-          }
-
-          logDetectionLocally(`${label} ${message}`, {
-            callsign,
-            azimuth: azimuth.toFixed(1),
-            altitudeAngle: angle.toFixed(1),
-            body: selectedBody,
-            predictionSeconds: predictSeconds,
-            margin
-          });
-        }
-      }
-
-      if (matches.length === 0) {
-        document.getElementById('transitStatus').textContent = `No aircraft aligned with the ${selectedBody} right now.`;
-      }
-    })
-    .catch(err => {
-      console.error(err);
-      document.getElementById('transitStatus').textContent = '🚫 Error fetching flight data.';
-    });
+function calculateAzimuth(lat1, lon1, lat2, lon2) {
+  const toRad = x => x * Math.PI / 180;
+  const y = Math.sin(toRad(lon2 - lon1)) * Math.cos(toRad(lat2));
+  const x = Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) -
+            Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(toRad(lon2 - lon1));
+  return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
 }
 
-function logDetectionLocally(message, metadata = {}) {
-  let history = JSON.parse(localStorage.getItem('transitLog') || '[]');
-  history.push({ time: new Date().toISOString(), message, ...metadata });
-  localStorage.setItem('transitLog', JSON.stringify(history));
+function normalizeAngle(angle) {
+  return ((angle % 360) + 360) % 360;
 }
 
 function haversine(lat1, lon1, lat2, lon2) {
@@ -315,25 +350,16 @@ function haversine(lat1, lon1, lat2, lon2) {
   return 2 * R * Math.asin(Math.sqrt(a));
 }
 
-function calculateAzimuth(lat1, lon1, lat2, lon2) {
-  const toRad = x => x * Math.PI / 180;
-  const y = Math.sin(toRad(lon2 - lon1)) * Math.cos(toRad(lat2));
-  const x = Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) -
-            Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) *
-            Math.cos(toRad(lon2 - lon1));
-  const azimuth = Math.atan2(y, x) * (180 / Math.PI);
-  return (azimuth + 360) % 360;
-}
-
-function normalizeAngle(angle) {
-  return ((angle % 360) + 360) % 360;
+function logDetectionLocally(message, metadata = {}) {
+  const history = JSON.parse(localStorage.getItem('transitLog') || '[]');
+  history.push({ time: new Date().toISOString(), message, ...metadata });
+  localStorage.setItem('transitLog', JSON.stringify(history));
 }
 
 function startAutoRefresh() {
   stopAutoRefresh();
-
   const userInterval = parseInt(document.getElementById('refreshIntervalInput').value);
-  countdown = (isNaN(userInterval) || userInterval < 3) ? 5 : userInterval;
+  countdown = isNaN(userInterval) || userInterval < 3 ? 5 : userInterval;
   updateCountdownDisplay();
 
   countdownInterval = setInterval(() => {
@@ -341,14 +367,13 @@ function startAutoRefresh() {
     updateCountdownDisplay();
     if (countdown <= 0) {
       getCurrentLocationAndRun();
-      countdown = (isNaN(userInterval) || userInterval < 3) ? 5 : userInterval;
+      countdown = isNaN(userInterval) || userInterval < 3 ? 5 : userInterval;
     }
   }, 1000);
 }
 
 function stopAutoRefresh() {
-  if (refreshInterval) clearInterval(refreshInterval);
-  if (countdownInterval) clearInterval(countdownInterval);
+  clearInterval(countdownInterval);
   document.getElementById('countdownTimer').textContent = 'Auto refresh off';
 }
 
@@ -356,5 +381,99 @@ function updateCountdownDisplay() {
   document.getElementById('countdownTimer').textContent = `Next check in: ${countdown}s`;
 }
 
-// Initial load
 navigator.geolocation.getCurrentPosition(success, error);
+
+
+function useAviationstackAPI() {
+  const key = sessionStorage.getItem('aviationstackKey');
+  if (!key) {
+    alert("❌ Please enter and save your Aviationstack API key before enabling.");
+    return;
+  }
+
+  window.useAviationstack = true;
+  window.useAdsbexchange = false;
+  document.getElementById('apiNotice').textContent = "✅ Aviationstack API mode enabled.";
+  document.getElementById('aviationstackDetails').open = false;
+  document.getElementById('aviationstackTabBtn').style.borderColor = '#444';
+  getCurrentLocationAndRun();
+}
+
+function saveCredentials() {
+  const username = document.getElementById('osUsername').value;
+  const password = document.getElementById('osPassword').value;
+  if (!username || !password) {
+    alert('Please enter both username and password.');
+    return;
+  }
+  sessionStorage.setItem('osUser', username);
+  sessionStorage.setItem('osPass', password);
+  alert('✅ Credentials saved for this session.');
+  document.querySelector('#openskyTab details').open = false;
+}
+
+function saveAviationstackKey() {
+  const key = document.getElementById('aviationstackKey').value.trim();
+  if (!key) {
+    alert("Please enter a valid API key.");
+    return;
+  }
+  sessionStorage.setItem('aviationstackKey', key);
+  alert("✅ API key saved for this session.");
+}
+
+function saveAdsbExSettings() {
+  const key = document.getElementById('adsbApiKey').value.trim();
+  const host = document.getElementById('adsbApiHost').value.trim();
+  if (!key || !host) {
+    alert('Please enter both API Key and Host.');
+    return;
+  }
+  sessionStorage.setItem('adsbApiKey', key);
+  sessionStorage.setItem('adsbApiHost', host);
+  alert('✅ ADS-B Exchange settings saved for this session.');
+}
+
+function useAdsbExchangeAPI() {
+  const key = sessionStorage.getItem('adsbApiKey');
+  const host = sessionStorage.getItem('adsbApiHost');
+  if (!key || !host) {
+    alert("❌ Please enter and save your ADS-B Exchange API settings.");
+    return;
+  }
+  window.useAdsbexchange = true;
+  window.useAviationstack = false;
+  document.getElementById('adsbApiNotice').textContent = "✅ ADS-B Exchange mode enabled.";
+  document.querySelector('#adsbexTab details').open = false;
+  getCurrentLocationAndRun();
+}
+
+function showTab(tabId) {
+  document.getElementById('openskyTab').style.display = 'none';
+  document.getElementById('aviationstackTab').style.display = 'none';
+  document.getElementById('adsbexTab').style.display = 'none';
+
+  document.getElementById('openskyTabBtn').style.borderColor = '#444';
+  document.getElementById('aviationstackTabBtn').style.borderColor = '#444';
+  document.getElementById('adsbexTabBtn').style.borderColor = '#444';
+
+  document.getElementById(tabId).style.display = 'block';
+
+  if (tabId === 'openskyTab') {
+    window.useAviationstack = false;
+    window.useAdsbexchange = false;
+    document.getElementById('apiNotice').textContent = '';
+    document.getElementById('adsbApiNotice').textContent = '';
+    document.getElementById('openskyTabBtn').style.borderColor = '#00bfff';
+  } else if (tabId === 'aviationstackTab') {
+    window.useAviationstack = true;
+    window.useAdsbexchange = false;
+    document.getElementById('aviationstackTabBtn').style.borderColor = '#00bfff';
+    document.getElementById('adsbApiNotice').textContent = '';
+  } else if (tabId === 'adsbexTab') {
+    window.useAviationstack = false;
+    window.useAdsbexchange = true;
+    document.getElementById('adsbexTabBtn').style.borderColor = '#00bfff';
+    document.getElementById('apiNotice').textContent = '';
+  }
+}
