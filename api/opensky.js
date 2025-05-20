@@ -2,15 +2,8 @@ function fetchOpenSkyFlights(lat, lon, elev, azimuth, altitude) {
   const radius = parseInt(document.getElementById("radiusSelect").value);
   const statusEl = document.getElementById("transitStatus");
 
-  const username = sessionStorage.getItem("osUser");
-  const password = sessionStorage.getItem("osPass");
+  const delta = radius / 111; // Approx degrees
 
-  if (!username || !password) {
-    statusEl.textContent = "❌ Missing OpenSky login.";
-    return;
-  }
-
-  const delta = radius / 111; // Rough degrees for radius in km
   const query = new URLSearchParams({
     lamin: lat - delta,
     lamax: lat + delta,
@@ -18,13 +11,9 @@ function fetchOpenSkyFlights(lat, lon, elev, azimuth, altitude) {
     lomax: lon + delta
   }).toString();
 
-  fetch(`/api/opensky?${query}`, {
-    headers: {
-      "Authorization": "Basic " + btoa(username + ":" + password)
-    }
-  })
+  fetch(`/api/opensky?${query}`)
     .then(res => {
-      if (!res.ok) throw new Error("OpenSky login failed or fetch failed");
+      if (!res.ok) throw new Error("OpenSky fetch failed");
       return res.json();
     })
     .then(data => {
