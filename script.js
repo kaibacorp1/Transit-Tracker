@@ -205,15 +205,10 @@ function checkAdsbExchangeFlights(userLat, userLon, userElev, bodyAz, bodyAlt) {
     return;
   }
 
-  const url = `https://${host}/v2/lat/${userLat}/lon/${userLon}/dist/${radiusKm}/`;
+  const url = `/api/adsbexchange?lat=${userLat}&lon=${userLon}&dist=${radiusKm}`;
 
-  fetch(url, {
-    method: 'GET',
-    headers: {
-      'x-rapidapi-host': host,
-      'x-rapidapi-key': key
-    }
-  })
+fetch(url)
+
     .then(res => res.json())
     .then(data => {
       if (!data || !data.ac || !Array.isArray(data.ac)) {
