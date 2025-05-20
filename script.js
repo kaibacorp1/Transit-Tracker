@@ -146,7 +146,13 @@ function checkNearbyFlights(userLat, userLon, userElev, bodyAz, bodyAlt) {
       return;
     }
 
-    fetch(`http://api.aviationstack.com/v1/flights?access_key=${key}&limit=100`)
+    fetch('https://aviationstack.p.rapidapi.com/v1/flights?limit=100', {
+      method: 'GET',
+      headers: {
+        'X-RapidAPI-Key': key,
+        'X-RapidAPI-Host': 'aviationstack.p.rapidapi.com'
+      }
+    })
       .then(res => res.json())
       .then(data => {
         if (data.error) {
@@ -180,9 +186,11 @@ function checkNearbyFlights(userLat, userLon, userElev, bodyAz, bodyAlt) {
   const lomin = userLon - range;
   const lomax = userLon + range;
 
-  
-  const query = new URLSearchParams({ lamin, lomin, lamax, lomax }).toString();
-  fetch(`/api/opensky?${query}`)
+  fetch('https://opensky-proxy.onrender.com/api/flights', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password, lamin, lomin, lamax, lomax })
+  })
     .then(res => {
       if (!res.ok) throw new Error("Fetch failed");
       return res.json();
@@ -191,7 +199,6 @@ function checkNearbyFlights(userLat, userLon, userElev, bodyAz, bodyAlt) {
     .catch(() => {
       document.getElementById('transitStatus').textContent = '🚫 Error fetching OpenSky flight data.';
     });
-    
 }
 
 
@@ -221,21 +228,22 @@ function checkAdsbExchangeFlights(userLat, userLon, userElev, bodyAz, bodyAlt) {
         return;
       }
 
+      // Correctly mapped fields to match handleFlightData expectations
       const flights = data.ac.map(ac => ([
-        ac.hex || '',
-        ac.flight || '',
-        null,
-        null,
-        null,
-        ac.lon,
-        ac.lat,
-        null,
-        null,
-        ac.gs,
-        ac.track,
-        null,
-        null,
-        ac.alt_geom || 0
+        ac.hex || '',        // 0: ICAO address (not used)
+        ac.flight || '',     // 1: callsign
+        null,                // 2: unused
+        null,                // 3: unused
+        null,                // 4: unused
+        ac.lon,              // 5: longitude
+        ac.lat,              // 6: latitude
+        null,                // 7: unused
+        null,                // 8: unused
+        ac.gs,               // 9: ground speed (m/s or knots)
+        ac.track,            // 10: heading
+        null,                // 11: unused
+        null,                // 12: unused
+        ac.alt_geom || 0     // 13: geometric altitude
       ]));
 
       handleFlightData({ states: flights }, userLat, userLon, userElev, bodyAz, bodyAlt);
@@ -245,7 +253,6 @@ function checkAdsbExchangeFlights(userLat, userLon, userElev, bodyAz, bodyAlt) {
       console.error(err);
     });
 }
-
 
 
 
@@ -381,98 +388,3 @@ function updateCountdownDisplay() {
 }
 
 navigator.geolocation.getCurrentPosition(success, error);
-
-
-function useAviationstackAPI() {
-  const key = sessionStorage.getItem('aviationstackKey');
-  if (!key) {
-    alert("❌ Please enter and save your Aviationstack API key before enabling.");
-    return;
-  }
-
-  window.useAviationstack = true;
-  window.useAdsbexchange = false;
-  document.getElementById('apiNotice').textContent = "✅ Aviationstack API mode enabled.";
-  document.getElementById('aviationstackDetails').open = false;
-  document.getElementById('aviationstackTabBtn').style.borderColor = '#444';
-  getCurrentLocationAndRun();
-}
-
-function saveCredentials() {
-  const username = document.getElementById('osUsername').value;
-  const password = document.getElementById('osPassword').value;
-  if (!username || !password) {
-    alert('Please enter both username and password.');
-    return;
-  }
-  sessionStorage.setItem('osUser', username);
-  sessionStorage.setItem('osPass', password);
-  alert('✅ Credentials saved for this session.');
-  document.querySelector('#openskyTab details').open = false;
-}
-
-function saveAviationstackKey() {
-  const key = document.getElementById('aviationstackKey').value.trim();
-  if (!key) {
-    alert("Please enter a valid API key.");
-    return;
-  }
-  sessionStorage.setItem('aviationstackKey', key);
-  alert("✅ API key saved for this session.");
-}
-
-function saveAdsbExSettings() {
-  const key = document.getElementById('adsbApiKey').value.trim();
-  const host = document.getElementById('adsbApiHost').value.trim();
-  if (!key || !host) {
-    alert('Please enter both API Key and Host.');
-    return;
-  }
-  sessionStorage.setItem('adsbApiKey', key);
-  sessionStorage.setItem('adsbApiHost', host);
-  alert('✅ ADS-B Exchange settings saved for this session.');
-}
-
-function useAdsbExchangeAPI() {
-  const key = sessionStorage.getItem('adsbApiKey');
-  const host = sessionStorage.getItem('adsbApiHost');
-  if (!key || !host) {
-    alert("❌ Please enter and save your ADS-B Exchange API settings.");
-    return;
-  }
-  window.useAdsbexchange = true;
-  window.useAviationstack = false;
-  document.getElementById('adsbApiNotice').textContent = "✅ ADS-B Exchange mode enabled.";
-  document.querySelector('#adsbexTab details').open = false;
-  getCurrentLocationAndRun();
-}
-
-function showTab(tabId) {
-  document.getElementById('openskyTab').style.display = 'none';
-  document.getElementById('aviationstackTab').style.display = 'none';
-  document.getElementById('adsbexTab').style.display = 'none';
-
-  document.getElementById('openskyTabBtn').style.borderColor = '#444';
-  document.getElementById('aviationstackTabBtn').style.borderColor = '#444';
-  document.getElementById('adsbexTabBtn').style.borderColor = '#444';
-
-  document.getElementById(tabId).style.display = 'block';
-
-  if (tabId === 'openskyTab') {
-    window.useAviationstack = false;
-    window.useAdsbexchange = false;
-    document.getElementById('apiNotice').textContent = '';
-    document.getElementById('adsbApiNotice').textContent = '';
-    document.getElementById('openskyTabBtn').style.borderColor = '#00bfff';
-  } else if (tabId === 'aviationstackTab') {
-    window.useAviationstack = true;
-    window.useAdsbexchange = false;
-    document.getElementById('aviationstackTabBtn').style.borderColor = '#00bfff';
-    document.getElementById('adsbApiNotice').textContent = '';
-  } else if (tabId === 'adsbexTab') {
-    window.useAviationstack = false;
-    window.useAdsbexchange = true;
-    document.getElementById('adsbexTabBtn').style.borderColor = '#00bfff';
-    document.getElementById('apiNotice').textContent = '';
-  }
-}
