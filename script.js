@@ -180,11 +180,9 @@ function checkNearbyFlights(userLat, userLon, userElev, bodyAz, bodyAlt) {
   const lomin = userLon - range;
   const lomax = userLon + range;
 
-  fetch('https://opensky-proxy.onrender.com/api/flights', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password, lamin, lomin, lamax, lomax })
-  })
+  
+  const query = new URLSearchParams({ lamin, lomin, lamax, lomax }).toString();
+  fetch(`/api/opensky?${query}`)
     .then(res => {
       if (!res.ok) throw new Error("Fetch failed");
       return res.json();
@@ -193,6 +191,7 @@ function checkNearbyFlights(userLat, userLon, userElev, bodyAz, bodyAlt) {
     .catch(() => {
       document.getElementById('transitStatus').textContent = '🚫 Error fetching OpenSky flight data.';
     });
+    
 }
 
 
