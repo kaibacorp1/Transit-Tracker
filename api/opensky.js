@@ -1,18 +1,42 @@
-export default async function handler(req, res) {
-  const { username, password } = process.env;
+function fetchOpenSkyFlights(lat, lon, elev, azimuth, altitude) {
+  const radius = parseInt(document.getElementById("radiusSelect").value);
+  const statusEl = document.getElementById("transitStatus");
 
-  const { lamin, lamax, lomin, lomax } = req.query;
+  const username = sessionStorage.getItem("osUser");
+  const password = sessionStorage.getItem("osPass");
 
   if (!username || !password) {
-    return res.status(401).json({ error: 'Missing credentials' });
+    statusEl.textContent = "❌ Missing OpenSky login.";
+    return;
   }
 
-  const auth = Buffer.from(`${username}:${password}`).toString('base64');
+  const delta = radius / 111; // Rough degrees for radius in km
+  const query = new URLSearchParams({
+    lamin: lat - delta,
+    lamax: lat + delta,
+    lomin: lon - delta,
+    lomax: lon + delta
+  }).toString();
 
-  const response = await fetch(`https://opensky-network.org/api/states/all?lamin=${lamin}&lomin=${lomin}&lamax=${lamax}&lomax=${lomax}`, {
-    headers: { Authorization: `Basic ${auth}` }
-  });
+  fetch(`/api/opensky?${query}`, {
+    headers: {
+      "Authorization": "Basic " + btoa(username + ":" + password)
+    }
+  })
+    .then(res => {
+      if (!res.ok) throw new Error("OpenSky login failed or fetch failed");
+      return res.json();
+    })
+    .then(data => {
+      if (!data.states || !Array.isArray(data.states)) {
+        statusEl.textContent = "❌ Invalid or empty OpenSky data.";
+        return;
+      }
 
-  const data = await response.json();
-  res.status(200).json(data);
+      handleFlightData(data, lat, lon, elev, azimuth, altitude);
+    })
+    .catch(err => {
+      console.error("OpenSky fetch error:", err);
+      statusEl.textContent = "🚫 Error fetching OpenSky flight data.";
+    });
 }
