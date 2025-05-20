@@ -11,9 +11,10 @@ export default async function handler(req, res) {
   try {
     const response = await fetch(url, {
       headers: {
-        'x-rapidapi-host': ADSB_API_HOST,
-        'x-rapidapi-key': ADSB_API_KEY
-      }
+  'x-rapidapi-host': ADSB_API_HOST,
+  'x-rapidapi-key': ADSB_API_KEY,
+  'X-Forwarded-For': '8.8.8.8' // spoofed IP for API compatibility
+}
     });
 
     const data = await response.json();
