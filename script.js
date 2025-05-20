@@ -180,9 +180,11 @@ function checkNearbyFlights(userLat, userLon, userElev, bodyAz, bodyAlt) {
   const lomin = userLon - range;
   const lomax = userLon + range;
 
-  
-  const query = new URLSearchParams({ lamin, lomin, lamax, lomax }).toString();
-  fetch(`/api/opensky?${query}`)
+  fetch('https://opensky-proxy.onrender.com/api/flights', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password, lamin, lomin, lamax, lomax })
+  })
     .then(res => {
       if (!res.ok) throw new Error("Fetch failed");
       return res.json();
@@ -191,7 +193,6 @@ function checkNearbyFlights(userLat, userLon, userElev, bodyAz, bodyAlt) {
     .catch(() => {
       document.getElementById('transitStatus').textContent = '🚫 Error fetching OpenSky flight data.';
     });
-    
 }
 
 
@@ -221,21 +222,22 @@ function checkAdsbExchangeFlights(userLat, userLon, userElev, bodyAz, bodyAlt) {
         return;
       }
 
+      // Correctly mapped fields to match handleFlightData expectations
       const flights = data.ac.map(ac => ([
-        ac.hex || '',
-        ac.flight || '',
-        null,
-        null,
-        null,
-        ac.lon,
-        ac.lat,
-        null,
-        null,
-        ac.gs,
-        ac.track,
-        null,
-        null,
-        ac.alt_geom || 0
+        ac.hex || '',        // 0: ICAO address (not used)
+        ac.flight || '',     // 1: callsign
+        null,                // 2: unused
+        null,                // 3: unused
+        null,                // 4: unused
+        ac.lon,              // 5: longitude
+        ac.lat,              // 6: latitude
+        null,                // 7: unused
+        null,                // 8: unused
+        ac.gs,               // 9: ground speed (m/s or knots)
+        ac.track,            // 10: heading
+        null,                // 11: unused
+        null,                // 12: unused
+        ac.alt_geom || 0     // 13: geometric altitude
       ]));
 
       handleFlightData({ states: flights }, userLat, userLon, userElev, bodyAz, bodyAlt);
@@ -245,7 +247,6 @@ function checkAdsbExchangeFlights(userLat, userLon, userElev, bodyAz, bodyAlt) {
       console.error(err);
     });
 }
-
 
 
 
