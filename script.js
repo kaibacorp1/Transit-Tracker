@@ -205,10 +205,15 @@ function checkAdsbExchangeFlights(userLat, userLon, userElev, bodyAz, bodyAlt) {
     return;
   }
 
-  const url = `/api/adsbexchange?lat=${userLat}&lon=${userLon}&dist=${radiusKm}`;
+  const url = `https://${host}/v2/lat/${userLat}/lon/${userLon}/dist/${radiusKm}/`;
 
-fetch(url)
-
+  fetch(url, {
+    method: 'GET',
+    headers: {
+      'x-rapidapi-host': host,
+      'x-rapidapi-key': key
+    }
+  })
     .then(res => res.json())
     .then(data => {
       if (!data || !data.ac || !Array.isArray(data.ac)) {
@@ -216,22 +221,21 @@ fetch(url)
         return;
       }
 
-      // Correctly mapped fields to match handleFlightData expectations
       const flights = data.ac.map(ac => ([
-        ac.hex || '',        // 0: ICAO address (not used)
-        ac.flight || '',     // 1: callsign
-        null,                // 2: unused
-        null,                // 3: unused
-        null,                // 4: unused
-        ac.lon,              // 5: longitude
-        ac.lat,              // 6: latitude
-        null,                // 7: unused
-        null,                // 8: unused
-        ac.gs,               // 9: ground speed (m/s or knots)
-        ac.track,            // 10: heading
-        null,                // 11: unused
-        null,                // 12: unused
-        ac.alt_geom || 0     // 13: geometric altitude
+        ac.hex || '',
+        ac.flight || '',
+        null,
+        null,
+        null,
+        ac.lon,
+        ac.lat,
+        null,
+        null,
+        ac.gs,
+        ac.track,
+        null,
+        null,
+        ac.alt_geom || 0
       ]));
 
       handleFlightData({ states: flights }, userLat, userLon, userElev, bodyAz, bodyAlt);
@@ -241,6 +245,7 @@ fetch(url)
       console.error(err);
     });
 }
+
 
 
 
