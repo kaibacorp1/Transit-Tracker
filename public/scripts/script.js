@@ -139,32 +139,68 @@ function getCelestialPosition(lat,lon,elev){
 }
 
 // proxy to OpenSky + backend detection
-function checkNearbyFlights(uLat,uLon,uElev,bodyAz,bodyAlt){
-  document.getElementById('transitStatus').textContent=`Checking flights near the ${selectedBody}...`;
-  const username=sessionStorage.getItem('osUser'),
-        password=sessionStorage.getItem('osPass');
-  if(!username||!password){
-    document.getElementById('transitStatus').textContent='❌ Missing OpenSky login.';
+function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
+  const statusEl = document.getElementById('transitStatus');
+  statusEl.textContent = `Checking flights near the ${selectedBody}...`;
+  const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
+
+  // — Aviationstack mode —
+  if (window.useAviationstack) {
+    const key = getAviationstackKey();
+    if (!key) {
+      statusEl.textContent = '❌ Missing Aviationstack API key.';
+      return;
+    }
+    fetch(`http://api.aviationstack.com/v1/flights?access_key=${key}&limit=100`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          statusEl.textContent = `❌ Aviationstack error: ${data.error.message || data.error}`;
+          return;
+        }
+        callTransitAPI(data.data || [], uLat, uLon, uElev, bodyAz, bodyAlt);
+      })
+      .catch(() => { statusEl.textContent = '🚫 Error fetching Aviationstack data.'; });
     return;
   }
-  const radiusKm=parseInt(document.getElementById('radiusSelect').value),
-        range=radiusKm/111,
-        lamin=uLat-range, lamax=uLat+range,
-        lomin=uLon-range, lomax=uLon+range;
+
+  // — ADS-B Exchange mode —
+  if (window.useAdsbexchange) {
+    const key = sessionStorage.getItem('adsbApiKey');
+    const host = sessionStorage.getItem('adsbApiHost');
+    if (!key || !host) {
+      statusEl.textContent = '❌ Missing ADS-B Exchange API settings.';
+      return;
+    }
+    // This helper will fetch & then call callTransitAPI()
+    checkAdsbExchangeFlights(uLat, uLon, uElev, bodyAz, bodyAlt);
+    return;
+  }
+
+  // — Default: OpenSky mode —
+  const username = sessionStorage.getItem('osUser');
+  const password = sessionStorage.getItem('osPass');
+  if (!username || !password) {
+    statusEl.textContent = '❌ Missing OpenSky login.';
+    return;
+  }
+
+  const range  = radiusKm / 111;
+  const lamin  = uLat - range, lamax = uLat + range;
+  const lomin  = uLon - range, lomax = uLon + range;
 
   fetch('https://opensky-proxy.onrender.com/api/flights', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({username,password,lamin,lomin,lamax,lomax})
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password, lamin, lomin, lamax, lomax })
   })
-  .then(r=>r.json())
-  .then(data=>{
-    const flights=data.states||[];
-    callTransitAPI(flights,uLat,uLon,uElev,bodyAz,bodyAlt);
-  })
-  .catch(()=>{ document.getElementById('transitStatus').textContent='🚫 Error fetching flight data.'; });
+    .then(res => res.json())
+    .then(data => {
+      const flights = data.states || [];
+      callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt);
+    })
+    .catch(() => { statusEl.textContent = '🚫 Error fetching OpenSky flight data.'; });
 }
-
 // --- Backend call ---
 function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
   fetch('/api/detect-transit', {
