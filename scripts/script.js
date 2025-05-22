@@ -264,4 +264,7 @@ function updateCountdownDisplay() {
 }
 
 // Geo init
-navigator.geolocation.getCurrentPosition(success, error);
+document.addEventListener('DOMContentLoaded', () => {
+  navigator.geolocation.getCurrentPosition(success, error);
+});
+
