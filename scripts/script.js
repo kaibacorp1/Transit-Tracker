@@ -1,3 +1,5 @@
+// script.js - Updated to use backend /api/detect-transit
+
 window.useAviationstack = false;
 
 let selectedBody = 'moon';
@@ -8,11 +10,45 @@ let locationMode = 'auto';
 let predictSeconds = 0;
 let margin = 2.5;
 
-function getAviationstackKey() {
-  return sessionStorage.getItem('aviationstackKey');
+// Helper functions (retained for potential local use)
+function projectPosition(lat, lon, heading, speed, seconds) {
+  const R = 6371000;
+  const d = speed * seconds;
+  const θ = heading * Math.PI / 180;
+  const φ1 = lat * Math.PI / 180;
+  const λ1 = lon * Math.PI / 180;
+  const φ2 = Math.asin(Math.sin(φ1) * Math.cos(d / R) +
+    Math.cos(φ1) * Math.sin(d / R) * Math.cos(θ));
+  const λ2 = λ1 + Math.atan2(Math.sin(θ) * Math.sin(d / R) * Math.cos(φ1),
+    Math.cos(d / R) - Math.sin(φ1) * Math.sin(φ2));
+  return { lat: φ2 * 180 / Math.PI, lon: λ2 * 180 / Math.PI };
 }
 
-document.getElementById('bodyToggle').addEventListener('change', (e) => {
+function calculateAzimuth(lat1, lon1, lat2, lon2) {
+  const toRad = x => x * Math.PI / 180;
+  const y = Math.sin(toRad(lon2 - lon1)) * Math.cos(toRad(lat2));
+  const x = Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) -
+            Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(toRad(lon2 - lon1));
+  return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+}
+
+function normalizeAngle(angle) {
+  return ((angle % 360) + 360) % 360;
+}
+
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371000;
+  const toRad = x => x * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+            Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+// UI and control event listeners
+document.getElementById('bodyToggle').addEventListener('change', e => {
   selectedBody = e.target.value;
   document.getElementById('trackerTitle').textContent =
     selectedBody === 'moon' ? '🌙 Moon' : '☀️ Sun';
@@ -25,29 +61,27 @@ document.getElementById('radiusSelect').addEventListener('change', getCurrentLoc
 document.getElementById('predictToggle').addEventListener('change', e => {
   predictSeconds = parseInt(e.target.value) || 0;
 });
-document.getElementById('autoRefreshToggle').addEventListener('change', (e) => {
+document.getElementById('autoRefreshToggle').addEventListener('change', e => {
   autoRefresh = e.target.value === 'on';
   autoRefresh ? startAutoRefresh() : stopAutoRefresh();
 });
-document.getElementById('locationMode').addEventListener('change', (e) => {
+document.getElementById('locationMode').addEventListener('change', e => {
   locationMode = e.target.value;
-  const manualFields = document.getElementById('manualLocationFields');
-  manualFields.style.display = locationMode === 'manual' ? 'block' : 'none';
+  document.getElementById('manualLocationFields').style.display =
+    locationMode === 'manual' ? 'block' : 'none';
   if (locationMode === 'auto') navigator.geolocation.getCurrentPosition(success, error);
 });
 document.getElementById('refreshBtn').addEventListener('click', getCurrentLocationAndRun);
 
-document.getElementById('marginSlider').addEventListener('input', (e) => {
+document.getElementById('marginSlider').addEventListener('input', e => {
   margin = parseFloat(e.target.value);
   document.getElementById('marginValue').textContent = `${margin.toFixed(1)}°`;
-
   const feedback =
     margin <= 2.5 ? "🎯 Very strict (photography)" :
     margin <= 5   ? "📸 Loose silhouette range" :
     margin <= 10  ? "🔭 General awareness" :
     margin <= 15  ? "📡 Visual tracking zone" :
                     "🛑 Too loose — radar sweep only";
-
   document.getElementById('marginFeedback').textContent = feedback;
 });
 
@@ -66,13 +100,11 @@ document.getElementById('clearLogBtn').addEventListener('click', () => {
 document.getElementById('downloadLogBtn').addEventListener('click', () => {
   const log = JSON.parse(localStorage.getItem('transitLog') || '[]');
   if (!log.length) return alert('No detections to download.');
-
   const format = document.getElementById('logFormat').value;
   const filename = `transit_log.${format}`;
   const content = format === 'json'
     ? JSON.stringify(log, null, 2)
-    : log.map(entry => Object.entries(entry).map(([k, v]) => `${k}: ${v}`).join('\n')).join('\n\n');
-
+    : log.map(e => Object.entries(e).map(([k, v]) => `${k}: ${v}`).join('\n')).join('\n\n');
   const blob = new Blob([content], { type: format === 'json' ? 'application/json' : 'text/plain' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -82,6 +114,7 @@ document.getElementById('downloadLogBtn').addEventListener('click', () => {
   document.body.removeChild(a);
 });
 
+// Geolocation successful
 function success(position) {
   const lat = position.coords.latitude;
   const lon = position.coords.longitude;
@@ -126,10 +159,8 @@ function getCelestialPosition(lat, lon, elev) {
     : SunCalc.getPosition(now, lat, lon);
   const az = (pos.azimuth * 180) / Math.PI + 180;
   const alt = (pos.altitude * 180) / Math.PI;
-
   document.getElementById('moonAz').textContent = az.toFixed(2);
   document.getElementById('moonAlt').textContent = alt.toFixed(2);
-
   checkNearbyFlights(lat, lon, elev, az, alt);
 }
 
@@ -137,43 +168,13 @@ function checkNearbyFlights(userLat, userLon, userElev, bodyAz, bodyAlt) {
   const radiusKm = parseInt(document.getElementById('radiusSelect').value);
   document.getElementById('transitStatus').textContent = `Checking flights near the ${selectedBody}...`;
 
-  if (window.useAviationstack) {
-    // Aviationstack mode
-
-    const key = getAviationstackKey();
-    if (!key) {
-      document.getElementById('transitStatus').textContent = '❌ Missing Aviationstack API key.';
-      return;
-    }
-
-    fetch(`http://api.aviationstack.com/v1/flights?access_key=${key}&limit=100`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.error) {
-          const msg = data.error.message || "Unknown Aviationstack error.";
-          document.getElementById('transitStatus').textContent = `❌ Aviationstack error: ${msg}`;
-          return;
-        }
-        handleAviationstackData(data, userLat, userLon, userElev, bodyAz, bodyAlt);
-      })
-      .catch(() => {
-        document.getElementById('transitStatus').textContent = '🚫 Error fetching Aviationstack data.';
-      });
-    return;
-  }
-
-  if (window.useAdsbexchange) {
-    checkAdsbExchangeFlights(userLat, userLon, userElev, bodyAz, bodyAlt);
-    return;
-  }
-
+  // Fetch flight data from OpenSky via proxy
   const username = sessionStorage.getItem('osUser');
   const password = sessionStorage.getItem('osPass');
   if (!username || !password) {
     document.getElementById('transitStatus').textContent = '❌ Missing OpenSky login.';
     return;
   }
-
   const range = radiusKm / 111;
   const lamin = userLat - range;
   const lamax = userLat + range;
@@ -185,183 +186,64 @@ function checkNearbyFlights(userLat, userLon, userElev, bodyAz, bodyAlt) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, password, lamin, lomin, lamax, lomax })
   })
-    .then(res => {
-      if (!res.ok) throw new Error("Fetch failed");
-      return res.json();
-    })
-    .then(data => handleFlightData(data, userLat, userLon, userElev, bodyAz, bodyAlt))
-    .catch(() => {
-      document.getElementById('transitStatus').textContent = '🚫 Error fetching OpenSky flight data.';
-    });
-}
-
-
-function checkAdsbExchangeFlights(userLat, userLon, userElev, bodyAz, bodyAlt) {
-  const key = sessionStorage.getItem('adsbApiKey');
-  const host = sessionStorage.getItem('adsbApiHost');
-  const radiusKm = parseInt(document.getElementById('radiusSelect').value);
-
-  if (!key || !host) {
-    document.getElementById('transitStatus').textContent = '❌ Missing ADS-B Exchange API settings.';
-    return;
-  }
-
-  const url = `https://${host}/v2/lat/${userLat}/lon/${userLon}/dist/${radiusKm}/`;
-
-  fetch(url, {
-    method: 'GET',
-    headers: {
-      'x-rapidapi-host': host,
-      'x-rapidapi-key': key
-    }
-  })
     .then(res => res.json())
     .then(data => {
-      if (!data || !data.ac || !Array.isArray(data.ac)) {
-        document.getElementById('transitStatus').textContent = '❌ Invalid or empty ADS-B response.';
-        return;
-      }
-
-      // Correctly mapped fields to match handleFlightData expectations
-      const flights = data.ac.map(ac => ([
-        ac.hex || '',        // 0: ICAO address (not used)
-        ac.flight || '',     // 1: callsign
-        null,                // 2: unused
-        null,                // 3: unused
-        null,                // 4: unused
-        ac.lon,              // 5: longitude
-        ac.lat,              // 6: latitude
-        null,                // 7: unused
-        null,                // 8: unused
-        ac.gs,               // 9: ground speed (m/s or knots)
-        ac.track,            // 10: heading
-        null,                // 11: unused
-        null,                // 12: unused
-        ac.alt_geom || 0     // 13: geometric altitude
-      ]));
-
-      handleFlightData({ states: flights }, userLat, userLon, userElev, bodyAz, bodyAlt);
+      const flights = data.states || [];
+      callTransitAPI(flights, userLat, userLon, userElev, bodyAz, bodyAlt);
     })
-    .catch(err => {
-      document.getElementById('transitStatus').textContent = '🚫 Error fetching ADS-B Exchange data.';
-      console.error(err);
+    .catch(() => {
+      document.getElementById('transitStatus').textContent = '🚫 Error fetching flight data.';
     });
 }
 
-
-
-function handleFlightData(data, userLat, userLon, userElev, bodyAz, bodyAlt) {
-  const matches = [];
-
-  if (!data.states || !Array.isArray(data.states) || data.states.length === 0) {
-    document.getElementById('transitStatus').textContent = 'No aircraft found in the search zone.';
-    return;
-  }
-
-  for (const plane of data.states) {
-    const callsign = plane[1];
-    const lat = plane[6];
-    const lon = plane[5];
-    const geoAlt = plane[13] || 0;
-    const heading = plane[10];
-    const speed = plane[9];
-
-    if (lat === null || lon === null || geoAlt === null) continue;
-
-    let targetLat = lat;
-    let targetLon = lon;
-
-    if (predictSeconds > 0 && heading !== null && speed !== null) {
-      const projected = projectPosition(lat, lon, heading, speed, predictSeconds);
-      targetLat = projected.lat;
-      targetLon = projected.lon;
-    }
-
-    const azimuth = calculateAzimuth(userLat, userLon, targetLat, targetLon);
-    const distance = haversine(userLat, userLon, targetLat, targetLon);
-    const angle = Math.atan2(geoAlt - userElev, distance) * (180 / Math.PI);
-    const azDiff = Math.abs(normalizeAngle(azimuth - bodyAz));
-    const altDiff = Math.abs(angle - bodyAlt);
-
-    if (azDiff < margin && altDiff < margin) {
-      const label = predictSeconds > 0
-        ? `⚠️ Possible ${selectedBody} transit in ~${predictSeconds} sec:`
-        : `🔭 Possible ${selectedBody} transit:`;
-      const message = `${callsign} (Az ${azimuth.toFixed(1)}°, Alt ${angle.toFixed(1)}°)`;
-      matches.push(message);
-      document.getElementById('transitStatus').innerHTML = `${label}<br>${matches.join('<br>')}`;
-      if (!document.getElementById('muteToggle').checked) {
-        document.getElementById('alertSound').play().catch(() => {});
+// Call the backend for transit detection
+function callTransitAPI(flights, userLat, userLon, userElev, bodyAz, bodyAlt) {
+  fetch('/api/detect-transit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      flights,
+      userLat,
+      userLon,
+      userElev,
+      bodyAz,
+      bodyAlt,
+      margin,
+      predictSeconds,
+      selectedBody
+    })
+  })
+    .then(res => res.json())
+    .then(({ matches, error }) => {
+      if (error) {
+        document.getElementById('transitStatus').textContent = `❌ ${error}`;
+      } else if (matches.length) {
+        const label = predictSeconds > 0
+          ? `⚠️ Possible ${selectedBody} transit in ~${predictSeconds} sec:`
+          : `🔭 Possible ${selectedBody} transit:`;
+        document.getElementById('transitStatus').innerHTML =
+          `${label}<br>${matches.map(m => `${m.callsign} (Az ${m.azimuth}°, Alt ${m.altitudeAngle}°)`).join('<br>')}`;
+        if (!document.getElementById('muteToggle').checked) {
+          document.getElementById('alertSound').play().catch(() => {});
+        }
+        // Optionally log locally
+      } else {
+        document.getElementById('transitStatus').textContent =
+          `No aircraft aligned with the ${selectedBody} right now.`;
       }
-      logDetectionLocally(`${label} ${message}`, {
-        callsign,
-        azimuth: azimuth.toFixed(1),
-        altitudeAngle: angle.toFixed(1),
-        body: selectedBody,
-        predictionSeconds: predictSeconds,
-        margin
-      });
-    }
-  }
-
-  if (!matches.length) {
-    document.getElementById('transitStatus').textContent = `No aircraft aligned with the ${selectedBody} right now.`;
-  }
+    })
+    .catch(err => {
+      console.error('Transit API error:', err);
+      document.getElementById('transitStatus').textContent = '🚫 Error checking transit.';
+    });
 }
 
-function projectPosition(lat, lon, heading, speed, seconds) {
-  const R = 6371000;
-  const d = speed * seconds;
-  const θ = heading * Math.PI / 180;
-  const φ1 = lat * Math.PI / 180;
-  const λ1 = lon * Math.PI / 180;
-
-  const φ2 = Math.asin(Math.sin(φ1) * Math.cos(d / R) +
-              Math.cos(φ1) * Math.sin(d / R) * Math.cos(θ));
-  const λ2 = λ1 + Math.atan2(Math.sin(θ) * Math.sin(d / R) * Math.cos(φ1),
-              Math.cos(d / R) - Math.sin(φ1) * Math.sin(φ2));
-
-  return {
-    lat: φ2 * 180 / Math.PI,
-    lon: λ2 * 180 / Math.PI
-  };
-}
-
-function calculateAzimuth(lat1, lon1, lat2, lon2) {
-  const toRad = x => x * Math.PI / 180;
-  const y = Math.sin(toRad(lon2 - lon1)) * Math.cos(toRad(lat2));
-  const x = Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) -
-            Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(toRad(lon2 - lon1));
-  return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
-}
-
-function normalizeAngle(angle) {
-  return ((angle % 360) + 360) % 360;
-}
-
-function haversine(lat1, lon1, lat2, lon2) {
-  const R = 6371000;
-  const toRad = x => x * Math.PI / 180;
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
-  const a = Math.sin(dLat / 2) ** 2 +
-            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-            Math.sin(dLon / 2) ** 2;
-  return 2 * R * Math.asin(Math.sqrt(a));
-}
-
-function logDetectionLocally(message, metadata = {}) {
-  const history = JSON.parse(localStorage.getItem('transitLog') || '[]');
-  history.push({ time: new Date().toISOString(), message, ...metadata });
-  localStorage.setItem('transitLog', JSON.stringify(history));
-}
-
+// Auto-refresh logic
 function startAutoRefresh() {
   stopAutoRefresh();
   const userInterval = parseInt(document.getElementById('refreshIntervalInput').value);
   countdown = isNaN(userInterval) || userInterval < 3 ? 5 : userInterval;
   updateCountdownDisplay();
-
   countdownInterval = setInterval(() => {
     countdown--;
     updateCountdownDisplay();
@@ -381,99 +263,5 @@ function updateCountdownDisplay() {
   document.getElementById('countdownTimer').textContent = `Next check in: ${countdown}s`;
 }
 
+// Geo init
 navigator.geolocation.getCurrentPosition(success, error);
-
-
-function useAviationstackAPI() {
-  const key = sessionStorage.getItem('aviationstackKey');
-  if (!key) {
-    alert("❌ Please enter and save your Aviationstack API key before enabling.");
-    return;
-  }
-
-  window.useAviationstack = true;
-  window.useAdsbexchange = false;
-  document.getElementById('apiNotice').textContent = "✅ Aviationstack API mode enabled.";
-  document.getElementById('aviationstackDetails').open = false;
-  document.getElementById('aviationstackTabBtn').style.borderColor = '#444';
-  getCurrentLocationAndRun();
-}
-
-function saveCredentials() {
-  const username = document.getElementById('osUsername').value;
-  const password = document.getElementById('osPassword').value;
-  if (!username || !password) {
-    alert('Please enter both username and password.');
-    return;
-  }
-  sessionStorage.setItem('osUser', username);
-  sessionStorage.setItem('osPass', password);
-  alert('✅ Credentials saved for this session.');
-  document.querySelector('#openskyTab details').open = false;
-}
-
-function saveAviationstackKey() {
-  const key = document.getElementById('aviationstackKey').value.trim();
-  if (!key) {
-    alert("Please enter a valid API key.");
-    return;
-  }
-  sessionStorage.setItem('aviationstackKey', key);
-  alert("✅ API key saved for this session.");
-}
-
-function saveAdsbExSettings() {
-  const key = document.getElementById('adsbApiKey').value.trim();
-  const host = document.getElementById('adsbApiHost').value.trim();
-  if (!key || !host) {
-    alert('Please enter both API Key and Host.');
-    return;
-  }
-  sessionStorage.setItem('adsbApiKey', key);
-  sessionStorage.setItem('adsbApiHost', host);
-  alert('✅ ADS-B Exchange settings saved for this session.');
-}
-
-function useAdsbExchangeAPI() {
-  const key = sessionStorage.getItem('adsbApiKey');
-  const host = sessionStorage.getItem('adsbApiHost');
-  if (!key || !host) {
-    alert("❌ Please enter and save your ADS-B Exchange API settings.");
-    return;
-  }
-  window.useAdsbexchange = true;
-  window.useAviationstack = false;
-  document.getElementById('adsbApiNotice').textContent = "✅ ADS-B Exchange mode enabled.";
-  document.querySelector('#adsbexTab details').open = false;
-  getCurrentLocationAndRun();
-}
-
-function showTab(tabId) {
-  document.getElementById('openskyTab').style.display = 'none';
-  document.getElementById('aviationstackTab').style.display = 'none';
-  document.getElementById('adsbexTab').style.display = 'none';
-
-  document.getElementById('openskyTabBtn').style.borderColor = '#444';
-  document.getElementById('aviationstackTabBtn').style.borderColor = '#444';
-  document.getElementById('adsbexTabBtn').style.borderColor = '#444';
-
-  document.getElementById(tabId).style.display = 'block';
-
-  if (tabId === 'openskyTab') {
-    window.useAviationstack = false;
-    window.useAdsbexchange = false;
-    document.getElementById('apiNotice').textContent = '';
-    document.getElementById('adsbApiNotice').textContent = '';
-    document.getElementById('openskyTabBtn').style.borderColor = '#00bfff';
-  } else if (tabId === 'aviationstackTab') {
-    window.useAviationstack = true;
-    window.useAdsbexchange = false;
-    document.getElementById('aviationstackTabBtn').style.borderColor = '#00bfff';
-    document.getElementById('adsbApiNotice').textContent = '';
-  } else if (tabId === 'adsbexTab') {
-    window.useAviationstack = false;
-    window.useAdsbexchange = true;
-    document.getElementById('adsbexTabBtn').style.borderColor = '#00bfff';
-    document.getElementById('apiNotice').textContent = '';
-  }
-}
