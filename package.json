@@ -1,3 +1,6 @@
 {
-  "type": "module"
+  "name": "celestial-transit-tracker",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {}
 }
