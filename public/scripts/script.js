@@ -166,36 +166,51 @@ function checkNearbyFlights(uLat,uLon,uElev,bodyAz,bodyAlt){
 }
 
 // --- Backend call ---
-function callTransitAPI(flights,uLat,uLon,uElev,bodyAz,bodyAlt){
-  fetch('/api/detect-transit',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-      flights,uLat,uLon,uElev,bodyAz,bodyAlt,
-      margin,predictSeconds,selectedBody
+function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
+  fetch('/api/detect-transit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      flights,
+      userLat:   uLat,
+      userLon:   uLon,
+      userElev:  uElev,
+      bodyAz,
+      bodyAlt,
+      margin,
+      predictSeconds,
+      selectedBody
     })
   })
-  .then(r=>r.json())
-  .then(({matches,error})=>{
-    if(error){
-      document.getElementById('transitStatus').textContent=`❌ ${error}`;
-    } else if(matches.length){
-      const label=predictSeconds>0
-        ?`⚠️ Possible ${selectedBody} transit in ~${predictSeconds} sec:`
-        :`🔭 Possible ${selectedBody} transit:`;
-      document.getElementById('transitStatus').innerHTML=
-        `${label}<br>${matches.map(m=>`${m.callsign} (Az ${m.azimuth}°, Alt ${m.altitudeAngle}°)`).join('<br>')}`;
-      if(!document.getElementById('muteToggle').checked)
+  .then(res => {
+    if (!res.ok) throw new Error(`Server returned ${res.status}`);
+    return res.json();
+  })
+  .then(({ matches, error }) => {
+    if (error) {
+      document.getElementById('transitStatus').textContent = `❌ ${error}`;
+      return;
+    }
+    if (matches.length) {
+      const label = predictSeconds > 0
+        ? `⚠️ Possible ${selectedBody} transit in ~${predictSeconds} sec:`
+        : `🔭 Possible ${selectedBody} transit:`;
+      document.getElementById('transitStatus').innerHTML =
+        `${label}<br>${matches
+          .map(m => `${m.callsign} (Az ${m.azimuth}°, Alt ${m.altitudeAngle}°)`)
+          .join('<br>')}`;
+      if (!document.getElementById('muteToggle').checked) {
         document.getElementById('alertSound').play().catch(()=>{});
-      logDetectionLocally(`${selectedBody} transit detected`);
+      }
+      logDetectionLocally(`${selectedBody} transit detected`, { az: bodyAz, alt: bodyAlt });
     } else {
-      document.getElementById('transitStatus').textContent=
+      document.getElementById('transitStatus').textContent =
         `No aircraft aligned with the ${selectedBody} right now.`;
     }
   })
-  .catch(err=>{
-    console.error('Transit API error:',err);
-    document.getElementById('transitStatus').textContent='🚫 Error checking transit.';
+  .catch(err => {
+    console.error('Transit API error:', err);
+    document.getElementById('transitStatus').textContent = '🚫 Error checking transit.';
   });
 }
 
