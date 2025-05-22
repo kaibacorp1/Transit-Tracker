@@ -1,0 +1,124 @@
+/* style.css - Clean Dark Theme for Celestial Transit Tracker (Compact Version) */
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #0b0f1a;
+  color: #e0e6ed;
+  margin: 0;
+  padding: 1.5rem;
+}
+
+.container {
+  max-width: 760px;
+  margin: auto;
+  padding: 1.5rem;
+  background: #121826;
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+h1 {
+  color: #00bfff;
+  font-size: 1.8rem;
+}
+
+.data {
+  margin-top: 1.2rem;
+  padding: 1.2rem;
+  background: #1c2433;
+  border-radius: 10px;
+  border: 1px solid #2c3748;
+}
+
+select,
+button,
+input[type="number"],
+input[type="range"],
+input[type="text"],
+input[type="password"] {
+  padding: 0.4rem 0.8rem;
+  margin-top: 0.4rem;
+  background-color: #202b3a;
+  color: #ffffff;
+  border: 1px solid #3b4c63;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+button {
+  cursor: pointer;
+  background-color: #007acc;
+  border: none;
+  transition: background-color 0.2s;
+}
+
+button:hover {
+  background-color: #0097ff;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  align-items: center;
+}
+
+.tab-buttons {
+  display: flex;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.tab-buttons button {
+  flex: 1;
+  background-color: #202b3a;
+  border: 1px solid #3b4c63;
+  font-weight: bold;
+}
+
+.tab-buttons button.active {
+  border-color: #00bfff;
+  background-color: #2d3e56;
+}
+
+#marginFeedback {
+  margin-top: 0.4rem;
+  font-size: 0.85em;
+  color: #bbbbbb;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.info-grid > div {
+  background-color: #2a3548;
+  padding: 0.8rem;
+  border-radius: 8px;
+}
+
+details summary {
+  cursor: pointer;
+  font-weight: bold;
+  margin-bottom: 0.4rem;
+}
+
+footer {
+  margin-top: 2rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #888;
+}
+
+footer a {
+  color: #aaa;
+  text-decoration: none;
+  margin: 0 0.4rem;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
