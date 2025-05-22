@@ -1,39 +1,31 @@
-// api/detect-transit.js
-
-import { detectTransits } from '../utils/transitUtils.js'; // Make sure this uses ES Modules
-
-export default function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Only POST allowed' });
   }
 
-  const {
-    flights,
-    userLat,
-    userLon,
-    userElev,
-    bodyAz,
-    bodyAlt,
-    margin,
-    predictSeconds,
-    selectedBody
-  } = req.body;
+  // dynamic import avoids ESM resolution quirks
+  const { detectTransits } = await import('../utils/transitUtils.js');
 
-  if (!flights || userLat == null || userLon == null || bodyAz == null || bodyAlt == null) {
-    return res.status(400).json({ error: 'Missing required fields' });
+  try {
+    const {
+      flights, userLat, userLon, userElev,
+      bodyAz, bodyAlt, margin = 2.5,
+      predictSeconds = 0, selectedBody = 'moon'
+    } = req.body;
+
+    if (!Array.isArray(flights) || userLat == null || userLon == null 
+        || bodyAz == null || bodyAlt == null) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    const matches = detectTransits({
+      flights, userLat, userLon, userElev,
+      bodyAz, bodyAlt, margin, predictSeconds, selectedBody
+    });
+
+    return res.status(200).json({ matches });
+  } catch (err) {
+    console.error('detect-transit error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
   }
-
-  const results = detectTransits({
-    flights,
-    userLat,
-    userLon,
-    userElev,
-    bodyAz,
-    bodyAlt,
-    margin,
-    predictSeconds,
-    selectedBody
-  });
-
-  res.status(200).json({ matches: results });
 }
