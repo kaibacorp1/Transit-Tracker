@@ -1,7 +1,6 @@
-
 // api/detect-transit.js
 
-const { detectTransits } = require('../utils/transitUtils');
+import { detectTransits } from '../utils/transitUtils.js'; // Make sure this uses ES Modules
 
 export default function handler(req, res) {
   if (req.method !== 'POST') {
