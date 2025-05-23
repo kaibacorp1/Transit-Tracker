@@ -50,6 +50,13 @@ document.getElementById('autoRefreshToggle').addEventListener('change', e => {
   autoRefresh = e.target.value === 'on';
   autoRefresh ? startAutoRefresh() : stopAutoRefresh();
 });
+
+// Restart auto-refresh when interval input changes
+document.getElementById('refreshIntervalInput').addEventListener('change', () => {
+  if (autoRefresh) {
+    startAutoRefresh();
+  }
+});
 document.getElementById('locationMode').addEventListener('change', e => {
   locationMode = e.target.value;
   document.getElementById('manualLocationFields').style.display =
@@ -349,15 +356,22 @@ function haversine(lat1, lon1, lat2, lon2) {
 }
 
 // --- Auto-refresh Handlers ---
-function startAutoRefresh() {
-  stopAutoRefresh();
+function updateCountdown() {
   const ui = parseInt(document.getElementById('refreshIntervalInput').value, 10);
   countdown = isNaN(ui) || ui < 3 ? 5 : ui;
+}
+
+function startAutoRefresh() {
+  stopAutoRefresh();
+  updateCountdown();
   updateCountdownDisplay();
   countdownInterval = setInterval(() => {
     countdown--;
     updateCountdownDisplay();
-    if (countdown <= 0) { getCurrentLocationAndRun(); countdown = isNaN(ui) || ui < 3 ? 5 : ui; }
+    if (countdown <= 0) {
+      getCurrentLocationAndRun();
+      updateCountdown();
+    }
   }, 1000);
 }
 
