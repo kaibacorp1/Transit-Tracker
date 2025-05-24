@@ -1,5 +1,3 @@
-// pages/api/detect-transit.js
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Only POST allowed' });
@@ -10,34 +8,19 @@ export default async function handler(req, res) {
 
   try {
     const {
-      flights,
-      userLat,
-      userLon,
-      userElev = 0,
-      bodyAz,
-      bodyEl,        // <-- renamed from bodyAlt
-      margin = 2.5   // degrees
+      flights, userLat, userLon, userElev,
+      bodyAz, bodyAlt, margin = 2.5,
+      predictSeconds = 0, selectedBody = 'moon'
     } = req.body;
 
-    if (
-      !Array.isArray(flights) ||
-      userLat == null ||
-      userLon == null ||
-      bodyAz == null ||
-      bodyEl == null
-    ) {
+    if (!Array.isArray(flights) || userLat == null || userLon == null 
+        || bodyAz == null || bodyAlt == null) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // call our math helper
     const matches = detectTransits({
-      flights,
-      userLat,
-      userLon,
-      userElev,
-      bodyAz,
-      bodyEl,
-      marginDeg: margin   // pass as marginDeg
+      flights, userLat, userLon, userElev,
+      bodyAz, bodyAlt, margin, predictSeconds, selectedBody
     });
 
     return res.status(200).json({ matches });
