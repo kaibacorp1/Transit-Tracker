@@ -7,8 +7,10 @@ export function projectPosition(lat, lon, heading, speed, seconds) {
   const φ1 = lat * Math.PI / 180;
   const λ1 = lon * Math.PI / 180;
 
-  const φ2 = Math.asin(Math.sin(φ1) * Math.cos(d / R) +
-    Math.cos(φ1) * Math.sin(d / R) * Math.cos(θ));
+  const φ2 = Math.asin(
+    Math.sin(φ1) * Math.cos(d / R) +
+    Math.cos(φ1) * Math.sin(d / R) * Math.cos(θ)
+  );
   const λ2 = λ1 + Math.atan2(
     Math.sin(θ) * Math.sin(d / R) * Math.cos(φ1),
     Math.cos(d / R) - Math.sin(φ1) * Math.sin(φ2)
@@ -39,6 +41,10 @@ export function haversine(lat1, lon1, lat2, lon2) {
   return 2 * R * Math.asin(Math.sqrt(a));
 }
 
+/**
+ * Detect transits among an array of OpenSky state vectors.
+ * Each `f` is an array: [ , callsign, , , , lon, lat, , , speed, track, ... , alt_geom, ... ]
+ */
 export function detectTransits({
   flights,
   userLat,
@@ -47,47 +53,55 @@ export function detectTransits({
   bodyAz,
   bodyAlt,
   margin = 2.5,
-  predictSeconds = 0,
-  selectedBody = 'moon'
+  predictSeconds = 0
 }) {
   const matches = [];
 
-  for (const plane of flights) {
-    const callsign = plane[1];
-    const lat = plane[6];
-    const lon = plane[5];
-    const geoAlt = plane[13] || 0;
-    const heading = plane[10];
-    const speed = plane[9];
+  flights.forEach(f => {
+    const callsign = (f[1] || '').trim();
+    const lon      = f[5];
+    const lat      = f[6];
+    const geoAlt   = f[13] || 0;
+    const speed    = f[9];
+    const track    = f[10];
 
-    if (lat == null || lon == null || geoAlt == null) continue;
+    if (lat == null || lon == null) return;
 
+    // Project position if requested
     let targetLat = lat;
     let targetLon = lon;
-
-    if (predictSeconds > 0 && heading != null && speed != null) {
-      const proj = projectPosition(lat, lon, heading, speed, predictSeconds);
+    if (predictSeconds > 0 && track != null && speed != null) {
+      const proj = projectPosition(lat, lon, track, speed, predictSeconds);
       targetLat = proj.lat;
       targetLon = proj.lon;
     }
 
-    const azimuth = calculateAzimuth(userLat, userLon, targetLat, targetLon);
-    const distance = haversine(userLat, userLon, targetLat, targetLon);
-    const angle = Math.atan2(geoAlt - userElev, distance) * (180 / Math.PI);
-    const azDiff = Math.abs(normalizeAngle(azimuth - bodyAz));
-    const altDiff = Math.abs(angle - bodyAlt);
+    // Compute geometry
+    const azToPlane = calculateAzimuth(userLat, userLon, targetLat, targetLon);
+    const horizDist = haversine(userLat, userLon, targetLat, targetLon);
+    const elevAngle = Math.atan2(geoAlt - userElev, horizDist) * 180 / Math.PI;
+    const azDiff    = Math.abs(normalizeAngle(azToPlane - bodyAz));
+    const altDiff   = Math.abs(elevAngle - bodyAlt);
 
+    // DEBUG log for each flight
+    console.log(
+      `[DEBUG ${callsign}] ` +
+      `orig=(${lat.toFixed(4)}, ${lon.toFixed(4)}) ` +
+      `proj=(${targetLat.toFixed(4)}, ${targetLon.toFixed(4)}) ` +
+      `azToPlane=${azToPlane.toFixed(1)}°, elevAngle=${elevAngle.toFixed(1)}°, ` +
+      `azDiff=${azDiff.toFixed(1)}°, altDiff=${altDiff.toFixed(1)}°, ` +
+      `margin=${margin}`
+    );
+
+    // Test against your margin
     if (azDiff < margin && altDiff < margin) {
       matches.push({
         callsign,
-        azimuth: azimuth.toFixed(1),
-        altitudeAngle: angle.toFixed(1),
-        distance: distance.toFixed(1),
-        selectedBody,
-        predictionSeconds: predictSeconds
+        azimuth:       azToPlane,
+        altitudeAngle: elevAngle
       });
     }
-  }
+  });
 
   return matches;
 }
