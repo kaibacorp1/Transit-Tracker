@@ -26,11 +26,19 @@ function logDetectionLocally(message, metadata = {}) {
 
 // --- DOMContent Loaded Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
-  // Prompt for location
-  navigator.geolocation.getCurrentPosition(success, error);
   // Initialize first tab
   showTab('openskyTab');
+
+  // Ask for location in a non-blocking, user-safe way
+  setTimeout(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(success, error);
+    } else {
+      alert('Geolocation not supported — switch to manual mode.');
+    }
+  }, 0);
 });
+
 
 // --- UI Event Listeners ---
 document.getElementById('bodyToggle').addEventListener('change', e => {
