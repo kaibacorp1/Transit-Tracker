@@ -1,93 +1,127 @@
-// utils/transitUtils.js
+// transitUtils.js
+// Utility functions for transit and close-pass detection using circular thresholds
 
-export function projectPosition(lat, lon, heading, speed, seconds) {
-  const R = 6371000;
-  const d = speed * seconds;
-  const θ = heading * Math.PI / 180;
-  const φ1 = lat * Math.PI / 180;
-  const λ1 = lon * Math.PI / 180;
+// Convert degrees to radians
+const toRad = Math.PI / 180;
+// Convert radians to degrees
+const toDeg = 180 / Math.PI;
 
-  const φ2 = Math.asin(Math.sin(φ1) * Math.cos(d / R) +
-    Math.cos(φ1) * Math.sin(d / R) * Math.cos(θ));
-  const λ2 = λ1 + Math.atan2(
-    Math.sin(θ) * Math.sin(d / R) * Math.cos(φ1),
-    Math.cos(d / R) - Math.sin(φ1) * Math.sin(φ2)
-  );
+// Fixed physical constants
+const diskRadiusDeg = 0.25; // Sun/Moon apparent radius in degrees
+// Sensor and lens parameters (Fuji X-T4 APS-C + 500mm lens)
+const sensorWidth = 23.5;   // mm
+const sensorHeight = 15.6;  // mm
+const focalLength = 500;    // mm
+const sensorDiag = Math.hypot(sensorWidth, sensorHeight);
+const fovDiagDeg = 2 * Math.atan(sensorDiag / (2 * focalLength)) * toDeg;
+const frameRadiusDeg = fovDiag / 2;  // half-diagonal field-of-view
 
-  return { lat: φ2 * 180 / Math.PI, lon: λ2 * 180 / Math.PI };
+/**
+ * Compute ECEF coordinates from geodetic position
+ * @param {number} lat - latitude in degrees
+ * @param {number} lon - longitude in degrees
+ * @param {number} h - height above ellipsoid in meters
+ * @returns {Array<number>} [X, Y, Z] in meters
+ */
+function geodeticToECEF(lat, lon, h) {
+  const phi = lat * toRad;
+  const lambda = lon * toRad;
+  const a = 6378137.0;            // WGS84 semi-major axis
+  const f = 1 / 298.257223563;    // WGS84 flattening
+  const e2 = f * (2 - f);
+  const N = a / Math.sqrt(1 - e2 * Math.sin(phi) ** 2);
+  const X = (N + h) * Math.cos(phi) * Math.cos(lambda);
+  const Y = (N + h) * Math.cos(phi) * Math.sin(lambda);
+  const Z = (N * (1 - e2) + h) * Math.sin(phi);
+  return [X, Y, Z];
 }
 
-export function calculateAzimuth(lat1, lon1, lat2, lon2) {
-  const toRad = x => x * Math.PI / 180;
-  const y = Math.sin(toRad(lon2 - lon1)) * Math.cos(toRad(lat2));
-  const x = Math.cos(toRad(lat1)) * Math.sin(toRad(lat2))
-          - Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(toRad(lon2 - lon1));
-  return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+/**
+ * Rotate ECEF difference vector to local ENU frame
+ * @param {Array<number>} rel - [dx, dy, dz]
+ * @param {number} lat0 - observer latitude in degrees
+ * @param {number} lon0 - observer longitude in degrees
+ * @returns {Array<number>} [E, N, U]
+ */
+function ecefToENU(rel, lat0, lon0) {
+  const phi = lat0 * toRad;
+  const lambda = lon0 * toRad;
+  const slat = Math.sin(phi);
+  const clat = Math.cos(phi);
+  const slon = Math.sin(lambda);
+  const clon = Math.cos(lambda);
+
+  const R = [
+    [-slon,        clon,         0   ],
+    [-clon*slat,  -slon*slat,    clat],
+    [ clon*clat,   slon*clat,    slat]
+  ];
+  const [dx, dy, dz] = rel;
+  // Matrix multiply R * [dx, dy, dz]
+  const E = R[0][0]*dx + R[0][1]*dy + R[0][2]*dz;
+  const N = R[1][0]*dx + R[1][1]*dy + R[1][2]*dz;
+  const U = R[2][0]*dx + R[2][1]*dy + R[2][2]*dz;
+  return [E, N, U];
 }
 
-export function normalizeAngle(angle) {
-  return ((angle % 360) + 360) % 360;
+/**
+ * Compute horizontal azimuth and elevation from geodetic positions
+ * @param {object} planePos - { lat, lon, alt }
+ * @param {object} obs     - { lat, lon, elev }
+ * @returns {object} { az, el } in radians
+ */
+export function computeAzEl(planePos, obs) {
+  // ECEF positions
+  const obsECEF = geodeticToECEF(obs.lat, obs.lon, obs.elev);
+  const planeECEF = geodeticToECEF(planePos.lat, planePos.lon, planePos.alt);
+  // Vector from observer to plane
+  const rel = [
+    planeECEF[0] - obsECEF[0],
+    planeECEF[1] - obsECEF[1],
+    planeECEF[2] - obsECEF[2]
+  ];
+  // ENU frame
+  const [E, N, U] = ecefToENU(rel, obs.lat, obs.lon);
+  // Azimuth (0 = North, increasing towards East)
+  const az = Math.atan2(E, N);
+  // Elevation
+  const el = Math.asin(U / Math.hypot(E, N, U));
+  return { az, el };
 }
 
-export function haversine(lat1, lon1, lat2, lon2) {
-  const R = 6371000;
-  const toRad = x => x * Math.PI / 180;
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
-  const a = Math.sin(dLat / 2) ** 2
-          + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
-  return 2 * R * Math.asin(Math.sqrt(a));
-}
+/**
+ * Classify a single flight event as Transit, ClosePass, or NoEvent
+ * @param {object} azel     - { az: radians, el: radians } of plane
+ * @param {number} bodyAz   - Sun/Moon azimuth in radians
+ * @param {number} bodyEl   - Sun/Moon elevation in radians
+ * @param {number} marginDeg - user detection margin in degrees
+ * @returns {string} one of 'Transit', 'ClosePass', 'NoEvent'
+ */
+export function classifyEvent(azel, bodyAz, bodyEl, marginDeg) {
+  // Convert margins and radii to radians
+  const margin = marginDeg * toRad;
+  const thTransit = (diskRadiusDeg + marginDeg) * toRad;
+  const thClose   = (frameRadiusDeg + marginDeg) * toRad;
 
-export function detectTransits({
-  flights,
-  userLat,
-  userLon,
-  userElev,
-  bodyAz,
-  bodyAlt,
-  margin = 2.5,
-  predictSeconds = 0,
-  selectedBody = 'moon'
-}) {
-  const matches = [];
-
-  for (const plane of flights) {
-    const callsign = plane[1];
-    const lat = plane[6];
-    const lon = plane[5];
-    const geoAlt = plane[13] || 0;
-    const heading = plane[10];
-    const speed = plane[9];
-
-    if (lat == null || lon == null || geoAlt == null) continue;
-
-    let targetLat = lat;
-    let targetLon = lon;
-
-    if (predictSeconds > 0 && heading != null && speed != null) {
-      const proj = projectPosition(lat, lon, heading, speed, predictSeconds);
-      targetLat = proj.lat;
-      targetLon = proj.lon;
-    }
-
-    const azimuth = calculateAzimuth(userLat, userLon, targetLat, targetLon);
-    const distance = haversine(userLat, userLon, targetLat, targetLon);
-    const angle = Math.atan2(geoAlt - userElev, distance) * (180 / Math.PI);
-    const azDiff = Math.abs(normalizeAngle(azimuth - bodyAz));
-    const altDiff = Math.abs(angle - bodyAlt);
-
-    if (azDiff < margin && altDiff < margin) {
-      matches.push({
-        callsign,
-        azimuth: azimuth.toFixed(1),
-        altitudeAngle: angle.toFixed(1),
-        distance: distance.toFixed(1),
-        selectedBody,
-        predictionSeconds: predictSeconds
-      });
-    }
+  // Quick rectangular pre-filter (optional)
+  const dAz = Math.abs(bodyAz - azel.az);
+  const dEl = Math.abs(bodyEl - azel.el);
+  if (dAz > (frameRadiusDeg + marginDeg) * toRad || dEl > (frameRadiusDeg + marginDeg) * toRad) {
+    return 'NoEvent';
   }
 
-  return matches;
+  // Great-circle angular separation (radians)
+  const sep = Math.acos(
+    Math.sin(bodyEl) * Math.sin(azel.el) +
+    Math.cos(bodyEl) * Math.cos(azel.el) * Math.cos(bodyAz - azel.az)
+  );
+
+  if (sep <= thTransit) {
+    return 'Transit';
+  }
+  if (sep <= thClose) {
+    return 'ClosePass';
+  }
+  return 'NoEvent';
 }
+
