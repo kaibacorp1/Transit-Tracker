@@ -14,25 +14,8 @@ let predictSeconds = 0;
 let margin         = 2.5;
 
 // --- Utility & Storage Helpers ---
-function getAviationstackKey() {
-  return sessionStorage.getItem('aviationstackKey');
-}
 
-function matches.forEach(m => {
-  logDetectionLocally(
-    `⚠️ Possible ${selectedBody} transit in ~${predictSeconds} sec: ${m.callsign.trim()}`,
-    {
-      callsign:          m.callsign.trim(),
-      azimuth:           m.azimuth,
-      altitudeAngle:     m.altitudeAngle,
-      body:              selectedBody,
-      predictionSeconds: predictSeconds,
-      margin:            margin
-    }
-  );
-});
-  history.push({ time: new Date().toISOString(), message, ...metadata });
-  localStorage.setItem('transitLog', JSON.stringify(history));
+// (Utility functions defined here)
 }
 
 // --- DOMContent Loaded Initialization ---
