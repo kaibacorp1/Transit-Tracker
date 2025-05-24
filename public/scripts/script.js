@@ -57,14 +57,16 @@ function mapAdsbExchange(records) {
   }));
 }
 
-// --- DOMContent Loaded Initialization ---
-document.addEventListener('DOMContentLoaded', () => {
-  // 1) Ask for GPS if available
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(success, error);
-  } else {
-    alert('Geolocation not supported — please switch to manual mode.');
-  }
+// --- Immediately ask for location & kick off first run ---
+if (navigator.geolocation) {
+  navigator.geolocation.getCurrentPosition(success, error);
+} else {
+  alert('Geolocation not supported — please switch to manual mode.');
+}
+// Show default tab & run once (will queue up behind the location callback)
+showTab('openskyTab');
+getCurrentLocationAndRun();
+
 
   // 2) Show the proper tab
   showTab('openskyTab');
