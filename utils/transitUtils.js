@@ -29,8 +29,8 @@ const frameRadiusDeg = fovDiagDeg / 2;
 function geodeticToECEF(lat, lon, h) {
   const phi = lat * toRad;
   const lambda = lon * toRad;
-  const a = 6378137.0;            // WGS84 semi-major axis
-  const f = 1 / 298.257223563;    // WGS84 flattening
+  const a = 6378137.0;
+  const f = 1 / 298.257223563;
   const e2 = f * (2 - f);
   const N = a / Math.sqrt(1 - e2 * Math.sin(phi) ** 2);
   const X = (N + h) * Math.cos(phi) * Math.cos(lambda);
@@ -95,30 +95,49 @@ export function computeAzEl(planePos, obs) {
  * @returns {string} 'Transit' | 'ClosePass' | 'NoEvent'
  */
 export function classifyEvent(azel, bodyAz, bodyEl, marginDeg) {
-  // Convert radii and margin to radians
   const marginRad = marginDeg * toRad;
   const thTransit = diskRadiusDeg * toRad + marginRad;
   const thClose = frameRadiusDeg * toRad + marginRad;
 
-  // Optional rectangular pre-filter
   const dAz = Math.abs(bodyAz - azel.az);
   const dEl = Math.abs(bodyEl - azel.el);
-  if (dAz > thClose || dEl > thClose) {
-    return 'NoEvent';
-  }
+  if (dAz > thClose || dEl > thClose) return 'NoEvent';
 
-  // Great-circle angular separation
   const sep = Math.acos(
     Math.sin(bodyEl) * Math.sin(azel.el) +
     Math.cos(bodyEl) * Math.cos(azel.el) * Math.cos(bodyAz - azel.az)
   );
 
-  if (sep <= thTransit) {
-    return 'Transit';
-  }
-  if (sep <= thClose) {
-    return 'ClosePass';
-  }
+  if (sep <= thTransit) return 'Transit';
+  if (sep <= thClose) return 'ClosePass';
   return 'NoEvent';
+}
+
+/**
+ * Batch detect transits from an array of flights
+ * @param {Array} flights - array of { id, lat, lon, alt_m }
+ * @param {number} userLat
+ * @param {number} userLon
+ * @param {number} userElev - in meters
+ * @param {number} bodyAz    - radians
+ * @param {number} bodyEl    - radians
+ * @param {number} marginDeg - degrees
+ * @returns {Array} [{ id, status, az, el }]
+ */
+export function detectTransits({ flights, userLat, userLon, userElev, bodyAz, bodyEl, marginDeg }) {
+  return flights.map(f => {
+    const azel = computeAzEl(
+      { lat: f.lat, lon: f.lon, alt: f.alt_m },
+      { lat: userLat, lon: userLon, elev: userElev }
+    );
+    const status = classifyEvent(azel, bodyAz, bodyEl, marginDeg);
+    if (status === 'NoEvent') return null;
+    return {
+      id: f.id,
+      status,
+      az: azel.az * toDeg,
+      el: azel.el * toDeg
+    };
+  }).filter(x => x);
 }
 ```
