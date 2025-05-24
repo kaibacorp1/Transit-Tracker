@@ -109,7 +109,11 @@ export function detectTransits({
     const el = Math.atan2(flightAlt - userElev, dist) * (180 / Math.PI);
 
     // Coarse box pre-filter
-    const azDiff = Math.abs(normalizeAngle(az - bodyAz));
+    // 1) Compute raw wrapped difference in [0,360)
+     let raw = normalizeAngle(az - bodyAz);
+
+    // 2) Pick the shorter arc (if >180°, go the other way)
+    const azDiff = raw > 180 ? 360 - raw : raw;
     const altDiff = Math.abs(el - bodyAlt);
     if (azDiff < margin && altDiff < margin) {
 
