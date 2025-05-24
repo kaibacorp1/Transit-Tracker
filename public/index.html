@@ -1,4 +1,4 @@
-<!-- index.html -->
+<!-- public/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,14 +10,17 @@
 <body>
   <div class="container">
     <header style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;">
-      <h1 style="margin: 0;"><span id="trackerTitle">🌙 Moon</span> Transit Tracker</h1>
+      <h1 style="margin: 0;">
+        <span id="trackerTitle">🌙 Moon</span> Transit Tracker
+      </h1>
       <a href="https://www.paypal.com/donate?business=sandu.godakumbura@gmail.com" target="_blank"
          style="background-color: #2d4f36; color: #121212; padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: bold; text-decoration: none;">
          🫰 Donate
       </a>
     </header>
 
-    <div class="highlight" id="transitStatus" style="margin: 1rem 0; font-size: 1.4rem; font-weight: bold;">
+    <div class="highlight" id="transitStatus"
+         style="margin: 1rem 0; font-size: 1.4rem; font-weight: bold;">
       Checking flights near the Moon...
     </div>
 
@@ -32,8 +35,13 @@
         <details open>
           <summary><strong>OpenSky Login</strong></summary>
           <p style="font-size: 0.9rem; color: #ccc;">
-            You need an account with <a href="https://opensky-network.org/" target="_blank" style="color:#00bfff;">OpenSky Network</a>.<br>
-            <a href="https://opensky-network.org/user/register" target="_blank" style="color:#00bfff;">Sign up here</a>
+            You need an account with 
+            <a href="https://opensky-network.org/" target="_blank" style="color:#00bfff;">
+              OpenSky Network
+            </a>.<br>
+            <a href="https://opensky-network.org/user/register" target="_blank" style="color:#00bfff;">
+              Sign up here
+            </a>
           </p>
           <label>Username: <input type="text" id="osUsername" /></label><br>
           <label>Password: <input type="password" id="osPassword" /></label><br>
@@ -87,7 +95,9 @@
         <select id="bodyToggle">
           <option value="moon" selected>🌙 Moon</option>
           <option value="sun">☀️ Sun</option>
+          <option value="both">🌙 & ☀️ Both</option>
         </select>
+
         <label><strong>Search Radius:</strong></label>
         <select id="radiusSelect">
           <option value="10">10 km</option>
@@ -96,6 +106,7 @@
           <option value="40">40 km</option>
           <option value="50">50 km</option>
         </select>
+
         <label><strong>Prediction Mode:</strong></label>
         <select id="predictToggle">
           <option value="0">Off</option>
@@ -104,6 +115,7 @@
           <option value="15">15 sec</option>
           <option value="20">20 sec</option>
         </select>
+
         <label><strong>Auto Refresh:</strong></label>
         <select id="autoRefreshToggle">
           <option value="on" selected>On</option>
@@ -130,9 +142,13 @@
           <div>Longitude: <span id="lon">...</span></div>
           <div>Elevation: <span id="elevation">...</span> m</div>
         </div>
-        <div>
-          <div>Azimuth: <span id="moonAz">...</span>°</div>
-          <div>Altitude: <span id="moonAlt">...</span>°</div>
+        <div id="moonInfo">
+          <div>Moon Azimuth: <span id="moonAz">...</span>°</div>
+          <div>Moon Altitude: <span id="moonAlt">...</span>°</div>
+        </div>
+        <div id="sunInfo" style="display:none">
+          <div>Sun Azimuth: <span id="sunAz">...</span>°</div>
+          <div>Sun Altitude: <span id="sunAlt">...</span>°</div>
         </div>
       </div>
     </div>
@@ -160,7 +176,6 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/suncalc/1.8.0/suncalc.min.js"></script>
     <script src="scripts/script.js"></script>
-
     <footer>
       <p>Copyright © Rey Sandu Godakumbura</p>
       <p>
