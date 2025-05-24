@@ -14,8 +14,14 @@ let predictSeconds = 0;
 let margin         = 2.5;
 
 // --- Utility & Storage Helpers ---
+function getAviationstackKey() {
+  return sessionStorage.getItem('aviationstackKey');
+}
 
-// (Utility functions defined here)
+function logDetectionLocally(message, metadata = {}) {
+  const history = JSON.parse(localStorage.getItem('transitLog') || '[]');
+  history.push({ time: new Date().toISOString(), message, ...metadata });
+  localStorage.setItem('transitLog', JSON.stringify(history));
 }
 
 // --- DOMContent Loaded Initialization ---
@@ -247,19 +253,7 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
         : `🔭 Possible ${selectedBody} transit:`;
       statusEl.innerHTML = `${label}<br>${matches.map(m => `${m.callsign} (Az ${m.azimuth}°, Alt ${m.altitudeAngle}°)`).join('<br>')}`;
       if (!document.getElementById('muteToggle').checked) document.getElementById('alertSound').play().catch(()=>{});
-      matches.forEach(m => {
-  logDetectionLocally(
-    `⚠️ Possible ${selectedBody} transit in ~${predictSeconds} sec: ${m.callsign.trim()}`,
-    {
-      callsign:          m.callsign.trim(),
-      azimuth:           m.azimuth,
-      altitudeAngle:     m.altitudeAngle,
-      body:              selectedBody,
-      predictionSeconds: predictSeconds,
-      margin:            margin
-    }
-  );
-});
+      logDetectionLocally(`${selectedBody} transit detected`, { az: bodyAz, alt: bodyAlt });
     } else {
       statusEl.textContent = `No aircraft aligned with the ${selectedBody} right now.`;
     }
