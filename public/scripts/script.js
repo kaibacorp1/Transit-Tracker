@@ -24,55 +24,13 @@ function logDetectionLocally(message, metadata = {}) {
   localStorage.setItem('transitLog', JSON.stringify(history));
 }
 
-function mapOpenSkyStates(states) {
-  return states.map(s => ({
-    callsign:  (s[1] || '').trim() || 'N/A',
-    lat:       s[6],
-    lon:       s[5],
-    altitude:  s[7] ?? 0,
-    heading:   s[10] ?? 0,
-    speed:     s[9]  ?? 0
-  }));
-}
-
-function mapAviationstack(dataArray) {
-  return dataArray.map(f => ({
-    callsign:  f.flight?.iata || f.flight?.icao || 'N/A',
-    lat:       f.latitude,
-    lon:       f.longitude,
-    altitude: (f.altitude ?? 0) * 0.3048,
-    heading:  0,  // Aviationstack doesn’t give heading reliably
-    speed:    (f.speed?.horizontal ?? 0) * 0.51444
-  }));
-}
-
-function mapAdsbExchange(records) {
-  return records.map(ac => ({
-    callsign:  ac.lp || ac.flight || 'N/A',
-    lat:       ac.lat,
-    lon:       ac.lon,
-    altitude: ac.alt_geom ?? 0,
-    heading:  ac.track  ?? 0,
-    speed:    ac.spd    ?? 0
-  }));
-}
-
 // --- DOMContent Loaded Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
-  // 1) Ask for GPS if available
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(success, error);
-  } else {
-    alert('Geolocation not supported — please switch to manual mode.');
-  }
-
-  // 2) Show the OpenSky tab
+  // Prompt for location
+  navigator.geolocation.getCurrentPosition(success, error);
+  // Initialize first tab
   showTab('openskyTab');
-
-  // 3) Kick off the first run (if userCoords already set)
-  getCurrentLocationAndRun();
 });
-
 
 // --- UI Event Listeners ---
 document.getElementById('bodyToggle').addEventListener('change', e => {
@@ -213,16 +171,18 @@ function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
       statusEl.textContent = '❌ Missing Aviationstack API key.';
       return;
     }
-    fetch(`https://api.aviationstack.com/v1/flights?access_key=${key}&limit=100`)
-  .then(res => res.json())
-  .then(data => {
-    if (data.error) { … }
-    // 1) MAP into {lat, lon, altitude, heading, speed}
-    const flights = mapAviationstack(data.data || []);
-    // 2) then call your detector with the unified objects
-    callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt);
-  })
-  .catch(() => { statusEl.textContent = '🚫 Error fetching Aviationstack data.'; });
+    fetch(`http://api.aviationstack.com/v1/flights?access_key=${key}&limit=100`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          statusEl.textContent = `❌ Aviationstack error: ${data.error.message || data.error}`;
+          return;
+        }
+        callTransitAPI(data.data || [], uLat, uLon, uElev, bodyAz, bodyAlt);
+      })
+      .catch(() => { statusEl.textContent = '🚫 Error fetching Aviationstack data.'; });
+    return;
+  }
 
   // ADS-B Exchange mode
   if (window.useAdsbexchange) {
@@ -251,15 +211,9 @@ function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, password, lamin, lomin, lamax, lomax })
   })
-    fetch('https://opensky-proxy.onrender.com/api/flights', { … })
-  .then(res => res.json())
-  .then(data => {
-    // 1) MAP:
-    const flights = mapOpenSkyStates(data.states || []);
-    // 2) CALL:
-    callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt);
-  })
-  .catch(() => { statusEl.textContent = '🚫 Error fetching OpenSky flight data.'; });
+    .then(res => res.json())
+    .then(data => callTransitAPI(data.states || [], uLat, uLon, uElev, bodyAz, bodyAlt))
+    .catch(() => { statusEl.textContent = '🚫 Error fetching OpenSky flight data.'; });
 }
 
 // ADS-B Exchange Helper
@@ -274,11 +228,11 @@ function checkAdsbExchangeFlights(userLat, userLon, userElev, bodyAz, bodyAlt) {
   })
     .then(res => res.json())
     .then(data => {
-  // 1) MAP:
-  const flights = mapAdsbExchange(data.ac || []);
-  // 2) CALL:
-  callTransitAPI(flights, userLat, userLon, userElev, bodyAz, bodyAlt);
-})
+      const flights = Array.isArray(data.ac)
+        ? data.ac.map(ac => [ ac.hex||'', ac.flight||'', null, null, null, ac.lon, ac.lat, null, null, ac.gs, ac.track, null, null, ac.alt_geom||0 ])
+        : [];
+      callTransitAPI(flights, userLat, userLon, userElev, bodyAz, bodyAlt);
+    })
     .catch(() => { document.getElementById('transitStatus').textContent = '🚫 Error fetching ADS-B Exchange data.'; });
 }
 
