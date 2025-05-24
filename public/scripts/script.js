@@ -20,7 +20,6 @@ let margin         = 2.5;  // degrees
 function getAviationstackKey() {
   return sessionStorage.getItem('aviationstackKey');
 }
-
 function logDetectionLocally(message, metadata = {}) {
   const history = JSON.parse(localStorage.getItem('transitLog') || '[]');
   history.push({ time: new Date().toISOString(), message, ...metadata });
@@ -30,8 +29,7 @@ function logDetectionLocally(message, metadata = {}) {
 // --- Tab Control Helper ---
 function showTab(tabId) {
   ['openskyTab','aviationstackTab','adsbexTab'].forEach(id => {
-    document.getElementById(id).style.display =
-      (id === tabId ? 'block' : 'none');
+    document.getElementById(id).style.display = (id === tabId ? 'block' : 'none');
     const btn = document.getElementById(id + 'Btn');
     if (btn) btn.classList.toggle('active', id === tabId);
   });
@@ -39,47 +37,52 @@ function showTab(tabId) {
 
 // --- DOMContent Loaded Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
-  // Geolocation requires HTTPS or localhost
   navigator.geolocation.getCurrentPosition(success, error, { timeout: 10000 });
   showTab('openskyTab');
+
+  // Save OpenSky credentials
+  document.getElementById('saveOsCredentialsBtn').addEventListener('click', () => {
+    const user = document.getElementById('osUserInput').value.trim();
+    const pass = document.getElementById('osPassInput').value.trim();
+    if (!user || !pass) {
+      alert('Please enter both username and password.');
+      return;
+    }
+    sessionStorage.setItem('osUser', user);
+    sessionStorage.setItem('osPass', pass);
+    alert('OpenSky credentials saved!');
+    getCurrentLocationAndRun();
+  });
 });
 
 // --- UI Event Listeners ---
-document.getElementById('bodyToggle').addEventListener('change', e => {
-  selectedBody = e.target.value;
-  document.getElementById('trackerTitle').textContent =
-    selectedBody === 'moon' ? '🌙 Moon' : '☀️ Sun';
-  document.getElementById('bodyLabel').textContent =
-    selectedBody === 'moon' ? 'Moon' : 'Sun';
-  getCurrentLocationAndRun();
-});
-
+document.querySelectorAll('input[name="bodyToggle"]').forEach(el =>
+  el.addEventListener('change', e => {
+    selectedBody = e.target.value;
+    document.getElementById('trackerTitle').textContent =
+      selectedBody === 'moon' ? '🌙 Moon' : '☀️ Sun';
+    document.getElementById('bodyLabel').textContent =
+      selectedBody === 'moon' ? 'Moon' : 'Sun';
+    getCurrentLocationAndRun();
+  })
+);
 document.getElementById('radiusSelect').addEventListener('change', getCurrentLocationAndRun);
-
-document.getElementById('predictToggle').addEventListener('change', e => {
-  predictSeconds = parseInt(e.target.value) || 0;
-});
-
-document.getElementById('autoRefreshToggle').addEventListener('change', e => {
-  autoRefresh = e.target.value === 'on';
-  autoRefresh ? startAutoRefresh() : stopAutoRefresh();
-});
-
+document.getElementById('predictToggle').addEventListener('change', e =>
+  predictSeconds = parseInt(e.target.value) || 0
+);
+document.getElementById('autoRefreshToggle').addEventListener('change', e =>
+  autoRefresh = e.target.value === 'on' ? (startAutoRefresh(), true) : (stopAutoRefresh(), false)
+);
 document.getElementById('refreshIntervalInput').addEventListener('change', () => {
   if (autoRefresh) startAutoRefresh();
 });
-
 document.getElementById('locationMode').addEventListener('change', e => {
   locationMode = e.target.value;
   document.getElementById('manualLocationFields').style.display =
     (locationMode === 'manual' ? 'block' : 'none');
-  if (locationMode === 'auto') {
-    navigator.geolocation.getCurrentPosition(success, error);
-  }
+  if (locationMode === 'auto') navigator.geolocation.getCurrentPosition(success, error);
 });
-
 document.getElementById('refreshBtn').addEventListener('click', getCurrentLocationAndRun);
-
 document.getElementById('marginSlider').addEventListener('input', e => {
   margin = parseFloat(e.target.value);
   document.getElementById('marginValue').textContent = `${margin.toFixed(1)}°`;
@@ -102,11 +105,9 @@ function success(position) {
   getCurrentLocationAndRun();
   startAutoRefresh();
 }
-
 function error(err) {
   alert(`Could not get your location. Reason: ${err.message}`);
 }
-
 function updateLocationUI(lat, lon, elev) {
   document.getElementById('lat').textContent       = lat.toFixed(6);
   document.getElementById('lon').textContent       = lon.toFixed(6);
@@ -139,14 +140,13 @@ function getCelestialPosition(lat, lon, elev) {
     ? SunCalc.getMoonPosition(now, lat, lon)
     : SunCalc.getPosition(now, lat, lon);
 
-  // convert to degrees for UI
+  // degrees for UI
   const azDeg = (pos.azimuth  * 180/Math.PI) + 180;
   const elDeg = (pos.altitude * 180/Math.PI);
 
   document.getElementById('moonAz').textContent  = azDeg.toFixed(2);
   document.getElementById('moonAlt').textContent = elDeg.toFixed(2);
 
-  // convert into radians for detection API
   const bodyAz = azDeg * toRad;
   const bodyEl = elDeg * toRad;
 
@@ -158,8 +158,6 @@ function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyEl) {
   const statusEl = document.getElementById('transitStatus');
   statusEl.textContent = `Checking flights near the ${selectedBody}...`;
   const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
-
-  // Default OpenSky mode
   const username = sessionStorage.getItem('osUser');
   const password = sessionStorage.getItem('osPass');
   if (!username || !password) {
@@ -234,7 +232,6 @@ function updateCountdown() {
   const ui = parseInt(document.getElementById('refreshIntervalInput').value, 10);
   countdown = isNaN(ui) || ui < 3 ? 5 : ui;
 }
-
 function startAutoRefresh() {
   stopAutoRefresh();
   updateCountdown();
@@ -248,7 +245,6 @@ function startAutoRefresh() {
     }
   }, 1000);
 }
-
 function stopAutoRefresh() {
   clearInterval(countdownInterval);
   document.getElementById('countdownTimer').textContent = 'Auto refresh off';
