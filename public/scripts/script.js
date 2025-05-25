@@ -1,5 +1,10 @@
 /* script.js - Final merged version for Vercel */
 
+// at top of script.js
+// (if you’re bundling modules) 
+import { mapOpenSkyStates, mapAviationstack, mapAdsbExchange } from './transitUtils.js';
+// or if you keep them in script.js, ensure they’re before you call them
+
 // --- Mode Flags ---
 window.useAviationstack = false;
 window.useAdsbexchange = false;
@@ -172,21 +177,15 @@ function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
   statusEl.textContent = `Checking flights near the ${selectedBody}...`;
   const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
 
-  // Aviationstack mode
+   // Aviationstack mode
   if (window.useAviationstack) {
     const key = getAviationstackKey();
-    if (!key) {
-      statusEl.textContent = '❌ Missing Aviationstack API key.';
-      return;
-    }
+    if (!key) { statusEl.textContent = '❌ Missing Aviationstack API key.'; return; }
     fetch(`http://api.aviationstack.com/v1/flights?access_key=${key}&limit=100`)
       .then(res => res.json())
       .then(data => {
-        if (data.error) {
-          statusEl.textContent = `❌ Aviationstack error: ${data.error.message || data.error}`;
-          return;
-        }
-        callTransitAPI(data.data || [], uLat, uLon, uElev, bodyAz, bodyAlt);
+        const flights = mapAviationstack(data.data || []);
+        callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt);
       })
       .catch(() => { statusEl.textContent = '🚫 Error fetching Aviationstack data.'; });
     return;
@@ -196,59 +195,43 @@ function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
   if (window.useAdsbexchange) {
     const key  = sessionStorage.getItem('adsbApiKey');
     const host = sessionStorage.getItem('adsbApiHost');
-    if (!key || !host) {
-      statusEl.textContent = '❌ Missing ADS-B Exchange API settings.';
-      return;
-    }
-    checkAdsbExchangeFlights(uLat, uLon, uElev, bodyAz, bodyAlt);
+    if (!key || !host) { statusEl.textContent = '❌ Missing ADS-B Exchange API settings.'; return; }
+    fetch(`https://${host}/v2/lat/${uLat}/lon/${uLon}/dist/${radiusKm}/`, {
+      method: 'GET', headers: { 'x-rapidapi-host': host, 'x-rapidapi-key': key }
+    })
+      .then(res => res.json())
+      .then(data => {
+        const raw     = Array.isArray(data.ac) ? data.ac : [];
+        const flights = mapAdsbExchange(raw);
+        callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt);
+      })
+      .catch(() => { statusEl.textContent = '🚫 Error fetching ADS-B Exchange data.'; });
     return;
   }
 
   // Default (OpenSky mode)
   const username = sessionStorage.getItem('osUser');
   const password = sessionStorage.getItem('osPass');
-  if (!username || !password) {
-    statusEl.textContent = '❌ Missing OpenSky login.';
-    return;
-  }
+  if (!username || !password) { statusEl.textContent = '❌ Missing OpenSky login.'; return; }
   const range = radiusKm / 111;
   const lamin = uLat - range, lamax = uLat + range;
   const lomin = uLon - range, lomax = uLon + range;
   fetch('https://opensky-proxy.onrender.com/api/flights', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, password, lamin, lomin, lamax, lomax })
   })
     .then(res => res.json())
-    .then(data => callTransitAPI(data.states || [], uLat, uLon, uElev, bodyAz, bodyAlt))
-    .catch(() => { statusEl.textContent = '🚫 Error fetching OpenSky flight data.'; });
-}
-
-// ADS-B Exchange Helper
-function checkAdsbExchangeFlights(userLat, userLon, userElev, bodyAz, bodyAlt) {
-  const key  = sessionStorage.getItem('adsbApiKey');
-  const host = sessionStorage.getItem('adsbApiHost');
-  const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
-  const url = `https://${host}/v2/lat/${userLat}/lon/${userLon}/dist/${radiusKm}/`;
-  fetch(url, {
-    method: 'GET',
-    headers: { 'x-rapidapi-host': host, 'x-rapidapi-key': key }
-  })
-    .then(res => res.json())
     .then(data => {
-      const flights = Array.isArray(data.ac)
-        ? data.ac.map(ac => [ ac.hex||'', ac.flight||'', null, null, null, ac.lon, ac.lat, null, null, ac.gs, ac.track, null, null, ac.alt_geom||0 ])
-        : [];
-      callTransitAPI(flights, userLat, userLon, userElev, bodyAz, bodyAlt);
+      const flights = mapOpenSkyStates(data.states || []);
+      callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt);
     })
-    .catch(() => { document.getElementById('transitStatus').textContent = '🚫 Error fetching ADS-B Exchange data.'; });
+    .catch(() => { statusEl.textContent = '🚫 Error fetching OpenSky flight data.'; });
 }
 
 // --- Backend Transit Detection Call ---
 function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
   fetch('/api/detect-transit', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ flights, userLat: uLat, userLon: uLon, userElev: uElev, bodyAz, bodyAlt, margin, predictSeconds, selectedBody })
   })
   .then(res => { if (!res.ok) throw new Error(res.status); return res.json(); })
@@ -259,7 +242,7 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
       const label = predictSeconds > 0
         ? `⚠️ Possible ${selectedBody} transit in ~${predictSeconds} sec:`
         : `🔭 Possible ${selectedBody} transit:`;
-      statusEl.innerHTML = `${label}<br>${matches.map(m => `${m.callsign} (Az ${m.azimuth}°, Alt ${m.altitudeAngle}°)`).join('<br>')}`;
+      statusEl.innerHTML = `${label}<br>${matches.map(m => `${m.flight?.callsign||m.flight?.hex||'N/A'} (Az ${m.flight?.azimuth||'?'}°, Alt ${m.flight?.altitudeAngle||'?'}°)`).join('<br>')}`;
       if (!document.getElementById('muteToggle').checked) document.getElementById('alertSound').play().catch(()=>{});
       logDetectionLocally(`${selectedBody} transit detected`, { az: bodyAz, alt: bodyAlt });
     } else {
