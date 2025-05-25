@@ -74,7 +74,7 @@ export function detectTransits({
       const proj = projectPosition(latitude, longitude, heading, speed, predictSeconds);
       latitude = proj.lat;
       longitude = proj.lon;
-      // geoAlt unchanged; optionally adjust with climb rate if available
+      // geoAlt unchanged; adjust if you have climb/descent rate
     }
 
     // Quick box pre-filter
@@ -123,7 +123,7 @@ export function haversine(lat1, lon1, lat2, lon2) {
  */
 export function calculateAzimuth(lat1, lon1, lat2, lon2) {
   const toRad = deg => deg * Math.PI / 180;
-  const toDeg = rad => rad * Math.PI / 180;
+  const toDeg = rad => rad * 180 / Math.PI;
   const phi1 = toRad(lat1);
   const phi2 = toRad(lat2);
   const dLambda = toRad(lon2 - lon1);
