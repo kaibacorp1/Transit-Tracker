@@ -96,9 +96,30 @@ document.getElementById('downloadLogBtn').addEventListener('click', () => {
   const fmt = document.getElementById('logFormat').value;
   const fn  = `transit_log.${fmt}`;
   const content = fmt === 'json'
-    ? JSON.stringify(log, null, 2)
-    : log.map(e => Object.entries(e).map(([k, v]) => `${k}: ${v}`).join('\n')).join('\n\n');
-  const blob = new Blob([content], { type: fmt === 'json' ? 'application/json' : 'text/plain' });
+  ? JSON.stringify(log, null, 2)
+  : log.map(e => {
+      // Format ISO → "YYYY-MM-DD hh:mm:ss.SSS"
+      const d = new Date(e.time);
+      const ts =
+        d.getFullYear() + '-' +
+        String(d.getMonth()+1).padStart(2,'0') + '-' +
+        String(d.getDate()).padStart(2,'0') + ' ' +
+        String(d.getHours()).padStart(2,'0') + ':' +
+        String(d.getMinutes()).padStart(2,'0') + ':' +
+        String(d.getSeconds()).padStart(2,'0') + '.' +
+        String(d.getMilliseconds()).padStart(3,'0');
+      // Build the 8-line entry
+      return [
+        `time: ${ts}`,
+        `${e.message}`,
+        `callsign: ${e.callsign}`,
+        `azimuth: ${e.azimuth}`,
+        `altitudeAngle: ${e.altitudeAngle}`,
+        `body: ${e.body}`,
+        `predictionSeconds: ${e.predictionSeconds}`,
+        `margin: ${e.margin}`
+      ].join('\n');
+    }).join('\n\n');
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = fn;
