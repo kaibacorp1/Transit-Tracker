@@ -1,5 +1,7 @@
 // utils/transitUtils.js
 
+import SunCalc from 'suncalc';
+
 /**
  * Projects a moving object’s future position given speed and heading.
  */
@@ -23,7 +25,7 @@ export function projectPosition(lat, lon, heading, speed, seconds) {
 }
 
 /**
- * Computes true angular separation between two sky directions (deg).
+ * Computes true angular separation between two sky directions (degrees).
  */
 export function sphericalSeparation(az1, el1, az2, el2) {
   const toRad = x => x * Math.PI / 180;
@@ -35,26 +37,46 @@ export function sphericalSeparation(az1, el1, az2, el2) {
 }
 
 /**
- * Detects flights transiting (or near) a celestial body.
+ * Detects flights transiting (or near) a celestial body, either now or in the future.
  * Uses a quick box pre-filter and a precise spherical check.
+ * If predictSeconds > 0, projects both plane and body forward by that amount.
  */
 export function detectTransits({ flights, bodyAz, bodyAlt, margin = 2.5, userLat, userLon, userElev = 0, predictSeconds = 0, selectedBody }) {
   const matches = [];
 
-  for (const plane of flights) {
-    const { latitude, longitude, altitude: geoAlt, callsign } = plane;
+  // Compute future body position if prediction requested
+  let futureBodyAz = bodyAz;
+  let futureBodyAlt = bodyAlt;
+  if (predictSeconds > 0) {
+    const futureTime = new Date(Date.now() + predictSeconds * 1000);
+    const pos = selectedBody === 'moon'
+      ? SunCalc.getMoonPosition(futureTime, userLat, userLon)
+      : SunCalc.getPosition(futureTime, userLat, userLon);
+    futureBodyAz  = (pos.azimuth * 180 / Math.PI + 180) % 360;
+    futureBodyAlt = pos.altitude * 180 / Math.PI;
+  }
 
-    // Quick box pre-filter
+  for (const plane of flights) {
+    // Destructure and possibly project plane position
+    let { latitude, longitude, altitude: geoAlt, heading, speed, callsign } = plane;
+    if (predictSeconds > 0 && heading != null && speed != null) {
+      const proj = projectPosition(latitude, longitude, heading, speed, predictSeconds);
+      latitude  = proj.lat;
+      longitude = proj.lon;
+      // geoAlt remains unchanged (or adjust if climb rate is known)
+    }
+
+    // Quick box pre-filter using future body coords
     const azimuth = calculateAzimuth(userLat, userLon, latitude, longitude);
     const distance = haversine(userLat, userLon, latitude, longitude);
     const elevationAngle = Math.atan2(geoAlt - userElev, distance) * 180 / Math.PI;
 
-    const azDiff = Math.abs(((azimuth - bodyAz + 540) % 360) - 180);
-    const altDiff = Math.abs(elevationAngle - bodyAlt);
+    const azDiff = Math.abs(((azimuth - futureBodyAz + 540) % 360) - 180);
+    const altDiff = Math.abs(elevationAngle - futureBodyAlt);
 
     if (azDiff < margin && altDiff < margin) {
       // Precise spherical test
-      const sep = sphericalSeparation(azimuth, elevationAngle, bodyAz, bodyAlt);
+      const sep = sphericalSeparation(azimuth, elevationAngle, futureBodyAz, futureBodyAlt);
       if (sep < margin) {
         matches.push({
           callsign,
@@ -72,7 +94,7 @@ export function detectTransits({ flights, bodyAz, bodyAlt, margin = 2.5, userLat
 }
 
 /**
- * Haversine formula: ground distance between two coords (m).
+ * Haversine formula: ground distance between two coords (meters).
  */
 export function haversine(lat1, lon1, lat2, lon2) {
   const toRad = x => x * Math.PI / 180;
@@ -84,7 +106,7 @@ export function haversine(lat1, lon1, lat2, lon2) {
 }
 
 /**
- * Calculates bearing (azimuth) from observer to target (deg).
+ * Calculates bearing (azimuth) from observer to target (degrees).
  */
 export function calculateAzimuth(lat1, lon1, lat2, lon2) {
   const toRad = x => x * Math.PI / 180;
