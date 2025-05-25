@@ -1,9 +1,11 @@
 /* script.js - Final merged version for Vercel */
 
-// at top of script.js
-// (if you’re bundling modules) 
-import { mapOpenSkyStates, mapAviationstack, mapAdsbExchange } from './transitUtils.js';
-// or if you keep them in script.js, ensure they’re before you call them
+// script.js
+import {
+  mapOpenSkyStates,
+  mapAviationstack,
+  mapAdsbExchange
+} from '/utils/transitUtils.js';
 
 // --- Mode Flags ---
 window.useAviationstack = false;
