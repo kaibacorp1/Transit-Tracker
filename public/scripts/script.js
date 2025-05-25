@@ -93,19 +93,52 @@ document.getElementById('clearLogBtn').addEventListener('click', () => {
 document.getElementById('downloadLogBtn').addEventListener('click', () => {
   const log = JSON.parse(localStorage.getItem('transitLog') || '[]');
   if (!log.length) return alert('No detections to download.');
+
   const fmt = document.getElementById('logFormat').value;
   const fn  = `transit_log.${fmt}`;
-  const content = fmt === 'json'
-    ? JSON.stringify(log, null, 2)
-    : log.map(e => Object.entries(e).map(([k, v]) => `${k}: ${v}`).join('\n')).join('\n\n');
-  const blob = new Blob([content], { type: fmt === 'json' ? 'application/json' : 'text/plain' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
+  let content;
+
+  if (fmt === 'json') {
+    content = JSON.stringify(log, null, 2);
+  } else {
+    // Format each entry as an 8-line record
+    content = log.map(e => {
+      // 1) Format timestamp: "YYYY-MM-DD hh:mm:ss.SSS"
+      const d = new Date(e.time);
+      const ts =
+        d.getFullYear() + '-' +
+        String(d.getMonth() + 1).padStart(2, '0') + '-' +
+        String(d.getDate()).padStart(2, '0') + ' ' +
+        String(d.getHours()).padStart(2, '0') + ':' +
+        String(d.getMinutes()).padStart(2, '0') + ':' +
+        String(d.getSeconds()).padStart(2, '0') + '.' +
+        String(d.getMilliseconds()).padStart(3, '0');
+
+      // 2) Build the record
+      return [
+        `time: ${ts}`,
+        `${e.message}`,
+        `callsign: ${e.callsign}`,
+        `azimuth: ${e.azimuth}`,
+        `altitudeAngle: ${e.altitudeAngle}`,
+        `body: ${e.body}`,
+        `predictionSeconds: ${e.predictionSeconds}`,
+        `margin: ${e.margin}`
+      ].join('\n');
+    }).join('\n\n');
+  }
+
+  // Create and download the file
+  const mime = fmt === 'json' ? 'application/json' : 'text/plain';
+  const blob = new Blob([content], { type: mime });
+  const a    = document.createElement('a');
+  a.href     = URL.createObjectURL(blob);
   a.download = fn;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
 });
+
 
 // --- Geolocation Handlers ---
 function success(position) {
