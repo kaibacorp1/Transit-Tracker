@@ -1,16 +1,8 @@
 /* script.js - Final merged version for Vercel */
 
-// Import mapping & projection utilities
-import {
-  mapOpenSkyStates,
-  mapAviationstack,
-  mapAdsbExchange,
-  projectPosition
-} from './utils/transitUtils.js';
-
 // --- Mode Flags ---
 window.useAviationstack = false;
-window.useAdsbexchange  = false;
+window.useAdsbexchange = false;
 
 // --- State Variables ---
 let selectedBody   = 'moon';
@@ -34,14 +26,10 @@ function logDetectionLocally(message, metadata = {}) {
 
 // --- DOMContent Loaded Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
+  // Prompt for location
+  navigator.geolocation.getCurrentPosition(success, error);
+  // Initialize first tab
   showTab('openskyTab');
-  setTimeout(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(success, error);
-    } else {
-      alert('Geolocation not supported — switch to manual mode.');
-    }
-  }, 0);
 });
 
 // --- UI Event Listeners ---
@@ -179,18 +167,18 @@ function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
   // Aviationstack mode
   if (window.useAviationstack) {
     const key = getAviationstackKey();
-    if (!key) { statusEl.textContent = '❌ Missing Aviationstack API key.'; return; }
+    if (!key) {
+      statusEl.textContent = '❌ Missing Aviationstack API key.';
+      return;
+    }
     fetch(`http://api.aviationstack.com/v1/flights?access_key=${key}&limit=100`)
       .then(res => res.json())
       .then(data => {
-        let flights = mapAviationstack(data.data || []);
-        if (predictSeconds > 0) {
-          flights = flights.map(f => {
-            const { lat, lon } = projectPosition(f.lat, f.lon, f.heading, f.speed, predictSeconds);
-            return { ...f, lat, lon };
-          });
+        if (data.error) {
+          statusEl.textContent = `❌ Aviationstack error: ${data.error.message || data.error}`;
+          return;
         }
-        callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt);
+        callTransitAPI(data.data || [], uLat, uLon, uElev, bodyAz, bodyAlt);
       })
       .catch(() => { statusEl.textContent = '🚫 Error fetching Aviationstack data.'; });
     return;
@@ -200,54 +188,59 @@ function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
   if (window.useAdsbexchange) {
     const key  = sessionStorage.getItem('adsbApiKey');
     const host = sessionStorage.getItem('adsbApiHost');
-    if (!key || !host) { statusEl.textContent = '❌ Missing ADS-B Exchange API settings.'; return; }
-    fetch(`https://${host}/v2/lat/${uLat}/lon/${uLon}/dist/${radiusKm}/`, {
-      method: 'GET', headers: { 'x-rapidapi-host': host, 'x-rapidapi-key': key }
-    })
-      .then(res => res.json())
-      .then(data => {
-        let flights = mapAdsbExchange(Array.isArray(data.ac) ? data.ac : []);
-        if (predictSeconds > 0) {
-          flights = flights.map(f => {
-            const { lat, lon } = projectPosition(f.lat, f.lon, f.heading, f.speed, predictSeconds);
-            return { ...f, lat, lon };
-          });
-        }
-        callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt);
-      })
-      .catch(() => { statusEl.textContent = '🚫 Error fetching ADS-B Exchange data.'; });
+    if (!key || !host) {
+      statusEl.textContent = '❌ Missing ADS-B Exchange API settings.';
+      return;
+    }
+    checkAdsbExchangeFlights(uLat, uLon, uElev, bodyAz, bodyAlt);
     return;
   }
 
   // Default (OpenSky mode)
   const username = sessionStorage.getItem('osUser');
   const password = sessionStorage.getItem('osPass');
-  if (!username || !password) { statusEl.textContent = '❌ Missing OpenSky login.'; return; }
+  if (!username || !password) {
+    statusEl.textContent = '❌ Missing OpenSky login.';
+    return;
+  }
   const range = radiusKm / 111;
   const lamin = uLat - range, lamax = uLat + range;
   const lomin = uLon - range, lomax = uLon + range;
   fetch('https://opensky-proxy.onrender.com/api/flights', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, password, lamin, lomin, lamax, lomax })
   })
     .then(res => res.json())
-    .then(data => {
-      let flights = mapOpenSkyStates(data.states || []);
-      if (predictSeconds > 0) {
-        flights = flights.map(f => {
-          const { lat, lon } = projectPosition(f.lat, f.lon, f.heading, f.speed, predictSeconds);
-          return { ...f, lat, lon };
-        });
-      }
-      callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt);
-    })
+    .then(data => callTransitAPI(data.states || [], uLat, uLon, uElev, bodyAz, bodyAlt))
     .catch(() => { statusEl.textContent = '🚫 Error fetching OpenSky flight data.'; });
+}
+
+// ADS-B Exchange Helper
+function checkAdsbExchangeFlights(userLat, userLon, userElev, bodyAz, bodyAlt) {
+  const key  = sessionStorage.getItem('adsbApiKey');
+  const host = sessionStorage.getItem('adsbApiHost');
+  const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
+  const url = `https://${host}/v2/lat/${userLat}/lon/${userLon}/dist/${radiusKm}/`;
+  fetch(url, {
+    method: 'GET',
+    headers: { 'x-rapidapi-host': host, 'x-rapidapi-key': key }
+  })
+    .then(res => res.json())
+    .then(data => {
+      const flights = Array.isArray(data.ac)
+        ? data.ac.map(ac => [ ac.hex||'', ac.flight||'', null, null, null, ac.lon, ac.lat, null, null, ac.gs, ac.track, null, null, ac.alt_geom||0 ])
+        : [];
+      callTransitAPI(flights, userLat, userLon, userElev, bodyAz, bodyAlt);
+    })
+    .catch(() => { document.getElementById('transitStatus').textContent = '🚫 Error fetching ADS-B Exchange data.'; });
 }
 
 // --- Backend Transit Detection Call ---
 function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
   fetch('/api/detect-transit', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ flights, userLat: uLat, userLon: uLon, userElev: uElev, bodyAz, bodyAlt, margin, predictSeconds, selectedBody })
   })
   .then(res => { if (!res.ok) throw new Error(res.status); return res.json(); })
@@ -258,7 +251,7 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
       const label = predictSeconds > 0
         ? `⚠️ Possible ${selectedBody} transit in ~${predictSeconds} sec:`
         : `🔭 Possible ${selectedBody} transit:`;
-      statusEl.innerHTML = `${label}<br>${matches.map(m => `${m.flight?.callsign||m.flight?.hex||'N/A'} (Az ${m.flight?.azimuth||'?'}°, Alt ${m.flight?.altitudeAngle||'?'}°)`).join('<br>')}`;
+      statusEl.innerHTML = `${label}<br>${matches.map(m => `${m.callsign} (Az ${m.azimuth}°, Alt ${m.altitudeAngle}°)`).join('<br>')}`;
       if (!document.getElementById('muteToggle').checked) document.getElementById('alertSound').play().catch(()=>{});
       logDetectionLocally(`${selectedBody} transit detected`, { az: bodyAz, alt: bodyAlt });
     } else {
@@ -321,6 +314,22 @@ function showTab(tabId) {
 }
 
 // --- Math Helpers ---
+function projectPosition(lat, lon, heading, speed, seconds) {
+  const R = 6371000;
+  const d = speed * seconds;
+  const θ = (heading * Math.PI) / 180;
+  const φ1 = (lat   * Math.PI) / 180;
+  const λ1 = (lon   * Math.PI) / 180;
+  const φ2 = Math.asin(
+    Math.sin(φ1) * Math.cos(d / R) +
+    Math.cos(φ1) * Math.sin(d / R) * Math.cos(θ)
+  );
+  const λ2 = λ1 + Math.atan2(
+    Math.sin(θ) * Math.sin(d / R) * Math.cos(φ1),
+    Math.cos(d / R) - Math.sin(φ1) * Math.sin(φ2)
+  );
+  return { lat: (φ2 * 180) / Math.PI, lon: (λ2 * 180) / Math.PI };
+}
 
 function calculateAzimuth(lat1, lon1, lat2, lon2) {
   const toRad = x => (x * Math.PI) / 180;
