@@ -96,6 +96,8 @@ document.getElementById('downloadLogBtn').addEventListener('click', () => {
   const fmt = document.getElementById('logFormat').value;
   const fn  = `transit_log.${fmt}`;
   const content = fmt === 'json'
+  const mime = fmt === 'json' ? 'application/json' : 'text/plain';
+  const blob = new Blob([content], { type: mime });
   ? JSON.stringify(log, null, 2)
   : log.map(e => {
       // Format ISO → "YYYY-MM-DD hh:mm:ss.SSS"
