@@ -1,5 +1,11 @@
 // utils/transitUtils.js
 
+// utils/transitUtils.js
+export function mapOpenSkyStates(states) { /* … */ }
+export function mapAviationstack(dataArray) { /* … */ }
+export function mapAdsbExchange(records) { /* … */ }
+// plus calculateAzimuth, projectPosition, detectTransits, etc.
+
 // Angular radius of the Sun/Moon in degrees
 const RADIUS_DISK_DEG = 0.25;
 
