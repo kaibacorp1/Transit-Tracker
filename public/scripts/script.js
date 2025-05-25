@@ -96,32 +96,9 @@ document.getElementById('downloadLogBtn').addEventListener('click', () => {
   const fmt = document.getElementById('logFormat').value;
   const fn  = `transit_log.${fmt}`;
   const content = fmt === 'json'
-  const mime = fmt === 'json' ? 'application/json' : 'text/plain';
-  const blob = new Blob([content], { type: mime });
-  ? JSON.stringify(log, null, 2)
-  : log.map(e => {
-      // Format ISO → "YYYY-MM-DD hh:mm:ss.SSS"
-      const d = new Date(e.time);
-      const ts =
-        d.getFullYear() + '-' +
-        String(d.getMonth()+1).padStart(2,'0') + '-' +
-        String(d.getDate()).padStart(2,'0') + ' ' +
-        String(d.getHours()).padStart(2,'0') + ':' +
-        String(d.getMinutes()).padStart(2,'0') + ':' +
-        String(d.getSeconds()).padStart(2,'0') + '.' +
-        String(d.getMilliseconds()).padStart(3,'0');
-      // Build the 8-line entry
-      return [
-        `time: ${ts}`,
-        `${e.message}`,
-        `callsign: ${e.callsign}`,
-        `azimuth: ${e.azimuth}`,
-        `altitudeAngle: ${e.altitudeAngle}`,
-        `body: ${e.body}`,
-        `predictionSeconds: ${e.predictionSeconds}`,
-        `margin: ${e.margin}`
-      ].join('\n');
-    }).join('\n\n');
+    ? JSON.stringify(log, null, 2)
+    : log.map(e => Object.entries(e).map(([k, v]) => `${k}: ${v}`).join('\n')).join('\n\n');
+  const blob = new Blob([content], { type: fmt === 'json' ? 'application/json' : 'text/plain' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = fn;
@@ -276,21 +253,7 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
         : `🔭 Possible ${selectedBody} transit:`;
       statusEl.innerHTML = `${label}<br>${matches.map(m => `${m.callsign} (Az ${m.azimuth}°, Alt ${m.altitudeAngle}°)`).join('<br>')}`;
       if (!document.getElementById('muteToggle').checked) document.getElementById('alertSound').play().catch(()=>{});
-      // For each detected flight, log a full record
-      matches.forEach(m => {
-      const label = predictSeconds > 0
-      ? `⚠️ Possible ${selectedBody} transit in ~${predictSeconds} sec`
-      : `🔭 Possible ${selectedBody} transit`;
-       logDetectionLocally(label, {
-      callsign:          m.callsign,
-      azimuth:           m.azimuth,
-      altitudeAngle:     m.altitudeAngle,
-      body:              selectedBody,
-      predictionSeconds: predictSeconds,
-      margin:            margin
-  });
-});
-
+      logDetectionLocally(`${selectedBody} transit detected`, { az: bodyAz, alt: bodyAlt });
     } else {
       statusEl.textContent = `No aircraft aligned with the ${selectedBody} right now.`;
     }
