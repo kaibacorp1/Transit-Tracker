@@ -253,7 +253,20 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
         : `🔭 Possible ${selectedBody} transit:`;
       statusEl.innerHTML = `${label}<br>${matches.map(m => `${m.callsign} (Az ${m.azimuth}°, Alt ${m.altitudeAngle}°)`).join('<br>')}`;
       if (!document.getElementById('muteToggle').checked) document.getElementById('alertSound').play().catch(()=>{});
-      logDetectionLocally(`${selectedBody} transit detected`, { az: bodyAz, alt: bodyAlt });
+      // For each detected flight, record a rich log entry
+matches.forEach(m => {
+  const label = predictSeconds > 0
+    ? `⚠️ Possible ${selectedBody} transit in ~${predictSeconds} sec`
+    : `🔭 Possible ${selectedBody} transit`;
+  logDetectionLocally(label, {
+    callsign:          m.callsign,
+    azimuth:           m.azimuth,
+    altitudeAngle:     m.altitudeAngle,
+    body:              selectedBody,
+    predictionSeconds: predictSeconds,
+    margin:            margin
+  });
+});
     } else {
       statusEl.textContent = `No aircraft aligned with the ${selectedBody} right now.`;
     }
