@@ -86,17 +86,31 @@ export function detectTransits({
     const altDiff = Math.abs(elevationAngle - futureBodyAlt);
 
     if (azDiff < margin && altDiff < margin) {
-      // Precise spherical check
-      const sep = sphericalSeparation(azimuth, elevationAngle, futureBodyAz, futureBodyAlt);
-      if (sep < margin) {
-        matches.push({
-          callsign,
-          azimuth: azimuth.toFixed(1),
-          altitudeAngle: elevationAngle.toFixed(1),
-          distance: distance.toFixed(1),
-          selectedBody,
-          predictionSeconds: predictSeconds
-        });
+    
+  // … earlier in detectTransits …
+if (azDiff < margin && altDiff < margin) {
+  // Precise spherical check: convert radians → degrees
+  const sepRad = sphericalSeparation(
+    azimuth,
+    elevationAngle,
+    futureBodyAz,
+    futureBodyAlt
+  );
+  const sep = sepRad * (180 / Math.PI);  // now in degrees
+
+  if (sep < margin) {
+    matches.push({
+      icao24: flight.icao24,
+      callsign: flight.callsign,
+      position: { lat: flight.latitude, lon: flight.longitude, alt: flight.baro_altitude },
+      separationDeg: sep,
+      bodyAzDeg: futureBodyAz,
+      bodyAltDeg: futureBodyAlt,
+      time: flight.time_position
+    });
+  }
+}
+// … rest of detectTransits …
       }
     }
   }
