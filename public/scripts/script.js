@@ -11,7 +11,7 @@ let countdown      = 5;
 let countdownInterval;
 let locationMode   = 'auto';
 let predictSeconds = 0;
-let margin         = 2.5;
+let margin         = 45.5;
 
 // --- Utility & Storage Helpers ---
 function getAviationstackKey() {
