@@ -1,4 +1,4 @@
-/* script.js - Celestial Transit Tracker */
+/* script.js – Celestial Transit Tracker */
 
 // --- Mode Flags ---
 window.useAviationstack = false;
@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // --- UI Event Listeners ---
+// Body selector (Moon/Sun)
 document.getElementById('bodyToggle').addEventListener('change', e => {
   selectedBody = e.target.value;
   document.getElementById('trackerTitle').textContent =
@@ -40,10 +41,23 @@ document.getElementById('bodyToggle').addEventListener('change', e => {
   getCurrentLocationAndRun();
 });
 
+// Radius dropdown
 document.getElementById('radiusSelect').addEventListener('change', getCurrentLocationAndRun);
+
+// Predict-seconds selector
 document.getElementById('predictToggle').addEventListener('change', e => {
   predictSeconds = parseInt(e.target.value, 10) || 0;
 });
+
+// Margin slider
+document.getElementById('marginSlider').addEventListener('input', e => {
+  margin = parseFloat(e.target.value);
+  document.getElementById('marginValue').textContent = margin.toFixed(1) + '°';
+  const fb = document.getElementById('marginFeedback');
+  if (fb) fb.textContent = `Matching within ±${margin.toFixed(1)}°`;
+});
+
+// Auto-refresh toggle & interval
 document.getElementById('autoRefreshToggle').addEventListener('change', e => {
   autoRefresh = e.target.value === 'on';
   autoRefresh ? startAutoRefresh() : stopAutoRefresh();
@@ -51,14 +65,17 @@ document.getElementById('autoRefreshToggle').addEventListener('change', e => {
 document.getElementById('refreshIntervalInput').addEventListener('change', () => {
   if (autoRefresh) startAutoRefresh();
 });
+document.getElementById('refreshBtn').addEventListener('click', getCurrentLocationAndRun);
+
+// Manual location inputs
 document.getElementById('locationMode').addEventListener('change', e => {
   locationMode = e.target.value;
   document.getElementById('manualLocationFields').style.display =
     locationMode === 'manual' ? 'block' : 'none';
   if (locationMode === 'auto') navigator.geolocation.getCurrentPosition(success, error);
 });
-document.getElementById('refreshBtn').addEventListener('click', getCurrentLocationAndRun);
 
+// Log viewing/clearing/downloading
 document.getElementById('viewLogBtn').addEventListener('click', () => {
   const log = JSON.parse(localStorage.getItem('transitLog') || '[]');
   alert(log.length
@@ -75,26 +92,15 @@ document.getElementById('clearLogBtn').addEventListener('click', () => {
 document.getElementById('downloadLogBtn').addEventListener('click', () => {
   const log = JSON.parse(localStorage.getItem('transitLog') || '[]');
   if (!log.length) return alert('No detections to download.');
-
   const fmt = document.getElementById('logFormat').value;
   const fn  = `transit_log.${fmt}`;
   let content;
-
   if (fmt === 'json') {
     content = JSON.stringify(log, null, 2);
   } else {
     content = log.map(e => {
       const d = new Date(e.time);
-      const ts = [
-        d.getFullYear(),
-        String(d.getMonth() + 1).padStart(2,'0'),
-        String(d.getDate()).padStart(2,'0')
-      ].join('-') + ' ' + [
-        String(d.getHours()).padStart(2,'0'),
-        String(d.getMinutes()).padStart(2,'0'),
-        String(d.getSeconds()).padStart(2,'0') + '.' +
-        String(d.getMilliseconds()).padStart(3,'0')
-      ].join(':');
+      const ts = d.toISOString().replace('T',' ').replace('Z','');
       return [
         `time: ${ts}`,
         `${e.message}`,
@@ -107,9 +113,7 @@ document.getElementById('downloadLogBtn').addEventListener('click', () => {
       ].join('\n');
     }).join('\n\n');
   }
-
-  const mime = fmt === 'json' ? 'application/json' : 'text/plain';
-  const blob = new Blob([content], { type: mime });
+  const blob = new Blob([content], { type: fmt==='json'?'application/json':'text/plain' });
   const a    = document.createElement('a');
   a.href     = URL.createObjectURL(blob);
   a.download = fn;
@@ -163,16 +167,16 @@ function getCelestialPosition(lat, lon, elev) {
     ? SunCalc.getMoonPosition(now, lat, lon)
     : SunCalc.getPosition(now, lat, lon);
   const az  = ((pos.azimuth * 180) / Math.PI + 180) % 360;
-  const alt = (pos.altitude * 180) / Math.PI;
+  const alt = (pos.altitude  * 180) / Math.PI;
   document.getElementById('moonAz').textContent = az.toFixed(2);
   document.getElementById('moonAlt').textContent = alt.toFixed(2);
   checkNearbyFlights(lat, lon, elev, az, alt);
 }
 
-// --- Flight Fetching & Backend Detection ---
+// --- Flight Fetching & Detection ---
 function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
   const statusEl = document.getElementById('transitStatus');
-  statusEl.textContent = `Checking flights near the ${selectedBody}...`;
+  statusEl.textContent = `Checking flights near the ${selectedBody}…`;
   const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
 
   // Aviationstack mode
@@ -189,7 +193,17 @@ function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
           statusEl.textContent = `❌ Aviationstack error: ${data.error.message || data.error}`;
           return;
         }
-        callTransitAPI(data.data || [], uLat, uLon, uElev, bodyAz, bodyAlt);
+        const flights = Array.isArray(data.data)
+          ? data.data.map(f => ({
+              latitude:  f.latitude,
+              longitude: f.longitude,
+              altitude:  f.altitude,
+              heading:   f.heading || null,
+              speed:     f.speed    || null,
+              callsign:  f.flight   || ''
+            }))
+          : [];
+        callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt);
       })
       .catch(() => { statusEl.textContent = '🚫 Error fetching Aviationstack data.'; });
     return;
@@ -203,11 +217,30 @@ function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
       statusEl.textContent = '❌ Missing ADS-B Exchange API settings.';
       return;
     }
-    checkAdsbExchangeFlights(uLat, uLon, uElev, bodyAz, bodyAlt);
+    const url = `https://${host}/v2/lat/${uLat}/lon/${uLon}/dist/${radiusKm}/`;
+    fetch(url, {
+      method: 'GET',
+      headers: { 'x-rapidapi-host': host, 'x-rapidapi-key': key }
+    })
+      .then(res => res.json())
+      .then(data => {
+        const flights = Array.isArray(data.ac)
+          ? data.ac.map(ac => ({
+              latitude:  ac.lat,
+              longitude: ac.lon,
+              altitude:  ac.alt_geom || 0,
+              heading:   ac.track   || null,
+              speed:     ac.gs      || null,
+              callsign:  ac.flight  || ''
+            }))
+          : [];
+        callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt);
+      })
+      .catch(() => { statusEl.textContent = '🚫 Error fetching ADS-B Exchange data.'; });
     return;
   }
 
-  // Default (OpenSky mode)
+  // Default: OpenSky mode
   const username = sessionStorage.getItem('osUser');
   const password = sessionStorage.getItem('osPass');
   if (!username || !password) {
@@ -223,38 +256,22 @@ function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
     body: JSON.stringify({ username, password, lamin, lomin, lamax, lomax })
   })
     .then(res => res.json())
-    .then(data => callTransitAPI(data.states || [], uLat, uLon, uElev, bodyAz, bodyAlt))
+    .then(data => {
+      const flights = Array.isArray(data.states)
+        ? data.states.map(s => ({
+            callsign:  (s[1] || '').trim(),
+            latitude:  s[6],
+            longitude: s[5],
+            altitude:  s[7] != null ? s[7] : 0,
+            speed:     s[9] != null ? s[9] : null,
+            heading:   s[10]!= null ? s[10]: null
+          }))
+        : [];
+      callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt);
+    })
     .catch(() => { statusEl.textContent = '🚫 Error fetching OpenSky flight data.'; });
 }
 
-// ADS-B Exchange Helper
-function checkAdsbExchangeFlights(userLat, userLon, userElev, bodyAz, bodyAlt) {
-  const key  = sessionStorage.getItem('adsbApiKey');
-  const host = sessionStorage.getItem('adsbApiHost');
-  const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
-  const url = `https://${host}/v2/lat/${userLat}/lon/${userLon}/dist/${radiusKm}/`;
-  fetch(url, {
-    method: 'GET',
-    headers: { 'x-rapidapi-host': host, 'x-rapidapi-key': key }
-  })
-    .then(res => res.json())
-    .then(data => {
-      const flights = Array.isArray(data.ac)
-        ? data.ac.map(ac => ({
-            latitude:  ac.lat,
-            longitude: ac.lon,
-            altitude:  ac.alt_geom || 0,
-            heading:   ac.track || null,
-            speed:     ac.gs    || null,
-            callsign:  ac.flight|| ''
-          }))
-        : [];
-      callTransitAPI(flights, userLat, userLon, userElev, bodyAz, bodyAlt);
-    })
-    .catch(() => { document.getElementById('transitStatus').textContent = '🚫 Error fetching ADS-B Exchange data.'; });
-}
-
-// --- Backend Transit Detection Call ---
 function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
   fetch('/api/detect-transit', {
     method: 'POST',
@@ -262,8 +279,8 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
     body: JSON.stringify({
       flights,
       userLat:    uLat,
-      userLon:    uLon,    // ← fixed typo here
-      userElev:   uElev,   // ← fixed typo here
+      userLon:    uLon,
+      userElev:   uElev,
       bodyAz,
       bodyAlt,
       margin,
@@ -329,66 +346,11 @@ function calculateAzimuth(lat1, lon1, lat2, lon2) {
   const φ2 = toRad(lat2);
   const dλ = toRad(lon2 - lon1);
   const y  = Math.sin(dλ) * Math.cos(φ2);
-  const x  = Math.cos(φ1) * Math.sin(φ2) -
-             Math.sin(φ1) * Math.cos(φ2) * Math.cos(dλ);
+  const x  = Math.cos(φ1) * Math.sin(φ2)
+           - Math.sin(φ1) * Math.cos(φ2) * Math.cos(dλ);
   return ((toDeg(Math.atan2(y, x))) + 360) % 360;
 }
 
 function haversine(lat1, lon1, lat2, lon2) {
-  const toRad = deg => deg * Math.PI / 180;
-  const φ1 = toRad(lat1);
-  const φ2 = toRad(lat2);
-  const dφ = φ2 - φ1;
-  const dλ = toRad(lon2 - lon1);
-  const a  = Math.sin(dφ/2)**2 +
-             Math.cos(φ1)*Math.cos(φ2)*Math.sin(dλ/2)**2;
-  return 2 * 6371000 * Math.asin(Math.sqrt(a));
-}
+  const toRad = deg => deg
 
-function sphericalSeparation(az1, el1, az2, el2) {
-  const toRad = deg => deg * Math.PI / 180;
-  const a1    = toRad(el1);
-  const a2    = toRad(el2);
-  const dAz   = toRad(az1 - az2);
-  const cosS  = Math.sin(a1)*Math.sin(a2) +
-                Math.cos(a1)*Math.cos(a2)*Math.cos(dAz);
-  return Math.acos(Math.max(-1, Math.min(1, cosS))) * 180 / Math.PI;
-}
-
-// --- Auto-refresh Handlers ---
-function updateCountdown() {
-  const ui = parseInt(document.getElementById('refreshIntervalInput').value, 10);
-  countdown = isNaN(ui) || ui < 3 ? 5 : ui;
-}
-
-function startAutoRefresh() {
-  stopAutoRefresh();
-  updateCountdown();
-  updateCountdownDisplay();
-  countdownInterval = setInterval(() => {
-    countdown--;
-    updateCountdownDisplay();
-    if (countdown <= 0) {
-      getCurrentLocationAndRun();
-      updateCountdown();
-    }
-  }, 1000);
-}
-
-function stopAutoRefresh() {
-  clearInterval(countdownInterval);
-  document.getElementById('countdownTimer').textContent = 'Auto refresh off';
-}
-
-function updateCountdownDisplay() {
-  document.getElementById('countdownTimer').textContent = `Next check in: ${countdown}s`;
-}
-
-// --- Tab Switching ---
-function showTab(tabId) {
-  ['openskyTab','aviationstackTab','adsbexTab'].forEach(id => {
-    document.getElementById(id).style.display     = id === tabId ? 'block' : 'none';
-    document.getElementById(id + 'Btn').style.borderColor =
-      id === tabId ? '#00bfff' : '#444';
-  });
-}
