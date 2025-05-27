@@ -267,6 +267,13 @@ function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
             heading:   s[10]!= null ? s[10]: null
           }))
         : [];
+      // right after you build `flights` but before you send them on…
+flights.slice(0,10).forEach(f => {
+  console.log(
+    `✈️ ${f.callsign || '–––'} @ ${f.latitude.toFixed(3)},${f.longitude.toFixed(3)}:`,
+    `altitude=${f.altitude.toFixed(1)} m`
+  );
+});
       callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt);
     })
     .catch(() => { statusEl.textContent = '🚫 Error fetching OpenSky flight data.'; });
