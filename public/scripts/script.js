@@ -61,7 +61,12 @@ document.getElementById('locationMode').addEventListener('change', e => {
   locationMode = e.target.value;
   document.getElementById('manualLocationFields').style.display =
     locationMode === 'manual' ? 'block' : 'none';
-  if (locationMode === 'auto') navigator.geolocation.getCurrentPosition(success, error);
+    if (locationMode === 'auto') {
+    navigator.geolocation.getCurrentPosition(success, error);
+  } else {
+    // user switched to manual: immediately use their inputs
+    getCurrentLocationAndRun();
+  }
 });
 document.getElementById('refreshBtn').addEventListener('click', getCurrentLocationAndRun);
 
