@@ -455,7 +455,3 @@ function stopAutoRefresh() {
 function updateCountdownDisplay() {
   document.getElementById('countdownTimer').textContent = `Next check in: ${countdown}s`;
 }
-
-// Expose for debugging: make callTransitAPI callable from the console
-window.callTransitAPI = callTransitAPI;
-
