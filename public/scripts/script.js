@@ -271,6 +271,32 @@ function checkAdsbExchangeFlights(userLat, userLon, userElev, bodyAz, bodyAlt) {
 
 // --- Backend Transit Detection Call ---
 function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
+    // ── Normalize every flight record into the object shape detect-transit needs ──
+  const flightObjs = flights.map(f => {
+    if (Array.isArray(f)) {
+      // raw array from OpenSky or ADS-B Exchange
+      return {
+        latitude:  f[6],
+        longitude: f[5],
+        altitude:  f[9]  || 0,
+        heading:   f[10] || 0,
+        speed:     f[9]  || 0,
+        callsign:  f[1]  || ''
+      };
+    } else {
+      // already an object (e.g. Aviationstack)
+      return {
+        latitude:  f.latitude  || f.lat  || 0,
+        longitude: f.longitude || f.lon  || 0,
+        altitude:  f.altitude  || f.baro_altitude || 0,
+        heading:   f.heading   || f.track || 0,
+        speed:     f.speed     || f.velocity || 0,
+        callsign:  f.callsign  || f.flight || ''
+      };
+    }
+  });
+
+  // ── Send the normalized array instead of the raw one ──
   fetch('/api/detect-transit', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
