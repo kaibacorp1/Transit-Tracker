@@ -130,5 +130,5 @@ export function calculateAzimuth(lat1, lon1, lat2, lon2) {
   const x = Math.sin(dLambda) * Math.cos(phi2);
   const y = Math.cos(phi1) * Math.sin(phi2)
           - Math.sin(phi1) * Math.cos(phi2) * Math.cos(dLambda);
-  return (toDeg(Math.atan2(x, y)) + 360) % 360;
+  return (toDeg(Math.atan2(y, x)) + 360) % 360;
 }
