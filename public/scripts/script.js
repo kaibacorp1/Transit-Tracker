@@ -260,6 +260,7 @@ function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
         statusEl.textContent = `No aircraft aligned with the ${selectedBody} right now.`;
       }
     });
+  }
 
 // ADS-B Exchange Helper
 function checkAdsbExchangeFlights(userLat, userLon, userElev, bodyAz, bodyAlt) {
