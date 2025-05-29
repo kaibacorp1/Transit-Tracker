@@ -251,16 +251,8 @@ function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
   })
     .then(res => res.json())
     .then(data => callTransitAPI(data.states || [], uLat, uLon, uElev, bodyAz, bodyAlt))
-    .catch(() => { statusEl.textContent = '🚫 Error fetching OpenSky flight data.'; 
-    })
-    .finally(() => {
-      // if for some reason neither success nor error wrote to the status,
-      // clear out the “Checking…” text to the no‐aircraft message
-      if (statusEl.textContent.startsWith('Checking flights near the')) {
-        statusEl.textContent = `No aircraft aligned with the ${selectedBody} right now.`;
-      }
-    });
-  }
+    .catch(() => { statusEl.textContent = '🚫 Error fetching OpenSky flight data.'; });
+}
 
 // ADS-B Exchange Helper
 function checkAdsbExchangeFlights(userLat, userLon, userElev, bodyAz, bodyAlt) {
