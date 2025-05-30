@@ -158,7 +158,6 @@ function success(position) {
 
 function error(err) {
   alert(`Could not get your location. Reason: ${err.message}`);
-  startAutoRefresh();   // kick off your regular scan loop anyway
 }
 
 function updateLocationUI(lat, lon, elev) {
