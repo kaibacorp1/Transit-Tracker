@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flight Data Providers – Celestial Transit Tracker</title>
+  <style>
+    /* Global Styles */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans",
+        "Helvetica Neue", sans-serif;
+      line-height: 1.6;
+      background-color: #f9fafb;
+      color: #111827;
+    }
+
+    a {
+      color: #2563eb;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    code {
+      background-color: #f3f4f6;
+      padding: 0.2em 0.4em;
+      border-radius: 4px;
+      font-family: "Source Code Pro", monospace;
+      font-size: 0.95em;
+    }
+
+    h1,
+    h2,
+    h3 {
+      color: #1f2937;
+      margin-top: 1.5em;
+      margin-bottom: 0.5em;
+    }
+
+    h1 {
+      font-size: 2rem;
+      border-bottom: 2px solid #e5e7eb;
+      padding-bottom: 0.3rem;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 0.25rem;
+    }
+
+    h3 {
+      font-size: 1.2rem;
+      margin-top: 1.25em;
+    }
+
+    /* Container */
+    .container {
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    /* Navigation (Table of Contents) */
+    .toc {
+      background-color: #ffffff;
+      padding: 1rem 1.5rem;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      margin-bottom: 2rem;
+    }
+
+    .toc h2 {
+      margin-top: 0;
+    }
+
+    .toc ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .toc li {
+      margin: 0.5rem 0;
+    }
+
+    .toc a {
+      font-size: 0.95rem;
+    }
+
+    /* Section */
+    section.step {
+      background-color: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    section.step:last-of-type {
+      margin-bottom: 3rem;
+    }
+
+    section.step h2 {
+      margin-top: 0;
+    }
+
+    /* Lists */
+    li ul,
+    li ol {
+      margin-top: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    /* Note Box */
+    .note {
+      background-color: #fef3c7;
+      border-left: 4px solid #fbbf24;
+      padding: 0.75rem 1rem;
+      margin: 1.5rem 0;
+      border-radius: 4px;
+      color: #92400e;
+      font-size: 0.95rem;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 1.5rem 0;
+      font-size: 0.9rem;
+      color: #6b7280;
+    }
+  </style>
+</head>
+
+<body>
+  <header class="container">
+    <h1>Flight Data Providers</h1>
+    <p>A detailed overview of the APIs used to fetch real-time aircraft positions and metadata for Celestial Transit Tracker.</p>
+  </header>
+
+  <nav class="container toc">
+    <h2>Table of Contents</h2>
+    <ul>
+      <li><a href="#intro">Introduction</a></li>
+      <li><a href="#opensky">1. OpenSky Network</a></li>
+      <li><a href="#aviationstack">2. Aviationstack</a></li>
+      <li><a href="#adsbex">3. ADS-B Exchange</a></li>
+      <li><a href="#conclusion">4. Why We Use Multiple Providers</a></li>
+    </ul>
+  </nav>
+
+  <main class="container">
+    <!-- Introduction -->
+    <section id="intro" class="step">
+      <h2>Introduction</h2>
+      <p>
+        Celestial Transit Tracker relies on three primary flight-data APIs to deliver accurate, near real-time information:
+        <strong>OpenSky</strong>, <strong>Aviationstack</strong>, and <strong>ADS-B Exchange</strong>. Each provider offers unique
+        advantages in terms of coverage, latency, and data depth. Below, you’ll find a breakdown of what each API supplies,
+        direct links to their documentation, and instructions on how to obtain any necessary API keys or accounts.
+      </p>
+      <div class="note">
+        <strong>Note:</strong> Some services require registration or payment tiers for higher request volumes or extended
+        historical data. We apologize for any inconvenience this may cause and wish such comprehensive flight data were
+        freely available without restriction.
+      </div>
+    </section>
+
+    <!-- OpenSky Section -->
+    <section id="opensky" class="step">
+      <h2>1. ✈️ OpenSky Network</h2>
+      <div class="note">
+        ❗ New OpenSky accounts created after March 2025 currently do not have API access. Please try using a legacy account or wait for OpenSky to re-enable access. Please contact OpenSky support to see if they can manually enable this for you. We’re sorry for any inconvenience.
+      </div>
+      <p>
+        OpenSky Network is a community-driven, non-profit platform that aggregates live ADS-B and Mode S data from receivers
+        around the world. It offers free access (with optional registration) to:
+      </p>
+      <ul>
+        <li><strong>Aircraft Identifiers:</strong> Callsign, registration (tail number), ICAO24 code</li>
+        <li><strong>Position:</strong> Latitude, longitude, barometric altitude, geometric altitude</li>
+        <li><strong>Velocity &amp; Heading:</strong> Ground speed, vertical rate, track (heading) in degrees</li>
+        <li><strong>Timestamp:</strong> UNIX epoch for the last received ADS-B/Mode S message</li>
+      </ul>
+      <p>
+        <strong>Key Links:</strong>
+        <ul>
+          <li><a href="https://opensky-network.org" target="_blank">OpenSky Homepage</a></li>
+          <li><a href="https://opensky-network.org/apidoc/index.html" target="_blank">OpenSky REST API Documentation</a></li>
+          <li><a href="https://opensky-network.org/user/register" target="_blank">Register for an OpenSky Account</a> (optional)</li>
+          <li><a href="https://opensky-network.org/api" target="_blank">OpenSky API Reference &amp; Rate Limits</a></li>
+        </ul>
+      </p>
+      <p>
+        OpenSky’s free tier imposes a rate limit of 100 requests per day for anonymous users. Registering an account increases
+        that limit to 1,000 requests per day. Coverage can be spotty in regions without nearby receivers, and update frequency
+        is generally 5–10 seconds per aircraft. Despite these limitations, OpenSky is ideal for hobbyist tracking and
+        low-volume production use.
+      </p>
+    </section>
+
+    <!-- Aviationstack Section -->
+    <section id="aviationstack" class="step">
+      <h2>2. 🌐 Aviationstack</h2>
+      <p>
+        Aviationstack is a commercial flight-data provider that aggregates information from multiple sources, including
+        ADS-B, airline schedules, and airport databases. It offers more consistent global coverage than most free APIs,
+        at the cost of enforced rate limits and API-key requirements. Data fields include:
+      </p>
+      <ul>
+        <li><strong>Aircraft Metadata:</strong> Callsign, registration, ICAO24, airline name, aircraft type/model</li>
+        <li><strong>Position &amp; Altitude:</strong> Latitude, longitude, altitude (feet/meters), vertical speed</li>
+        <li><strong>Speed &amp; Heading:</strong> Ground speed (knots/kph), true heading</li>
+        <li><strong>Flight Status:</strong> Departure airport (IATA/ICAO), arrival airport (IATA/ICAO), scheduled/estimated times</li>
+        <li><strong>Timestamps:</strong> Last observed time, departure/arrival timestamps, status codes</li>
+      </ul>
+      <p>
+        <strong>Key Links:</strong>
+        <ul>
+          <li><a href="https://aviationstack.com" target="_blank">Aviationstack Homepage</a></li>
+          <li><a href="https://aviationstack.com/documentation" target="_blank">Aviationstack API Documentation</a></li>
+          <li><a href="https://aviationstack.com/signup" target="_blank">Sign Up for an Aviationstack API Key</a></li>
+          <li><a href="https://aviationstack.com/pricing" target="_blank">Pricing &amp; Rate Limits</a></li>
+        </ul>
+      </p>
+      <p>
+        Aviationstack’s free tier allows up to 500 API requests per month, with a response time typically under 1 second.
+        Paid plans start at 1,000 requests per day and include historical flights, airline routes, and airport schedules.
+        Because Aviationstack combines multiple data feeds, it often yields higher reliability in remote areas compared
+        to single-source ADS-B services.
+      </p>
+    </section>
+
+    <!-- ADS-B Exchange Section -->
+    <section id="adsbex" class="step">
+      <h2>3. 📡 ADS-B Exchange (via RapidAPI)</h2>
+      <p>
+        ADS-B Exchange is a community-driven repository of raw ADS-B messages. While its public website shows aggregated
+        flight tracks, we access it programmatically through RapidAPI. This method provides:
+      </p>
+      <ul>
+        <li><strong>Real-Time ADS-B Feeds:</strong> Raw position, altitude, speed, and callsign for every ADS-B transmitter</li>
+        <li><strong>ICAO &amp; Mode S Data:</strong> Unique ICAO codes, Mode S codes, squawk codes, and registration</li>
+        <li><strong>Velocity &amp; Course:</strong> Ground speed, vertical rate, true heading</li>
+        <li><strong>Timestamp &amp; Origin:</strong> Latest message time, receiver station ID (if available)</li>
+      </ul>
+      <p>
+        <strong>Key Links:</strong>
+        <ul>
+          <li><a href="https://rapidapi.com/adsbexchange/api/adsbexchange" target="_blank">ADS-B Exchange on RapidAPI</a></li>
+          <li><a href="https://rapidapi.com/adsbexchange/api/adsbexchange/endpoints" target="_blank">ADS-B Exchange Endpoints &amp; Examples</a></li>
+          <li><a href="https://rapidapi.com/signup" target="_blank">Sign Up for RapidAPI</a></li>
+          <li><a href="https://rapidapi.com/pricing" target="_blank">RapidAPI Pricing &amp; Quotas</a></li>
+        </ul>
+      </p>
+      <p>
+        Through RapidAPI, you can choose a tier that fits your usage: the free tier allows up to 500 calls per month with
+        moderate latency, while paid tiers support thousands of calls per day with lower rate limits. Because ADS-B Exchange
+        ingests raw messages from volunteers worldwide, it often provides the lowest latency (100–500 ms per update), but
+        coverage depends entirely on volunteer-mounted receivers. If no nearby receiver exists, aircraft may not appear
+        in the feed.
+      </p>
+    </section>
+
+    <!-- Conclusion & Apology -->
+    <section id="conclusion" class="step">
+      <h2>4. Why We Use Multiple Providers</h2>
+      <p>
+        No single data source can guarantee 100 % global coverage, minimal latency, and unrestricted access—all at once.
+        By combining OpenSky’s freely contributed ADS-B data, Aviationstack’s aggregated airline schedules, and ADS-B Exchange’s
+        raw feeds, we maximize:
+      </p>
+      <ul>
+        <li><strong>Geographic Coverage:</strong> If one service lacks receivers in a region, another might fill in the gaps.</li>
+        <li><strong>Data Frequency:</strong> ADS-B Exchange often updates fastest, while Aviationstack’s schedule data provides
+            additional context (e.g., departure/arrival times).</li>
+        <li><strong>Redundancy:</strong> If a provider is temporarily down or rate-limited, our app can seamlessly fallback
+            to the others without interrupting your tracking experience.</li>
+      </ul>
+      <p class="note">
+        We apologize for any inconvenience caused by registration requirements, API-key management, or pay-for-access tiers.
+        We genuinely wish that such comprehensive, high-fidelity flight data were freely available to all developers without
+        restrictions. Thank you for your understanding and continued support.
+      </p>
+    </section>
+  </main>
+
+  <footer class="container">
+    <p><a href="index.html">← Back to Tracker</a></p>
+    <p>&copy; 2025 Celestial Transit Tracker • All rights reserved</p>
+  </footer>
+</body>
+
+</html>
