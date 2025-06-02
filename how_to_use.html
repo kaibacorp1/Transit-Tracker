@@ -1,80 +1,514 @@
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <title>How to Use the App</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Celestial Transit Tracker – Technical User Guide</title>
   <style>
+    /* Global Styles */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: sans-serif;
-      background-color: #121212;
-      color: #ffffff;
-      margin: 2rem;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans",
+        "Helvetica Neue", sans-serif;
       line-height: 1.6;
+      background-color: #f9fafb;
+      color: #111827;
     }
-    h1 {
-      color: #00bfff;
-    }
+
     a {
-      color: #00bfff;
+      color: #2563eb;
       text-decoration: none;
     }
+
     a:hover {
-      text-shadow: 0 0 5px #00bfff;
+      text-decoration: underline;
     }
-    section {
+
+    code {
+      background-color: #f3f4f6;
+      padding: 0.2em 0.4em;
+      border-radius: 4px;
+      font-family: "Source Code Pro", monospace;
+      font-size: 0.95em;
+    }
+
+    h1,
+    h2,
+    h3 {
+      color: #1f2937;
+      margin-top: 1.5em;
+      margin-bottom: 0.5em;
+    }
+
+    h1 {
+      font-size: 2rem;
+      border-bottom: 2px solid #e5e7eb;
+      padding-bottom: 0.3rem;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 0.25rem;
+    }
+
+    h3 {
+      font-size: 1.2rem;
+      margin-top: 1.25em;
+    }
+
+    /* Container */
+    .container {
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    /* Navigation (Table of Contents) */
+    .toc {
+      background-color: #ffffff;
+      padding: 1rem 1.5rem;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
       margin-bottom: 2rem;
+    }
+
+    .toc h2 {
+      margin-top: 0;
+    }
+
+    .toc ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .toc li {
+      margin: 0.5rem 0;
+    }
+
+    .toc a {
+      font-size: 0.95rem;
+    }
+
+    /* Step Sections */
+    section.step {
+      background-color: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    section.step:last-of-type {
+      margin-bottom: 3rem;
+    }
+
+    section.step h2 {
+      margin-top: 0;
+    }
+
+    /* Lists */
+    li ul,
+    li ol {
+      margin-top: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 1.5rem 0;
+      font-size: 0.9rem;
+      color: #6b7280;
     }
   </style>
 </head>
+
 <body>
-  <h1>📖 How to Use the Celestial Transit Tracker</h1>
+  <header class="container">
+    <h1>Celestial Transit Tracker – Technical User Guide</h1>
+    <p>A concise, step-by-step reference for configuring and using the Celestial Transit Tracker application.</p>
+  </header>
 
-  <section>
-    <strong>Step 1: Get an OpenSky Account</strong><br>
-    To use the app, you’ll need a free account from OpenSky.<br>
-    <a href="https://opensky-network.org/user/register" target="_blank">Create one here</a>
-  </section>
+  <nav class="container toc">
+    <h2>Table of Contents</h2>
+    <ul>
+      <li><a href="#step-1">1. Open the App</a></li>
+      <li><a href="#step-2">2. Choose a Data Source (API)</a></li>
+      <li><a href="#step-3">3. Set Your Location</a></li>
+      <li><a href="#step-4">4. Configure Tracking Parameters</a></li>
+      <li><a href="#step-5">5. Adjust Detection Margin</a></li>
+      <li><a href="#step-6">6. Watch Real-Time Status</a></li>
+      <li><a href="#step-7">7. Advanced Settings &amp; Logs</a></li>
+      <li><a href="#step-8">8. Manual Refresh</a></li>
+      <li><a href="#step-9">9. Interpreting Transit Alerts</a></li>
+      <li><a href="#step-10">10. Downloading &amp; Using Logs</a></li>
+      <li><a href="#step-11">11. Clearing the Log</a></li>
+      <li><a href="#step-12">12. Tips &amp; Troubleshooting</a></li>
+      <li><a href="#step-13">13. Switching Between Moon &amp; Sun</a></li>
+      <li><a href="#step-14">14. Getting Help</a></li>
+    </ul>
+  </nav>
 
-  <section>
-    <strong>Step 2: Log In</strong><br>
-    Enter your OpenSky username and password in the login section at the top. Click “Save Credentials.”<br>
-    (Your login is only used during your session.)
-  </section>
+  <main class="container">
+    <!-- Step 1 -->
+    <section id="step-1" class="step">
+      <h2>1. Open the App</h2>
+      <p>In your browser, navigate to:</p>
+      <p><code>https://transit-tracker.vercel.app</code></p>
+      <p>
+        You should see a page titled <strong>🌙 Moon Transit Tracker</strong> (or <strong>☀️ Sun
+        Transit Tracker</strong> depending on the last selection). At the top, a status banner will read
+        <em>“Checking flights near the Moon…”</em> (or <em>“…near the Sun…”</em>).
+      </p>
+    </section>
 
-  <section>
-    <strong>Step 3: Set Your Location</strong><br>
-    Under “Location Mode”:<br>
-    - Choose <em>Auto (GPS)</em> to use your current position<br>
-    - Or select <em>Manual</em> and enter your latitude, longitude, and elevation
-  </section>
+    <!-- Step 2 -->
+    <section id="step-2" class="step">
+      <h2>2. Choose a Data Source (API)</h2>
+      <p>
+        By default, the app uses <strong>OpenSky</strong> to fetch nearby flight data. If you already have an
+        OpenSky account, proceed to Step 3. Otherwise, you can switch to <strong>Aviationstack</strong> or
+        <strong>ADS-B Exchange</strong>.
+      </p>
 
-  <section>
-    <strong>Step 4: Choose What to Track</strong><br>
-    Select the celestial body (Moon or Sun), the search radius, and if you want to predict aircraft position a few seconds ahead. You can also enable auto-refresh.
-  </section>
+      <h3>OpenSky (default)</h3>
+      <ol>
+        <li>Under the header, locate three tab buttons:
+          <ul>
+            <li>✈️ <strong>OpenSky</strong> (active by default)</li>
+            <li>🌐 <strong>Aviationstack</strong></li>
+            <li>📡 <strong>ADS-B Exchange</strong></li>
+          </ul>
+        </li>
+        <li>
+          In the “OpenSky Login” panel (under the OpenSky tab):
+          <ul>
+            <li>Enter your <strong>Username</strong> and <strong>Password</strong>.</li>
+            <li>Click <strong>🔐 Save Credentials</strong>.</li>
+            <li>If you don’t have an account, click the “Sign up here” link to create one. Once registered,
+              return and paste your credentials.</li>
+          </ul>
+        </li>
+      </ol>
 
-  <section>
-    <strong>Step 5: Set Detection Margin</strong><br>
-    Use the slider to adjust how precise a plane’s alignment must be with the Moon or Sun. Tighter settings are better for photography.
-  </section>
+      <h3>Aviationstack</h3>
+      <ol>
+        <li>Click the <strong>🌐 Aviationstack</strong> tab.</li>
+        <li>In the “Aviationstack API” panel:
+          <ul>
+            <li>Paste your <strong>API Key</strong> into the text field.</li>
+            <li>Click <strong>💾 Save Key</strong>, then <strong>🌐 Use Aviationstack</strong>.</li>
+            <li>If valid, the app switches to Aviationstack for flight data.</li>
+          </ul>
+        </li>
+      </ol>
 
-  <section>
-    <strong>Step 6: Watch for Alerts</strong><br>
-    You’ll see alerts if a plane lines up with the Moon or Sun. They’ll show in the transit log and play a sound (unless muted).
-  </section>
+      <h3>ADS-B Exchange</h3>
+      <ol>
+        <li>Click the <strong>📡 ADS-B Exchange</strong> tab.</li>
+        <li>In the settings panel:
+          <ul>
+            <li>Paste your <strong>RapidAPI Key</strong> into the designated field.</li>
+            <li>Ensure “API Host” is set to <code>adsbexchange-com1.p.rapidapi.com</code>.</li>
+            <li>Click <strong>💾 Save Settings</strong>, then <strong>📡 Use ADS-B Exchange</strong>.</li>
+            <li>Once confirmed, the app uses ADS-B Exchange as its data source.</li>
+          </ul>
+        </li>
+      </ol>
+    </section>
 
-  <section>
-    <strong>Step 7: View or Save Your Log</strong><br>
-    In the Advanced Settings area, you can view, download, or clear logged transits.
-  </section>
+    <!-- Step 3 -->
+    <section id="step-3" class="step">
+      <h2>3. Set Your Location</h2>
+      <p>
+        Below the API section, locate the <strong>Location Mode</strong> controls:
+      </p>
+      <ol>
+        <li>
+          <strong>Location Mode</strong> dropdown:
+          <ul>
+            <li><strong>Auto (GPS)</strong> – Uses your device’s geolocation. Grant permission when prompted to allow
+              accurate latitude/longitude detection.</li>
+            <li><strong>Manual</strong> – Enables three fields for manual entry:
+              <ul>
+                <li><strong>Latitude</strong> (e.g., <code>−33.8688</code>).</li>
+                <li><strong>Longitude</strong> (e.g., <code>151.2093</code>).</li>
+                <li><strong>Elevation (m)</strong> (default: <code>10</code>).</li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+        <li>After selecting Auto or entering manual coordinates, click <strong>🔄 Refresh</strong> to confirm your location.
+          The app fetches the Sun/Moon position for that point.</li>
+      </ol>
+    </section>
 
-  <section>
-    <strong>Need Help?</strong><br>
-    📬 Email: <a href="mailto:sandu.godakumbura@gmail.com">sandu.godakumbura@gmail.com</a>
-  </section>
+    <!-- Step 4 -->
+    <section id="step-4" class="step">
+      <h2>4. Configure Tracking Parameters</h2>
+      <p>In the controls panel, adjust the following settings:</p>
+      <ol>
+        <li>
+          <strong>Celestial Body</strong> dropdown:
+          <ul>
+            <li><strong>Moon</strong> – Track aircraft transits across the Moon.</li>
+            <li><strong>Sun</strong> – Track aircraft transits across the Sun.</li>
+          </ul>
+        </li>
+        <li>
+          <strong>Search Radius</strong> dropdown (in kilometers):
+          <ul>
+            <li>Options: <code>10 km</code>, <code>20 km</code>, <code>30 km</code> (default), <code>40 km</code>,
+              <code>50 km</code>.</li>
+            <li>Defines how far from the Sun/Moon’s exact azimuth/altitude to look for aircraft. Larger radius =
+              more coverage, but more potential false positives; smaller = more precise.</li>
+          </ul>
+        </li>
+        <li>
+          <strong>Prediction Mode</strong> dropdown:
+          <ul>
+            <li><strong>Off</strong> – Only checks current positions.</li>
+            <li><strong>5 sec, 10 sec (default), 15 sec, 20 sec, 30 sec</strong> – Project each aircraft’s path that many
+              seconds into the future. Useful for anticipating imminent transits.</li>
+          </ul>
+        </li>
+        <li>
+          <strong>Auto Refresh</strong> dropdown:
+          <ul>
+            <li><strong>On</strong> (default) – Automatically re-checks flights at the chosen interval.</li>
+            <li><strong>Off</strong> – Only fetch data when you click <strong>🔄 Refresh</strong>.</li>
+          </ul>
+        </li>
+        <li>
+          Below these controls, a live countdown appears:
+          <p><em>Next check in: Xs</em> (where X is seconds until the next automatic refresh). Only active if Auto Refresh is On.</p>
+        </li>
+      </ol>
+    </section>
 
-  <a href="index.html">← Back to App</a>
+    <!-- Step 5 -->
+    <section id="step-5" class="step">
+      <h2>5. Adjust Detection Margin</h2>
+      <p>
+        Use the <strong>Detection Margin</strong> slider (in degrees °):
+      </p>
+      <ul>
+        <li>Move between <code>1°</code> and <code>50°</code> in <code>0.5°</code> increments (default: <code>2.5°</code>).</li>
+        <li>The numerical value updates dynamically as you adjust the slider.</li>
+        <li>A feedback message below (e.g., <em>“🌟 Very strict (photography)”</em> or <em>“😊 Moderate”</em>) indicates the margin’s
+          strictness. A smaller margin catches precise alignments (ideal for photography); a larger margin finds approximate
+          line-ups.</li>
+      </ul>
+    </section>
+
+    <!-- Step 6 -->
+    <section id="step-6" class="step">
+      <h2>6. Watch Real-Time Status</h2>
+      <ul>
+        <li>
+          The “transitStatus” banner (below the header) displays:
+          <ul>
+            <li>“<em>Checking flights near the Moon…</em>” or “<em>Checking flights near the Sun…</em>” on each new check.</li>
+            <li>After a check: “<em>No planes near transit</em>” or “<em>🚀 1 flight approaching transit!</em>” etc.</li>
+          </ul>
+        </li>
+        <li>
+          Below the Detection Margin, live <strong>Azimuth</strong> and <strong>Altitude</strong> of the selected body (Moon/Sun)
+          are shown. They refresh on each <strong>🔄 Refresh</strong> or automatically if Auto Refresh is On.
+        </li>
+        <li>
+          When an aircraft’s projected path falls within the Detection Margin:
+          <ul>
+            <li>A visual alert appears in the status banner (e.g., <em>“✈️ Plane ABC123 transiting the Moon!”</em>).</li>
+            <li>An audible alert (beep/chime) sounds unless muted (see Step 7).</li>
+            <li>The event is logged in the Transit Log for review.</li>
+          </ul>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Step 7 -->
+    <section id="step-7" class="step">
+      <h2>7. Advanced Settings &amp; Logs</h2>
+      <p>
+        Expand the <strong>⚙️ Advanced Settings</strong> section at the bottom to access these controls:
+      </p>
+      <ol>
+        <li>
+          <strong>🕒 View Transit Log</strong><br />
+          Opens a modal/panel listing all recorded transits in the current session:
+          <ul>
+            <li>Timestamp</li>
+            <li>Flight Callsign</li>
+            <li>Airline</li>
+            <li>Altitude (AGL)</li>
+            <li>Offset (degrees) from Moon/Sun center</li>
+          </ul>
+        </li>
+        <li>
+          <strong>🗑️ Clear Log</strong><br />
+          Deletes all entries from the Transit Log. Does not affect previously downloaded files.
+        </li>
+        <li>
+          <strong>📥 Download Log</strong><br />
+          Downloads the log file in the chosen format:
+          <ul>
+            <li><strong>Log Format</strong> dropdown:
+              <ul>
+                <li><strong>Plain Text (.txt)</strong> – One human-readable line per event.</li>
+                <li><strong>JSON (.json)</strong> – Array of objects, each representing a transit event.</li>
+              </ul>
+            </li>
+            <li>Select desired format <em>before</em> clicking <strong>📥 Download Log</strong>.</li>
+          </ul>
+        </li>
+        <li>
+          <strong>🔇 Mute Alert Sound</strong> checkbox:
+          <ul>
+            <li>Check to disable audible alerts; visual notifications remain active.</li>
+            <li>Uncheck to re-enable sound.</li>
+          </ul>
+        </li>
+        <li>
+          <strong>🔁 Auto Refresh Interval (sec)</strong> field:
+          <ul>
+            <li>Specify how often (in seconds) the app should refetch flight data—only if Auto Refresh is On.</li>
+            <li>Minimum: <code>3</code> sec. Default: <code>5</code> sec. Higher values lighten browser load.</li>
+          </ul>
+        </li>
+      </ol>
+    </section>
+
+    <!-- Step 8 -->
+    <section id="step-8" class="step">
+      <h2>8. Manual Refresh</h2>
+      <p>
+        To override the countdown and perform an immediate flight-data check (e.g., after changing location or margin),
+        click the <strong>🔄 Refresh</strong> button next to “Location Mode.” This forces a real-time update.
+      </p>
+    </section>
+
+    <!-- Step 9 -->
+    <section id="step-9" class="step">
+      <h2>9. Interpreting Transit Alerts</h2>
+      <ul>
+        <li>
+          When a flight aligns within the Detection Margin, the status banner will display:
+          <blockquote>
+            “<em>✈️ [Callsign] ([Airline or Reg]) is transiting the Moon in X seconds!</em>”
+          </blockquote>
+        </li>
+        <li>If unmuted, an audible chime plays at that moment.</li>
+        <li>The event is instantly logged in the Transit Log. For simultaneous transits, multiple alerts appear, and each
+          flight is listed separately in the log.</li>
+      </ul>
+    </section>
+
+    <!-- Step 10 -->
+    <section id="step-10" class="step">
+      <h2>10. Downloading &amp; Using Logs</h2>
+      <ol>
+        <li>Open the Transit Log via <strong>🕒 View Transit Log</strong> to review recorded events.</li>
+        <li>
+          To save a copy:
+          <ol type="a">
+            <li>Select <strong>Log Format</strong> (<code>.txt</code> or <code>.json</code>) in Advanced Settings.</li>
+            <li>Click <strong>📥 Download Log</strong>.</li>
+            <li>The file (e.g., <code>transit-log.txt</code> or <code>transit-log.json</code>) saves to your Downloads folder.</li>
+          </ol>
+        </li>
+        <li>You can import the JSON into spreadsheets or scripts, or reference the text file directly.</li>
+      </ol>
+    </section>
+
+    <!-- Step 11 -->
+    <section id="step-11" class="step">
+      <h2>11. Clearing the Log</h2>
+      <p>
+        Click <strong>🗑️ Clear Log</strong> to delete all entries from the current session’s Transit Log. Downloaded files
+        remain unaffected.
+      </p>
+    </section>
+
+    <!-- Step 12 -->
+    <section id="step-12" class="step">
+      <h2>12. Tips &amp; Troubleshooting</h2>
+      <ul>
+        <li>
+          <strong>Location Permission:</strong> If using Auto (GPS) fails, confirm that your browser is permitted to access
+          location data for <code>transit-tracker.vercel.app</code>.
+        </li>
+        <li>
+          <strong>Manual Coordinates:</strong> If GPS is inaccurate (e.g., indoors), switch to Manual and enter precise
+          latitude/longitude (obtainable via Google Maps or a GPS tool).
+        </li>
+        <li>
+          <strong>Detection Margin:</strong> For photography, keep <code>&lt; 3°</code>. For casual viewing, <code>5–10°</code>
+          is acceptable. Smaller margins minimize false positives; larger margins expand coverage.
+        </li>
+        <li>
+          <strong>Prediction Mode:</strong> Higher values (e.g., 20–30 sec) can catch fast-moving jets just before transit,
+          but very large projections may miss extremely high-speed aircraft if data latency exists. Default is 10 sec.
+        </li>
+        <li>
+          <strong>API Source Differences:</strong>
+          <ul>
+            <li><strong>OpenSky:</strong> Free, reliable in many regions, but coverage can vary.</li>
+            <li><strong>Aviationstack:</strong> Global coverage with rate limits on free tiers.</li>
+            <li><strong>ADS-B Exchange:</strong> Highly up-to-date, requires a RapidAPI subscription.</li>
+          </ul>
+        </li>
+        <li>
+          <strong>Performance:</strong> A <code>3 sec</code> Auto Refresh with a <code>50 km</code> radius can tax browser
+          resources. If you notice lag, increase the interval or decrease the radius.
+        </li>
+        <li>
+          <strong>Sound Issues:</strong> If no audible alert plays, check that:
+          <ul>
+            <li>Your system volume is up.</li>
+            <li>The <strong>🔇 Mute Alert Sound</strong> checkbox is unchecked.</li>
+          </ul>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Step 13 -->
+    <section id="step-13" class="step">
+      <h2>13. Switching Between Moon &amp; Sun</h2>
+      <p>
+        To toggle between Moon and Sun tracking, select the desired option from the <strong>Celestial Body</strong> dropdown.
+        The header updates immediately (e.g., <strong>🌙 Moon Transit Tracker</strong> or <strong>☀️ Sun Transit Tracker</strong>),
+        and all other settings carry over.
+      </p>
+    </section>
+
+    <!-- Step 14 -->
+    <section id="step-14" class="step">
+      <h2>14. Getting Help</h2>
+      <p>
+        If you encounter bugs or have questions:
+      </p>
+      <ul>
+        <li>Use the “How to Use” or “Contact” links in the footer.</li>
+        <li>Email the creator: <code>sandu.godakumbura@gmail.com</code>.</li>
+        <li>Refer to the footer’s About Us, Privacy &amp; Cookies pages for additional resources.</li>
+      </ul>
+    </section>
+
+  </main>
+
+  <footer class="container">
+    <p>&copy; 2025 Celestial Transit Tracker • All rights reserved</p>
+  </footer>
 </body>
+
 </html>
