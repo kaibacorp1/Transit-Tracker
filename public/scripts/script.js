@@ -347,6 +347,11 @@ function saveCredentials() {
   sessionStorage.setItem('osPass', p);
   alert('✅ Credentials saved.');
   document.querySelector('#openskyTab details').open = false;
+  
+  // ← As soon as credentials are saved, force a new flight check:
+  countdown = 5;                          // reset the 5-second timer
+  updateCountdownDisplay();               // update the “Next check in: 5s” text
+  getCurrentLocationAndRun();             // immediately re-run location → transit check
 }
 
 function saveAviationstackKey() {
