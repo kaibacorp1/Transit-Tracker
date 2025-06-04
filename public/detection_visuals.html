@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Celestial Detection Visuals</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    .image-block {
+      margin: 40px auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 800px;
+    }
+    .image-block img {
+      width: 100%;
+      border-radius: 6px;
+    }
+    .caption {
+      margin-top: 15px;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    footer {
+      text-align: center;
+      margin-top: 50px;
+      font-size: 14px;
+      color: #555;
+    }
+    a {
+      color: #007acc;
+    }
+  </style>
+</head>
+<body>
+  <h1>Celestial Detection Visualizations</h1>
+  <p style="text-align:center;">Interactive scenarios showing search radius and detection margins for celestial body alignment tracking.</p>
+
+  <div class="image-block">
+    <img src="1.png" alt="Moon Detection 50 deg" />
+    <div class="caption">
+      <strong>🔵 Detection sphere:</strong> 10 km radius<br>
+      <strong>🔺 Detection cone:</strong> wide 50° margin
+    </div>
+  </div>
+
+  <div class="image-block">
+    <img src="2.png" alt="Moon Detection 10 deg" />
+    <div class="caption">
+      <strong>🔵 Detection sphere:</strong> 10 km radius<br>
+      <strong>🔺 Detection cone:</strong> 10° margin
+    </div>
+  </div>
+
+  <div class="image-block">
+    <img src="3.png" alt="Sun Detection 50km 20 deg" />
+    <div class="caption">
+      <strong>🔵 Detection sphere:</strong> 50 km radius<br>
+      <strong>🔺 Detection cone:</strong> 20° margin toward the Sun
+    </div>
+  </div>
+
+  <div class="image-block">
+    <img src="4.png" alt="Sun Detection 20km 50 deg" />
+    <div class="caption">
+      <strong>🔵 Detection sphere:</strong> 20 km radius<br>
+      <strong>🔺 Detection cone:</strong> 50° margin toward the Sun
+    </div>
+  </div>
+
+  <footer>
+    Learn more or explore the app at <a href="https://transit-tracker.vercel.app/" target="_blank">Transit Tracker</a> or view the <a href="https://transit-tracker.vercel.app/public/how_to_use.html" target="_blank">usage guide</a>.
+  </footer>
+</body>
+</html>
