@@ -1,0 +1,50 @@
+Copyright (c) 2025 REY SANDU GODAKUMBURA
+www.lifebeyondstars.com
+All rights reserved.
+
+No part of this software, in source or compiled form—including associated documentation, images, scripts, or code—may be copied, modified, distributed, republished, or used in any way without the express prior written permission of the author. Unauthorized use, reproduction, or distribution of this software, or any portion of it, is strictly prohibited and may result in civil or criminal penalties.
+
+────────────────────────────────────────────────────────────────────────────────
+
+Acknowledgments and Third-Party Data/Components:
+
+1. SunCalc  
+   • This app uses SunCalc (https://github.com/mourner/suncalc) for computing solar and lunar ephemerides. SunCalc is provided under the MIT License. See the SunCalc repository for full license text.  
+   • Any alterations to SunCalc’s code within this project remain subject to the original MIT license, and the original copyright notice must be retained if SunCalc code is redistributed.
+
+2. OpenSky Network API  
+   • Flight data is retrieved via the OpenSky Network REST API (https://opensky-network.org). Use of OpenSky data is governed by OpenSky’s Terms of Service.  
+   • By using this application, you acknowledge that flight data requests are forwarded through the author’s proxy endpoint (opensky-proxy.onrender.com). Neither the author nor this app guarantees continued access to OpenSky’s services; users must provide valid OpenSky credentials and comply with OpenSky rate limits and usage policies.
+
+3. ADS-B Exchange  
+   • An optional mode uses ADS-B Exchange (https://www.adsbexchange.com/) as a data source. ADS-B Exchange data is subject to their Terms of Service.  
+   • This app does not store or redistribute ADS-B Exchange data beyond real-time lookup and display. Users must supply their own ADS-B Exchange credentials where required.
+
+4. AviationStack  
+   • An optional mode allows queries to AviationStack (https://aviationstack.com/) for flight information. Users must supply their own AviationStack API key.  
+   • All AviationStack data usage is subject to AviationStack’s Terms of Service and any applicable billing or rate limits. This application does not collect or store AviationStack API keys beyond the browser session’s local storage.
+
+5. Geolocation  
+   • On page load, this app requests the user’s geographical coordinates via the browser’s Geolocation API. By granting permission, the user consents to share latitude, longitude, and altitude (if available) for the sole purpose of computing celestial transits. No location data is stored on any external server beyond what is required to perform the transit calculation at runtime. The author assumes no responsibility for any misuse of geolocation data outside of the intended purpose.
+
+────────────────────────────────────────────────────────────────────────────────
+
+Disclaimer of Warranties and Liability:
+
+THIS SOFTWARE IS PROVIDED “AS IS” AND WITHOUT WARRANTY OF ANY KIND. TO THE FULLEST EXTENT PERMITTED BY APPLICABLE LAW, REY SANDU GODAKUMBURA (the “Author”) DISCLAIMS ALL WARRANTIES, WHETHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE, EVEN IF THE AUTHOR HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+────────────────────────────────────────────────────────────────────────────────
+
+Developer Acknowledgment:
+
+This application was built with a little help from OpenAI. Any errors, omissions, or inaccuracies in code or documentation are the sole responsibility of the author. If you discover any mistakes, please contact the author directly via www.lifebeyondstars.com/contact.
+
+────────────────────────────────────────────────────────────────────────────────
+
+Version History:
+
+• 2025-01-01: Initial release of Transit-Tracker  
+• 2025-06-04: Updated COPYRIGHT and LICENSE to reflect current ownership and third-party acknowledgments  
+
+(Reproduction of this LICENSE file in its entirety is required whenever any portion of this software is duplicated or redistributed under any conditions. Any attempt to remove or alter this LICENSE text shall be considered a breach of the author’s rights.)
+
