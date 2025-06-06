@@ -3,6 +3,7 @@
 // --- Mode Flags ---
 window.useAviationstack = false;
 window.useAdsbexchange = false;
+window.useRadarBox      = false; 
 
 // --- State Variables ---
 let selectedBody   = 'moon';
@@ -234,6 +235,47 @@ function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
     return;
   }
 
+// --- RadarBox mode ---
+  if (window.useRadarBox) {
+  const key = sessionStorage.getItem('radarboxKey');
+  if (!key) {
+    statusEl.textContent = '❌ Missing RadarBox API key.';
+    return;
+  }
+  const url =
+    `https://api.radarbox.com/v2/flights?lat=${uLat}` +
+    `&lon=${uLon}&radius=${radiusKm}`;
+
+  fetch(url, {
+    headers: { 'x-apikey': key }
+  })
+    .then(res => {
+      if (!res.ok) throw new Error(`RadarBox ${res.status}`);
+      return res.json();
+    })
+    .then((data) => {
+      // Normalize each RadarBox flight object into the shape callTransitAPI expects
+      const flights = data.map(f => ({
+        latitude:  f.latitude,                     // degrees
+        longitude: f.longitude,                    // degrees
+        altitude:  (f.altitude_ft || 0) * 0.3048,  // feet → meters
+        speed:     (f.speed_kt    || 0) * 0.514444, // knots → m/s
+        heading:   f.heading       || 0,           // degrees
+        callsign:  f.callsign      || ''           // optional text
+      }));
+
+      // Now hand these normalized flights to the same helper everyone else uses:
+      callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt);
+    })
+    .catch((_) => {
+      statusEl.textContent = '🚫 Error fetching RadarBox data.';
+    });
+
+  return;
+ }
+  // --- End RadarBox mode ---
+
+  
   // Default (OpenSky mode)
   const username = sessionStorage.getItem('osUser');
   const password = sessionStorage.getItem('osPass');
