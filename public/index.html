@@ -41,6 +41,7 @@
         <button onclick="showTab('openskyTab')" id="openskyTabBtn" class="active">✈️ OpenSky</button>
         <button onclick="showTab('aviationstackTab')" id="aviationstackTabBtn">🌐 Aviationstack</button>
         <button onclick="showTab('adsbexTab')" id="adsbexTabBtn">📡 ADS-B Exchange</button>
+        <button onclick="showTab('radarboxTab')" id="radarboxTabBtn">🛰️ RadarBox</button>
       </div>
 
       <div id="openskyTab">
@@ -82,6 +83,24 @@
       </div>
     </div>
 
+       <div id="radarboxTab" style="display:none;">
+        <details open>
+         <summary><strong>RadarBox API</strong></summary>
+         <p style="font-size: 0.9rem; color: #ccc;">
+         You need a RadarBox API key.  
+         <a href="https://www.radarbox.com/api" target="_blank" style="color:#00bfff;">
+         Sign up / view docs
+         </a>
+         </p>
+         <!-- Input field for RadarBox key -->
+         <label>🔑 API Key:</label>
+         <input type="text" id="radarboxKeyInput" placeholder="Enter your RadarBox key" style="width:100%;" />
+         <button onclick="saveRadarboxKey()" style="margin-top:0.5rem;">💾 Save Key</button>
+         <button onclick="useRadarboxAPI()" style="margin-top:0.5rem;">🛰️ Use RadarBox</button>
+         <div id="radarboxApiNotice" style="margin-top:0.5rem; color: red;"></div>
+        </details>
+      </div>
+ 
     <div class="data">
       <label><strong>Location Mode:</strong></label>
       <select id="locationMode">
