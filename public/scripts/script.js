@@ -458,9 +458,9 @@ function useAdsbExchangeAPI() {
 }
 
 function showTab(tabId) {
-  ['openskyTab','aviationstackTab','adsbexTab'].forEach(id => {
-    document.getElementById(id).style.display = (id === tabId ? 'block' : 'none');
-    document.getElementById(id+'Btn').style.borderColor = (id === tabId ? '#00bfff' : '#444');
+  ['openskyTab','aviationstackTab','adsbexTab','radarboxTab'].forEach(id => {
+    document.getElementById(id).style.display       = (id === tabId ? 'block' : 'none');
+    document.getElementById(id + 'Btn').style.borderColor = (id === tabId ? '#00bfff' : '#444');
   });
 }
 
