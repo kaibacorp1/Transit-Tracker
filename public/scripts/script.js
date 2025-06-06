@@ -203,6 +203,33 @@ function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
   statusEl.textContent = `Checking flights near the ${selectedBody}...`;
   const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
 
+// —————————————— New: RadarBox helper functions ——————————————
+
+function saveRadarboxKey() {
+  const key = document.getElementById('radarboxKeyInput').value.trim();
+  if (!key) {
+    document.getElementById('radarboxApiNotice').textContent = '❌ Please enter a key.';
+    return;
+  }
+  sessionStorage.setItem('radarboxKey', key);
+  document.getElementById('radarboxApiNotice').textContent = '✅ Key saved.';
+}
+
+function useRadarboxAPI() {
+  // Turn on RadarBox mode, turn off the others:
+  window.useRadarBox      = true;
+  window.useAviationstack = false;
+  window.useAdsbexchange  = false;
+
+  // Update status text briefly so user sees it took effect:
+  document.getElementById('transitStatus').textContent = '✅ RadarBox mode enabled.';
+  // Trigger the existing “Get location and run detection” function:
+  getCurrentLocationAndRun();
+}
+
+// —————————————————————————————————————————————————————————
+
+  
   // Aviationstack mode
   if (window.useAviationstack) {
     const key = getAviationstackKey();
