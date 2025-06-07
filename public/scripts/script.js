@@ -3,6 +3,7 @@
 // --- Mode Flags ---
 window.useAviationstack = false;
 window.useAdsbexchange = false;
+window.useGoFlightLabs    = false; 
 
 // --- State Variables ---
 let selectedBody   = 'moon';
@@ -22,6 +23,27 @@ function logDetectionLocally(message, metadata = {}) {
   const history = JSON.parse(localStorage.getItem('transitLog') || '[]');
   history.push({ time: new Date().toISOString(), message, ...metadata });
   localStorage.setItem('transitLog', JSON.stringify(history));
+}
+
+function getGoFlightLabsKey() {
+  return sessionStorage.getItem('goFlightLabsKey');
+}
+
+function saveGoFlightLabsKey() {
+  const k = document.getElementById('goFlightLabsKey').value.trim();
+  if (!k) return alert('❌ Please enter your GoFlightLabs API key.');
+  sessionStorage.setItem('goFlightLabsKey', k);
+  alert('✅ GoFlightLabs API key saved.');
+}
+
+function useGoFlightLabsAPI() {
+  if (!getGoFlightLabsKey()) return alert('❌ Enter & save your GoFlightLabs key first.');
+  window.useGoFlightLabs = true;
+  window.useAviationstack = false;
+  window.useAdsbexchange = false;
+  document.getElementById('goFlightLabsApiNotice').textContent = '✅ GoFlightLabs mode enabled.';
+  showTab('goflightlabsTab');
+  getCurrentLocationAndRun();
 }
 
 // --- DOMContent Loaded Initialization ---
@@ -274,6 +296,38 @@ function checkAdsbExchangeFlights(userLat, userLon, userElev, bodyAz, bodyAlt) {
     .catch(() => { document.getElementById('transitStatus').textContent = '🚫 Error fetching ADS-B Exchange data.'; });
 }
 
+  // ── GoFlightLabs mode ──
+  if (window.useGoFlightLabs) {
+    const key      = getGoFlightLabsKey();
+    if (!key) {
+      statusEl.textContent = '❌ Missing GoFlightLabs API key.';
+      return;
+    }
+    const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
+    fetch(`https://api.goflightlabs.com/v1/flights?access_key=${key}&limit=100&lat=${uLat}&lng=${uLon}&dist=${radiusKm}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          statusEl.textContent = `❌ GoFlightLabs error: ${data.error.message || data.error}`;
+          return;
+        }
+        const flights = (data.data || []).map(f => ({
+          latitude:  f.latitude,
+          longitude: f.longitude,
+          altitude:  f.altitude || 0,
+          heading:   f.track    || 0,
+          speed:     f.speed    || f.ground_speed || 0,
+          callsign:  f.callsign || f.flight_iata   || ''
+        }));
+        callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt);
+      })
+      .catch(() => {
+        statusEl.textContent = '🚫 Error fetching GoFlightLabs data.';
+      });
+    return;
+  }
+
+
 // --- Backend Transit Detection Call ---
 function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
     // ── Normalize every flight record into the object shape detect-transit needs ──
@@ -389,7 +443,7 @@ function useAdsbExchangeAPI() {
 }
 
 function showTab(tabId) {
-  ['openskyTab','aviationstackTab','adsbexTab'].forEach(id => {
+  ['openskyTab','aviationstackTab','adsbexTab''goflightlabsTab'].forEach(id => {
     document.getElementById(id).style.display = (id === tabId ? 'block' : 'none');
     document.getElementById(id+'Btn').style.borderColor = (id === tabId ? '#00bfff' : '#444');
   });
