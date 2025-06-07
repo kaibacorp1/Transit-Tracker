@@ -395,13 +395,18 @@ if (window.useGoFlightLabs) {
     });
   return;
 }
-
-
-// ————————————————————————————————
-// Expose these so inline onclicks can find them
+// ─────────────────────────────────────────────────────────────────────────
+// Expose the GoFlightLabs handlers at global scope so your
+// inline onclicks can actually call them:
 window.saveGFlightsKey  = saveGFlightsKey;
 window.useGFlightsAPI   = useGFlightsAPI;
-// ————————————————————————————————
+// ─────────────────────────────────────────────────────────────────────────
+
+// ─── GoFlightLabs mode ────────────────────────────────────────────────
+function checkNearbyFlights(…) {
+  if (window.useGoFlightLabs) { … }
+  // …other providers & default OpenSky…
+}
 
   
   // Default (OpenSky mode)
