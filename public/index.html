@@ -41,6 +41,7 @@
         <button onclick="showTab('openskyTab')" id="openskyTabBtn" class="active">✈️ OpenSky</button>
         <button onclick="showTab('aviationstackTab')" id="aviationstackTabBtn">🌐 Aviationstack</button>
         <button onclick="showTab('adsbexTab')" id="adsbexTabBtn">📡 ADS-B Exchange</button>
+        <button onclick="showTab('goflightlabsTab')" id="goflightlabsTabBtn">🛰️ GoFlightLabs</button>
       </div>
 
       <div id="openskyTab">
@@ -80,6 +81,17 @@
           <div id="adsbApiNotice"></div>
         </details>
       </div>
+
+        <div id="goflightlabsTab" style="display:none;">
+    <details open>
+      <summary><strong>GoFlightLabs API</strong></summary>
+      <label>🔑 API Key:</label>
+      <input type="text" id="goFlightLabsKey" placeholder="Enter your API key" style="width:100%;" />
+      <button onclick="saveGoFlightLabsKey()">💾 Save Key</button>
+      <button onclick="useGoFlightLabsAPI()" style="margin-top:0.5rem;">🛰️ Use GoFlightLabs</button>
+      <div id="goFlightLabsApiNotice"></div>
+    </details>
+  </div>
     </div>
 
     <div class="data">
