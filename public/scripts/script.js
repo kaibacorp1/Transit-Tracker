@@ -4,6 +4,7 @@
 window.useAviationstack = false;
 window.useAdsbexchange = false;
 window.useGoFlightLabs    = false; 
+window.useFlightAPI      = false;
 
 // --- State Variables ---
 let selectedBody   = 'moon';
@@ -44,6 +45,59 @@ function useGoFlightLabsAPI() {
   document.getElementById('goFlightLabsApiNotice').textContent = '✅ GoFlightLabs mode enabled.';
   showTab('goflightlabsTab');
   getCurrentLocationAndRun();
+}
+
+// ─── FlightAPI.io Helpers ────────────────────────────────────────────────
+
+function saveFlightApiKey() {
+  const k = document.getElementById('flightapiApiKey').value.trim();
+  if (!k) {
+    document.getElementById('flightapiApiNotice').textContent = '❌ Please enter a valid API key.';
+    return;
+  }
+  sessionStorage.setItem('flightapiKey', k);
+  document.getElementById('flightapiApiNotice').textContent = '✅ FlightAPI.io key saved.';
+}
+
+function useFlightApi() {
+  const k = sessionStorage.getItem('flightapiKey');
+  if (!k) {
+    document.getElementById('flightapiApiNotice').textContent = '❌ Save your FlightAPI.io key first.';
+    return;
+  }
+  window.useFlightAPI     = true;
+  window.useGoFlightLabs  = false;
+  window.useAviationstack = false;
+  window.useAdsbexchange  = false;
+  window.useRadarBox      = false;
+  document.getElementById('flightapiApiNotice').textContent = '✅ FlightAPI.io mode enabled.';
+  showTab('flightapiTab');
+  getCurrentLocationAndRun();
+}
+
+async function fetchFlightApi({ minLat, maxLat, minLon, maxLon }) {
+  const key = sessionStorage.getItem('flightapiKey');
+  if (!key) throw new Error('Missing FlightAPI.io key');
+
+  const url = new URL('https://api.flightapi.io/aircraft/latest');
+  url.search = new URLSearchParams({
+    key,
+    bounds: [minLat, minLon, maxLat, maxLon].join(',')
+  });
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+
+  const raw = Array.isArray(json.data) ? json.data : [];
+  return raw.map(f => ({
+    latitude:  f.latitude,
+    longitude: f.longitude,
+    altitude:  f.altitude      || f.baro_altitude || 0,
+    heading:   f.heading       || f.track        || 0,
+    speed:     f.groundSpeed   || f.speed        || 0,
+    callsign:  f.callSign      || ''
+  }));
 }
 
 // --- DOMContent Loaded Initialization ---
@@ -256,6 +310,24 @@ function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
     return;
   }
 
+// ─── FlightAPI.io mode ────────────────────────────────────────────────
+if (window.useFlightAPI) {
+  const statusEl = document.getElementById('transitStatus');
+  const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
+  const range    = radiusKm / 111;
+  const minLat   = uLat - range, maxLat = uLat + range;
+  const minLon   = uLon - range, maxLon = uLon + range;
+
+  statusEl.textContent = 'Checking FlightAPI.io flights…';
+  fetchFlightApi({ minLat, maxLat, minLon, maxLon })
+    .then(data => callTransitAPI(data, uLat, uLon, uElev, bodyAz, bodyAlt))
+    .catch(err => {
+      statusEl.textContent = `🚫 FlightAPI.io error: ${err.message}`;
+    });
+  return;
+}
+
+  
   // ── GoFlightLabs mode ──
   if (window.useGoFlightLabs) {
     const key      = getGoFlightLabsKey();
@@ -442,7 +514,7 @@ function useAdsbExchangeAPI() {
 }
 
 function showTab(tabId) {
-  ['openskyTab','aviationstackTab','adsbexTab','goflightlabsTab'].forEach(id => {
+  ['openskyTab','aviationstackTab','adsbexTab','goflightlabsTab','flightapiTab'].forEach(id => {
     document.getElementById(id).style.display = (id === tabId ? 'block' : 'none');
     document.getElementById(id+'Btn').style.borderColor = (id === tabId ? '#00bfff' : '#444');
   });
@@ -518,3 +590,11 @@ function stopAutoRefresh() {
 function updateCountdownDisplay() {
   document.getElementById('countdownTimer').textContent = `Next check in: ${countdown}s`;
 }
+
+// Expose FlightAPI.io handlers
+window.saveFlightApiKey = saveFlightApiKey;
+window.useFlightApi     = useFlightApi;
+
+// Expose GoFlightLabs handlers
+window.saveGoFlightLabsKey = saveGoFlightLabsKey;
+window.useGoFlightLabsAPI  = useGoFlightLabsAPI;
