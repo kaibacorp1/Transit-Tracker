@@ -343,7 +343,7 @@ function useGFlightsAPI() {
 
 // Fetch wrapper (fixed host, param name, and manual bounding‐box filtering)
 async function fetchGoFlightLabs({ minLat, maxLat, minLon, maxLon }) {
-  const key = sessionStorage.getItem('goflightlabsApiKey');
+  const key = sessionStorage.getItem('gflightsApiKey');
   if (!key) throw new Error('Missing GoFlightLabs key');
 
   // Hit the real‐time endpoint on app.goflightlabs.com
