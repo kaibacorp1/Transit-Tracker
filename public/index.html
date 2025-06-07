@@ -42,6 +42,7 @@
         <button onclick="showTab('aviationstackTab')" id="aviationstackTabBtn">🌐 Aviationstack</button>
         <button onclick="showTab('adsbexTab')" id="adsbexTabBtn">📡 ADS-B Exchange</button>
         <button onclick="showTab('radarboxTab')" id="radarboxTabBtn">🛰️ RadarBox</button>
+        <button onclick="showTab('gflightsTab')"   id="gflightsTabBtn">✈️ GoFlightLabs</button>
       </div>
 
       <div id="openskyTab">
@@ -99,6 +100,23 @@
          <div id="radarboxApiNotice" style="margin-top:0.5rem; color: red;"></div>
         </details>
       </div>
+
+      <div id="gflightsTab" style="display:none;">
+  <details open>
+    <summary><strong>GoFlightLabs API</strong></summary>
+    <p style="font-size:0.9rem; color:#ccc;">
+      You need a GoFlightLabs API key.  
+      <a href="https://www.goflightlabs.com" target="_blank" style="color:#00bfff;">Sign up / docs</a>
+    </p>
+    <label>🔑 API Key:</label>
+    <input type="text" id="gflightsApiKey"
+           placeholder="Enter your GoFlightLabs key" style="width:100%;" />
+    <button onclick="saveGFlightsKey()" style="margin-top:0.5rem;">💾 Save Key</button>
+    <button onclick="useGFlightsAPI()" style="margin-top:0.5rem;">✈️ Use GoFlightLabs</button>
+    <div id="gflightsApiNotice" style="margin-top:0.5rem; color:red;"></div>
+  </details>
+</div>
+
     </div>
  
     <div class="data">
