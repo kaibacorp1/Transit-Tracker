@@ -1,54 +1,50 @@
-// api/fr24.js
+// pages/api/fr24.js (Next.js / Vercel Function)
 
 export default async function handler(req, res) {
-  // 1) Grab & log the user’s Bearer token
+  // 1) Grab the user’s Bearer token
   const auth = req.headers.authorization;
-  console.log('🔑 FR24 proxy got Authorization header:', auth);
   if (!auth) {
     return res
       .status(400)
       .json({ error: 'Missing Authorization header with Bearer token' });
   }
 
-  // 2) Parse & log the bounding‐box parameter
+  // 2) Parse the bounding-box parameter
   const { bounds } = req.query;
-  console.log('📐 FR24 proxy got bounds:', bounds);
   if (!bounds) {
     return res
       .status(400)
       .json({ error: 'Missing bounds parameter' });
   }
 
-  // 3) Forward to the *sandbox* endpoint (sandbox tokens always work here)
-  const url = `https://fr24api.flightradar24.com/sandbox/common/v1/flight/list.json?bounds=${encodeURIComponent(bounds)}`;
-  console.log('🌐 Fetching FR24 sandbox URL:', url);
+  // 3) Forward to FR24 production API
+  //    (their production host accepts sandbox tokens as well)
+  const url = `https://fr24api.flightradar24.com/common/v1/flight/list.json?bounds=${bounds}`;
 
   try {
     const upstream = await fetch(url, {
       headers: {
         Authorization: auth,
-        'Accept-Version': 'v1',          // ← must be this exact header name
-        'Accept': 'application/json'
+        'Accept-Version': 'v1'    // ← this must be “Accept-Version”, not “API-Version”
       }
     });
 
-    console.log('↔️ FR24 upstream status:', upstream.status);
-
+    // 4) If FR24 itself errors, bubble it back
     if (!upstream.ok) {
       const text = await upstream.text();
-      console.error('❌ FR24 upstream error body:', text.substring(0, 200));
+      console.error('FR24 upstream error:', upstream.status, text);
       return res
         .status(502)
         .json({ error: 'Upstream error', status: upstream.status, details: text });
     }
 
-    // 4) Relay the JSON back with CORS
+    // 5) Relay the JSON back to your frontend (with CORS open)
     const data = await upstream.json();
     res.setHeader('Access-Control-Allow-Origin', '*');
     return res.status(200).json(data);
 
   } catch (err) {
-    console.error('🔥 FR24 proxy caught exception:', err);
+    console.error('FR24 proxy error:', err);
     return res
       .status(502)
       .json({ error: 'Bad gateway', details: err.message });
