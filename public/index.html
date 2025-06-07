@@ -41,8 +41,6 @@
         <button onclick="showTab('openskyTab')" id="openskyTabBtn" class="active">✈️ OpenSky</button>
         <button onclick="showTab('aviationstackTab')" id="aviationstackTabBtn">🌐 Aviationstack</button>
         <button onclick="showTab('adsbexTab')" id="adsbexTabBtn">📡 ADS-B Exchange</button>
-        <button onclick="showTab('radarboxTab')" id="radarboxTabBtn">🛰️ RadarBox</button>
-        <button onclick="showTab('gflightsTab')"   id="gflightsTabBtn">✈️ GoFlightLabs</button>
       </div>
 
       <div id="openskyTab">
@@ -82,43 +80,8 @@
           <div id="adsbApiNotice"></div>
         </details>
       </div>
-  
-       <div id="radarboxTab" style="display:none;">
-        <details open>
-         <summary><strong>RadarBox API</strong></summary>
-         <p style="font-size: 0.9rem; color: #ccc;">
-         You need a RadarBox API key.  
-         <a href="https://www.radarbox.com/api" target="_blank" style="color:#00bfff;">
-         Sign up / view docs
-         </a>
-         </p>
-         <!-- Input field for RadarBox key -->
-         <label>🔑 API Key:</label>
-         <input type="text" id="radarboxKeyInput" placeholder="Enter your RadarBox key" style="width:100%;" />
-         <button onclick="saveRadarboxKey()" style="margin-top:0.5rem;">💾 Save Key</button>
-         <button onclick="useRadarboxAPI()" style="margin-top:0.5rem;">🛰️ Use RadarBox</button>
-         <div id="radarboxApiNotice" style="margin-top:0.5rem; color: red;"></div>
-        </details>
-      </div>
-
-      <div id="gflightsTab" style="display:none;">
-  <details open>
-    <summary><strong>GoFlightLabs API</strong></summary>
-    <p style="font-size:0.9rem; color:#ccc;">
-      You need a GoFlightLabs API key.  
-      <a href="https://www.goflightlabs.com" target="_blank" style="color:#00bfff;">Sign up / docs</a>
-    </p>
-    <label>🔑 API Key:</label>
-    <input type="text" id="gflightsApiKey"
-           placeholder="Enter your GoFlightLabs key" style="width:100%;" />
-    <button onclick="saveGFlightsKey()" style="margin-top:0.5rem;">💾 Save Key</button>
-    <button onclick="useGFlightsAPI()" style="margin-top:0.5rem;">✈️ Use GoFlightLabs</button>
-    <div id="gflightsApiNotice" style="margin-top:0.5rem; color:red;"></div>
-  </details>
-</div>
-
     </div>
- 
+
     <div class="data">
       <label><strong>Location Mode:</strong></label>
       <select id="locationMode">
@@ -222,9 +185,9 @@
         <a href="https://www.lifebeyondstars.com/about-me" target="_blank">About Creator</a> |
         <a href="/public/terms.html">Terms of Use</a> |
         <a href="/public/privacy.html">Privacy & Cookies</a> |
-        <a href="/public/LICENSE.txt">License</a> |
+        <a href="LICENSE.txt">License</a> |
         <a href="mailto:sandu.godakumbura@gmail.com">Contact</a> |
-        <a href="/public/how_to_use.html">How to Use</a>
+        <a href="public/how_to_use.html">How to Use</a>
       </p>
     </footer>
   </div>
