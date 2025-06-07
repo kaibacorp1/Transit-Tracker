@@ -15,9 +15,8 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing bounds parameter' });
   }
 
-  // 3) Forward the request to FR24, passing along the user’s token
-   // explicitly hit their sandbox host
-  const url = `https://fr24api.flightradar24.com/sandbox/common/v1/flight/list.json?bounds=${bounds}`;
+  // production endpoint (supports sandbox tokens) + version header
+const url = `https://fr24api.flightradar24.com/common/v1/flight/list.json?bounds=${bounds}`;
   try {
     const upstream = await fetch(url, {
       headers: {
