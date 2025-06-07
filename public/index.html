@@ -42,7 +42,6 @@
         <button onclick="showTab('aviationstackTab')" id="aviationstackTabBtn">🌐 Aviationstack</button>
         <button onclick="showTab('adsbexTab')" id="adsbexTabBtn">📡 ADS-B Exchange</button>
         <button onclick="showTab('radarboxTab')" id="radarboxTabBtn">🛰️ RadarBox</button>
-        <button onclick="showTab('fr24Tab')" id="fr24TabBtn">🛩️ FR24</button>
       </div>
 
       <div id="openskyTab">
@@ -100,16 +99,7 @@
          <div id="radarboxApiNotice" style="margin-top:0.5rem; color: red;"></div>
         </details>
       </div>
-       <div id="fr24Tab" style="display:none">
-        <details>
-         <summary><strong>Flightradar24 Sandbox Token</strong></summary>
-         <p>Enter your FR24 sandbox token (UUID|secret):</p>
-         <input id="fr24KeyInput" type="text" placeholder="abcd1234-…|xyz…" />
-         <button onclick="saveFr24Key()">Save Token</button>
-         <span id="fr24ApiNotice" style="color:#f66;margin-left:.5rem"></span>
-       </details>
-      </div>
-      </div>
+    </div>
  
     <div class="data">
       <label><strong>Location Mode:</strong></label>
