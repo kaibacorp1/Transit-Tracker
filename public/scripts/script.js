@@ -344,6 +344,9 @@ if (window.useFr24) {
 // point at your own proxy instead:
  const url = `/api/fr24?bounds=${upper},${lower},${left},${right}`;
 
+   // **ADD THIS DEBUG LINE:**
+  console.log('FR24 →', url, 'Token:', token);
+
   fetch(url, { headers: { 'Authorization': `Bearer ${token}` } })
     .then(r => r.json())
     .then(json => {
