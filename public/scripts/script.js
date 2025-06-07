@@ -378,35 +378,20 @@ async function fetchGoFlightLabs({ minLat, maxLat, minLon, maxLon }) {
   }));
 }
 
-  
-  // ─── GoFlightLabs mode ────────────────────────────────────────────────
-if (window.useGoFlightLabs) {
-  const statusEl  = document.getElementById('transitStatus');
-  const radiusKm  = parseInt(document.getElementById('radiusSelect').value, 10);
-  const range     = radiusKm / 111;  // ~deg per km
-  const minLat    = uLat - range, maxLat = uLat + range;
-  const minLon    = uLon - range, maxLon = uLon + range;
-
-  statusEl.textContent = `Checking GoFlightLabs flights…`;
-  fetchGoFlightLabs({ minLat, maxLat, minLon, maxLon })
-    .then(data => callTransitAPI(data, uLat, uLon, uElev, bodyAz, bodyAlt))
-    .catch(err => {
-      statusEl.textContent = `🚫 GoFlightLabs error: ${err.message}`;
-    });
-  return;
-}
-// ─────────────────────────────────────────────────────────────────────────
-// Expose the GoFlightLabs handlers at global scope so your
-// inline onclicks can actually call them:
-window.saveGFlightsKey  = saveGFlightsKey;
-window.useGFlightsAPI   = useGFlightsAPI;
-// ─────────────────────────────────────────────────────────────────────────
 
 // ─── GoFlightLabs mode ────────────────────────────────────────────────
 function checkNearbyFlights(…) {
   if (window.useGoFlightLabs) { … }
   // …other providers & default OpenSky…
 }
+
+  // ─────────────────────────────────────────────────────────────────────────
+// Expose the GoFlightLabs handlers at global scope so your
+// inline onclicks can actually call them:
+window.saveGFlightsKey  = saveGFlightsKey;
+window.useGFlightsAPI   = useGFlightsAPI;
+// ─────────────────────────────────────────────────────────────────────────
+
 
   
   // Default (OpenSky mode)
