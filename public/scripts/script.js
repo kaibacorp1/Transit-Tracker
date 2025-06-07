@@ -341,25 +341,38 @@ function useGFlightsAPI() {
   getCurrentLocationAndRun();
 }
 
-// Fetch wrapper
+// Fetch wrapper (fixed host, param name, and manual bounding‐box filtering)
 async function fetchGoFlightLabs({ minLat, maxLat, minLon, maxLon }) {
-  const key = sessionStorage.getItem('gflightsApiKey');
-  const url = new URL('https://api.goflightlabs.com/v1/flights');
+  const key = sessionStorage.getItem('goflightlabsApiKey');
+  if (!key) throw new Error('Missing GoFlightLabs key');
+
+  // Hit the real‐time endpoint on app.goflightlabs.com
+  const url = new URL('https://app.goflightlabs.com/flights');
   url.search = new URLSearchParams({
-    api_key: key,
-    bbox:    [minLon, minLat, maxLon, maxLat].join(','),
+    access_key: key,
+    limit:      1000      // fetch up to 1,000 positions, then filter client-side
   });
+
   const res = await fetch(url);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const json = await res.json();
-  if (!json.success) throw new Error('GoFlightLabs returned failure');
-  // Normalize into the same shape your detect API expects:
-  return json.data.map(f => ({
+
+  // FlightLabs returns an array of objects (no `success` wrapper here)
+  const raw = Array.isArray(json.data) ? json.data : (Array.isArray(json) ? json : []);
+
+  // Apply your own bbox filter since the API doesn’t natively support it:
+  const inBox = raw.filter(f =>
+    f.lat >= minLat && f.lat <= maxLat &&
+    f.lng >= minLon && f.lng <= maxLon
+  );
+
+  // Normalize into the shape detect‐transit expects
+  return inBox.map(f => ({
     latitude:  f.lat,
     longitude: f.lng,
-    altitude:  f.alt,    // already meters
+    altitude:  f.alt,    // meters
     heading:   f.dir,    // degrees
-    speed:     f.speed,  // m/s
+    speed:     f.speed * 0.514444, // km/h → m/s if needed
     callsign:  f.flight_icao || f.flight_iata || '',
     hex:       f.hex || ''
   }));
