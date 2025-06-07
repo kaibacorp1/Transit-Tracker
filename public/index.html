@@ -42,6 +42,7 @@
         <button onclick="showTab('aviationstackTab')" id="aviationstackTabBtn">🌐 Aviationstack</button>
         <button onclick="showTab('adsbexTab')" id="adsbexTabBtn">📡 ADS-B Exchange</button>
         <button onclick="showTab('goflightlabsTab')" id="goflightlabsTabBtn">🛰️ GoFlightLabs</button>
+        <button onclick="showTab('flightapiTab')" id="flightapiTabBtn">🌐 FlightAPI</button>
       </div>
 
       <div id="openskyTab">
@@ -92,6 +93,23 @@
       <div id="goFlightLabsApiNotice"></div>
     </details>
   </div>
+
+      <div id="flightapiTab" style="display:none;">
+  <details open>
+    <summary><strong>FlightAPI.io</strong></summary>
+    <p style="font-size:0.9rem; color:#ccc;">
+      You need a FlightAPI.io API key.  
+      <a href="https://flightapi.io/" target="_blank" style="color:#00bfff;">Sign up / docs</a>
+    </p>
+    <label>🔑 API Key:</label>
+    <input type="text" id="flightapiApiKey"
+           placeholder="Enter your FlightAPI.io key" style="width:100%;" />
+    <button onclick="saveFlightApiKey()">💾 Save Key</button>
+    <button onclick="useFlightApi()">🚀 Use FlightAPI</button>
+    <div id="flightapiApiNotice" style="margin-top:0.5rem; color:red;"></div>
+  </details>
+</div>
+      
     </div>
 
     <div class="data">
