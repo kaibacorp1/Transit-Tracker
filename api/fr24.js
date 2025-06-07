@@ -20,8 +20,11 @@ export default async function handler(req, res) {
   const url = `https://fr24api.flightradar24.com/sandbox/common/v1/flight/list.json?bounds=${bounds}`;
   try {
     const upstream = await fetch(url, {
-      headers: { Authorization: auth }
-    });
+      headers: {
+        Authorization: auth,
+        'Accept-Version': 'v1'    // ← tell FR24 which API version you’re calling
+      }
+   });
 
     // If FR24 itself errors, pass that back
     if (!upstream.ok) {
