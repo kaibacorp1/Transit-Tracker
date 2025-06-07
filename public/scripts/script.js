@@ -4,6 +4,7 @@
 window.useAviationstack = false;
 window.useAdsbexchange = false;
 window.useRadarBox      = false; 
+window.useFr24 = false;
 
 // —————————————— New: RadarBox helper functions ——————————————
 
@@ -30,6 +31,31 @@ function useRadarboxAPI() {
 }
 
 // —————————————————————————————————————————————————————————
+
+function saveFr24Key() {
+  const key = document.getElementById('fr24KeyInput').value.trim();
+  if (!key) {
+    document.getElementById('fr24ApiNotice').textContent = '❌ Please enter your token.';
+    return;
+  }
+  sessionStorage.setItem('fr24Token', key);
+  document.getElementById('fr24ApiNotice').textContent = '✅ Token saved.';
+}
+
+//---------------------------------------
+
+document.getElementById('fr24TabBtn').addEventListener('click', () => {
+  // disable all other modes
+  window.useOpenSky       = false;
+  window.useAviationstack = false;
+  window.useAdsbexchange  = false;
+  window.useRadarBox      = false;
+  // enable FR24
+  window.useFr24 = true;
+  showTab('fr24Tab');
+  getCurrentLocationAndRun();
+});
+
 
 // --- State Variables ---
 let selectedBody   = 'moon';
@@ -342,6 +368,45 @@ function checkAdsbExchangeFlights(userLat, userLon, userElev, bodyAz, bodyAlt) {
     })
     .catch(() => { document.getElementById('transitStatus').textContent = '🚫 Error fetching ADS-B Exchange data.'; });
 }
+//----------------------------------------------
+
+// --- FR24 Sandbox mode ---
+if (window.useFr24) {
+  const token = sessionStorage.getItem('fr24Token');
+  if (!token) {
+    statusEl.textContent = '❌ Missing FR24 sandbox token.';
+    return;
+  }
+  const range = radiusKm / 111;
+  const upper = (uLat + range).toFixed(4),
+        lower = (uLat - range).toFixed(4),
+        left  = (uLon - range).toFixed(4),
+        right = (uLon + range).toFixed(4);
+  const url =
+    `https://fr24api.flightradar24.com/common/v1/flight/list.json?bounds=` +
+    `${upper},${lower},${left},${right}`;
+
+  fetch(url, { headers: { 'Authorization': `Bearer ${token}` } })
+    .then(r => r.json())
+    .then(json => {
+      const raw = json.result?.response?.data || [];
+      const flights = raw.map(f => ({
+        latitude:  f.lat,                   // degrees
+        longitude: f.lng,                   // degrees
+        altitude:  (f.alt || 0) * 1000,     // km → m
+        speed:     (f.spd_kmh || 0) / 3.6,  // km/h → m/s
+        heading:   f.track  || 0,           // degrees
+        callsign:  f.fltNo  || '',          // string
+        icao24:    f.icao   || ''           // hex
+      }));
+      callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt);
+    })
+    .catch(() => {
+      statusEl.textContent = '🚫 Error fetching FR24 data.';
+    });
+  return;
+}
+// --- End FR24 mode ---
 
 // --- Backend Transit Detection Call ---
 function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
@@ -458,7 +523,7 @@ function useAdsbExchangeAPI() {
 }
 
 function showTab(tabId) {
-  ['openskyTab','aviationstackTab','adsbexTab','radarboxTab'].forEach(id => {
+  +  ['openskyTab','aviationstackTab','adsbexTab','radarboxTab','fr24Tab'].forEach(id => {
     document.getElementById(id).style.display       = (id === tabId ? 'block' : 'none');
     document.getElementById(id + 'Btn').style.borderColor = (id === tabId ? '#00bfff' : '#444');
   });
