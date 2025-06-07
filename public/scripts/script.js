@@ -4,7 +4,6 @@
 window.useAviationstack = false;
 window.useAdsbexchange = false;
 window.useRadarBox      = false; 
-window.useGoFlightLabs    = true;
 
 // —————————————— New: RadarBox helper functions ——————————————
 
