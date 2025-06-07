@@ -3,34 +3,6 @@
 // --- Mode Flags ---
 window.useAviationstack = false;
 window.useAdsbexchange = false;
-window.useRadarBox      = false; 
-window.useGoFlightLabs    = false;
-
-// —————————————— New: RadarBox helper functions ——————————————
-
-function saveRadarboxKey() {
-  const key = document.getElementById('radarboxKeyInput').value.trim();
-  if (!key) {
-    document.getElementById('radarboxApiNotice').textContent = '❌ Please enter a key.';
-    return;
-  }
-  sessionStorage.setItem('radarboxKey', key);
-  document.getElementById('radarboxApiNotice').textContent = '✅ Key saved.';
-}
-
-function useRadarboxAPI() {
-  // Turn on RadarBox mode, turn off the others:
-  window.useRadarBox      = true;
-  window.useAviationstack = false;
-  window.useAdsbexchange  = false;
-
-  // Update status text briefly so user sees it took effect:
-  document.getElementById('transitStatus').textContent = '✅ RadarBox mode enabled.';
-  // Trigger the existing “Get location and run detection” function:
-  getCurrentLocationAndRun();
-}
-
-// —————————————————————————————————————————————————————————
 
 // --- State Variables ---
 let selectedBody   = 'moon';
@@ -230,23 +202,6 @@ function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
   statusEl.textContent = `Checking flights near the ${selectedBody}...`;
   const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
 
-  // ─── GoFlightLabs mode ────────────────────────────────────────────────
-  if (window.useGoFlightLabs) {
-    const range  = radiusKm / 111;
-    const minLat = uLat - range, maxLat = uLat + range;
-    const minLon = uLon - range, maxLon = uLon + range;
-
-    statusEl.textContent = `Checking GoFlightLabs flights…`;
-    fetchGoFlightLabs({ minLat, maxLat, minLon, maxLon })
-      .then(data => callTransitAPI(data, uLat, uLon, uElev, bodyAz, bodyAlt))
-      .catch(err => {
-        statusEl.textContent = `🚫 GoFlightLabs error: ${err.message}`;
-      });
-    return;
-  }
-
-
-  
   // Aviationstack mode
   if (window.useAviationstack) {
     const key = getAviationstackKey();
@@ -279,121 +234,6 @@ function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
     return;
   }
 
-// --- RadarBox mode ---
-  if (window.useRadarBox) {
-  const key = sessionStorage.getItem('radarboxKey');
-  if (!key) {
-    statusEl.textContent = '❌ Missing RadarBox API key.';
-    return;
-  }
-  const url =
-    `https://api.radarbox.com/v2/flights?lat=${uLat}` +
-    `&lon=${uLon}&radius=${radiusKm}`;
-
-  fetch(url, {
-    headers: { 'x-apikey': key }
-  })
-    .then(res => {
-      if (!res.ok) throw new Error(`RadarBox ${res.status}`);
-      return res.json();
-    })
-    .then((data) => {
-      // Normalize each RadarBox flight object into the shape callTransitAPI expects
-      const flights = data.map(f => ({
-        latitude:  f.latitude,                     // degrees
-        longitude: f.longitude,                    // degrees
-        altitude:  (f.altitude_ft || 0) * 0.3048,  // feet → meters
-        speed:     (f.speed_kt    || 0) * 0.514444, // knots → m/s
-        heading:   f.heading       || 0,           // degrees
-        callsign:  f.callsign      || ''           // optional text
-      }));
-
-      // Now hand these normalized flights to the same helper everyone else uses:
-      callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt);
-    })
-    .catch((_) => {
-      statusEl.textContent = '🚫 Error fetching RadarBox data.';
-    });
-
-  return;
- }
-  // --- End RadarBox mode ---
-
-// ─── GoFlightLabs Helpers ────────────────────────────────────────────────
-
-function saveGFlightsKey() {
-  const k = document.getElementById('gflightsApiKey').value.trim();
-  if (!k) return alert('❌ Please enter a valid API key.');
-  sessionStorage.setItem('gflightsApiKey', k);
-  alert('✅ GoFlightLabs API key saved.');
-}
-
-function useGFlightsAPI() {
-  const k = sessionStorage.getItem('gflightsApiKey');
-  if (!k) return alert('❌ Enter & save your GoFlightLabs key first.');
-  window.useGoFlightLabs = true;
-  // disable the others
-  window.useAviationstack = false;
-  window.useAdsbexchange = false;
-  window.useRadarBox     = false;
-  document.getElementById('gflightsApiNotice').textContent = '✅ GoFlightLabs mode enabled.';
-  showTab('gflightsTab');
-  getCurrentLocationAndRun();
-}
-
-// Fetch wrapper (fixed host, param name, and manual bounding‐box filtering)
-async function fetchGoFlightLabs({ minLat, maxLat, minLon, maxLon }) {
-  const key = sessionStorage.getItem('gflightsApiKey');
-  if (!key) throw new Error('Missing GoFlightLabs key');
-
-  // Hit the real‐time endpoint on app.goflightlabs.com
-  const url = new URL('https://app.goflightlabs.com/flights');
-  url.search = new URLSearchParams({
-    access_key: key,
-    limit:      1000      // fetch up to 1,000 positions, then filter client-side
-  });
-
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const json = await res.json();
-
-  // FlightLabs returns an array of objects (no `success` wrapper here)
-  const raw = Array.isArray(json.data) ? json.data : (Array.isArray(json) ? json : []);
-
-  // Apply your own bbox filter since the API doesn’t natively support it:
-  const inBox = raw.filter(f =>
-    f.lat >= minLat && f.lat <= maxLat &&
-    f.lng >= minLon && f.lng <= maxLon
-  );
-
-  // Normalize into the shape detect‐transit expects
-  return inBox.map(f => ({
-    latitude:  f.lat,
-    longitude: f.lng,
-    altitude:  f.alt,    // meters
-    heading:   f.dir,    // degrees
-    speed:     f.speed * 0.514444, // km/h → m/s if needed
-    callsign:  f.flight_icao || f.flight_iata || '',
-    hex:       f.hex || ''
-  }));
-}
-
-
-// ─── GoFlightLabs mode ────────────────────────────────────────────────
-function checkNearbyFlights(…) {
-  if (window.useGoFlightLabs) { … }
-  // …other providers & default OpenSky…
-}
-
-  // ─────────────────────────────────────────────────────────────────────────
-// Expose the GoFlightLabs handlers at global scope so your
-// inline onclicks can actually call them:
-window.saveGFlightsKey  = saveGFlightsKey;
-window.useGFlightsAPI   = useGFlightsAPI;
-// ─────────────────────────────────────────────────────────────────────────
-
-
-  
   // Default (OpenSky mode)
   const username = sessionStorage.getItem('osUser');
   const password = sessionStorage.getItem('osPass');
@@ -549,11 +389,9 @@ function useAdsbExchangeAPI() {
 }
 
 function showTab(tabId) {
-  const tabs = ['openskyTab','aviationstackTab','adsbexTab','radarboxTab','gflightsTab'];
-  const btns = ['openskyTabBtn','aviationstackTabBtn','adsbexTabBtn','radarboxTabBtn','gflightsTabBtn'];
-  tabs.forEach((id, i) => {
-    document.getElementById(id).style.display       = (id === tabId ? 'block' : 'none');
-    document.getElementById(btns[i]).style.borderColor = (id === tabId ? '#00bfff' : '#444');
+  ['openskyTab','aviationstackTab','adsbexTab'].forEach(id => {
+    document.getElementById(id).style.display = (id === tabId ? 'block' : 'none');
+    document.getElementById(id+'Btn').style.borderColor = (id === tabId ? '#00bfff' : '#444');
   });
 }
 
