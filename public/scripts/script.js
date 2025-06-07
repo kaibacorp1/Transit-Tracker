@@ -340,9 +340,9 @@ if (window.useFr24) {
         lower = (uLat - range).toFixed(4),
         left  = (uLon - range).toFixed(4),
         right = (uLon + range).toFixed(4);
-  const url =
-    `https://fr24api.flightradar24.com/common/v1/flight/list.json?bounds=` +
-    `${upper},${lower},${left},${right}`;
+
+// point at your own proxy instead:
+ const url = `/api/fr24?bounds=${upper},${lower},${left},${right}`;
 
   fetch(url, { headers: { 'Authorization': `Bearer ${token}` } })
     .then(r => r.json())
