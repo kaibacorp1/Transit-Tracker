@@ -4,6 +4,7 @@
 window.useAviationstack = false;
 window.useAdsbexchange = false;
 window.useRadarBox      = false; 
+window.useGoFlightLabs    = false;
 
 // —————————————— New: RadarBox helper functions ——————————————
 
@@ -301,6 +302,70 @@ function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
   return;
  }
   // --- End RadarBox mode ---
+
+// ─── GoFlightLabs Helpers ────────────────────────────────────────────────
+
+function saveGFlightsKey() {
+  const k = document.getElementById('gflightsApiKey').value.trim();
+  if (!k) return alert('❌ Please enter a valid API key.');
+  sessionStorage.setItem('gflightsApiKey', k);
+  alert('✅ GoFlightLabs API key saved.');
+}
+
+function useGFlightsAPI() {
+  const k = sessionStorage.getItem('gflightsApiKey');
+  if (!k) return alert('❌ Enter & save your GoFlightLabs key first.');
+  window.useGoFlightLabs = true;
+  // disable the others
+  window.useAviationstack = false;
+  window.useAdsbexchange = false;
+  window.useRadarBox     = false;
+  document.getElementById('gflightsApiNotice').textContent = '✅ GoFlightLabs mode enabled.';
+  showTab('gflightsTab');
+  getCurrentLocationAndRun();
+}
+
+// Fetch wrapper
+async function fetchGoFlightLabs({ minLat, maxLat, minLon, maxLon }) {
+  const key = sessionStorage.getItem('gflightsApiKey');
+  const url = new URL('https://api.goflightlabs.com/v1/flights');
+  url.search = new URLSearchParams({
+    api_key: key,
+    bbox:    [minLon, minLat, maxLon, maxLat].join(','),
+  });
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  if (!json.success) throw new Error('GoFlightLabs returned failure');
+  // Normalize into the same shape your detect API expects:
+  return json.data.map(f => ({
+    latitude:  f.lat,
+    longitude: f.lng,
+    altitude:  f.alt,    // already meters
+    heading:   f.dir,    // degrees
+    speed:     f.speed,  // m/s
+    callsign:  f.flight_icao || f.flight_iata || '',
+    hex:       f.hex || ''
+  }));
+}
+
+  
+  // ─── GoFlightLabs mode ────────────────────────────────────────────────
+if (window.useGoFlightLabs) {
+  const statusEl  = document.getElementById('transitStatus');
+  const radiusKm  = parseInt(document.getElementById('radiusSelect').value, 10);
+  const range     = radiusKm / 111;  // ~deg per km
+  const minLat    = uLat - range, maxLat = uLat + range;
+  const minLon    = uLon - range, maxLon = uLon + range;
+
+  statusEl.textContent = `Checking GoFlightLabs flights…`;
+  fetchGoFlightLabs({ minLat, maxLat, minLon, maxLon })
+    .then(data => callTransitAPI(data, uLat, uLon, uElev, bodyAz, bodyAlt))
+    .catch(err => {
+      statusEl.textContent = `🚫 GoFlightLabs error: ${err.message}`;
+    });
+  return;
+}
 
   
   // Default (OpenSky mode)
