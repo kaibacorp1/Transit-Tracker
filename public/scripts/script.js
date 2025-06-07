@@ -383,6 +383,13 @@ if (window.useGoFlightLabs) {
   return;
 }
 
+
+// ————————————————————————————————
+// Expose these so inline onclicks can find them
+window.saveGFlightsKey  = saveGFlightsKey;
+window.useGFlightsAPI   = useGFlightsAPI;
+// ————————————————————————————————
+
   
   // Default (OpenSky mode)
   const username = sessionStorage.getItem('osUser');
