@@ -22,6 +22,7 @@ const url = `https://fr24api.flightradar24.com/common/v1/flight/list.json?bounds
       headers: {
         Authorization: auth,
         'Accept-Version': 'v1'    // ← tell FR24 which API version you’re calling
+        'Accept': 'application/json'   // ← ask for JSON, not HTML
       }
    });
 
