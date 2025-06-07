@@ -23,7 +23,7 @@ export default async function handler(req, res) {
     const upstream = await fetch(url, {
       headers: {
         Authorization: auth,
-        'Accept-Version': 'v1',
+        'API-Version': 'v1', 
         'Accept': 'application/json'
       }
     });
