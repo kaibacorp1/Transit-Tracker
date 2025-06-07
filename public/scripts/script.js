@@ -264,7 +264,7 @@ function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
       return;
     }
     const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
-    fetch(`https://api.goflightlabs.com/v1/flights?access_key=${key}&limit=100&lat=${uLat}&lng=${uLon}&dist=${radiusKm}`)
+    fetch(`https://app.goflightlabs.com/flights?access_key=${key}&limit=100&lat=${uLat}&lng=${uLon}&dist=${radiusKm}`)
       .then(res => res.json())
       .then(data => {
         if (data.error) {
