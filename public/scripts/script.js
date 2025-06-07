@@ -256,6 +256,37 @@ function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
     return;
   }
 
+  // ── GoFlightLabs mode ──
+  if (window.useGoFlightLabs) {
+    const key      = getGoFlightLabsKey();
+    if (!key) {
+      statusEl.textContent = '❌ Missing GoFlightLabs API key.';
+      return;
+    }
+    const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
+    fetch(`https://api.goflightlabs.com/v1/flights?access_key=${key}&limit=100&lat=${uLat}&lng=${uLon}&dist=${radiusKm}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          statusEl.textContent = `❌ GoFlightLabs error: ${data.error.message || data.error}`;
+          return;
+        }
+        const flights = (data.data || []).map(f => ({
+          latitude:  f.latitude,
+          longitude: f.longitude,
+          altitude:  f.altitude || 0,
+          heading:   f.track    || 0,
+          speed:     f.speed    || f.ground_speed || 0,
+          callsign:  f.callsign || f.flight_iata   || ''
+        }));
+        callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt);
+      })
+      .catch(() => {
+        statusEl.textContent = '🚫 Error fetching GoFlightLabs data.';
+      });
+    return;
+  }
+  
   // Default (OpenSky mode)
   const username = sessionStorage.getItem('osUser');
   const password = sessionStorage.getItem('osPass');
@@ -295,38 +326,6 @@ function checkAdsbExchangeFlights(userLat, userLon, userElev, bodyAz, bodyAlt) {
     })
     .catch(() => { document.getElementById('transitStatus').textContent = '🚫 Error fetching ADS-B Exchange data.'; });
 }
-
-  // ── GoFlightLabs mode ──
-  if (window.useGoFlightLabs) {
-    const key      = getGoFlightLabsKey();
-    if (!key) {
-      statusEl.textContent = '❌ Missing GoFlightLabs API key.';
-      return;
-    }
-    const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
-    fetch(`https://api.goflightlabs.com/v1/flights?access_key=${key}&limit=100&lat=${uLat}&lng=${uLon}&dist=${radiusKm}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.error) {
-          statusEl.textContent = `❌ GoFlightLabs error: ${data.error.message || data.error}`;
-          return;
-        }
-        const flights = (data.data || []).map(f => ({
-          latitude:  f.latitude,
-          longitude: f.longitude,
-          altitude:  f.altitude || 0,
-          heading:   f.track    || 0,
-          speed:     f.speed    || f.ground_speed || 0,
-          callsign:  f.callsign || f.flight_iata   || ''
-        }));
-        callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt);
-      })
-      .catch(() => {
-        statusEl.textContent = '🚫 Error fetching GoFlightLabs data.';
-      });
-    return;
-  }
-
 
 // --- Backend Transit Detection Call ---
 function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
