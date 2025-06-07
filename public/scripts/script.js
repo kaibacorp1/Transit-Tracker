@@ -230,7 +230,23 @@ function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
   statusEl.textContent = `Checking flights near the ${selectedBody}...`;
   const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
 
+  // ─── GoFlightLabs mode ────────────────────────────────────────────────
+  if (window.useGoFlightLabs) {
+    const range  = radiusKm / 111;
+    const minLat = uLat - range, maxLat = uLat + range;
+    const minLon = uLon - range, maxLon = uLon + range;
 
+    statusEl.textContent = `Checking GoFlightLabs flights…`;
+    fetchGoFlightLabs({ minLat, maxLat, minLon, maxLon })
+      .then(data => callTransitAPI(data, uLat, uLon, uElev, bodyAz, bodyAlt))
+      .catch(err => {
+        statusEl.textContent = `🚫 GoFlightLabs error: ${err.message}`;
+      });
+    return;
+  }
+
+
+  
   // Aviationstack mode
   if (window.useAviationstack) {
     const key = getAviationstackKey();
@@ -523,9 +539,11 @@ function useAdsbExchangeAPI() {
 }
 
 function showTab(tabId) {
-  ['openskyTab','aviationstackTab','adsbexTab','radarboxTab'].forEach(id => {
+  const tabs = ['openskyTab','aviationstackTab','adsbexTab','radarboxTab','gflightsTab'];
+  const btns = ['openskyTabBtn','aviationstackTabBtn','adsbexTabBtn','radarboxTabBtn','gflightsTabBtn'];
+  tabs.forEach((id, i) => {
     document.getElementById(id).style.display       = (id === tabId ? 'block' : 'none');
-    document.getElementById(id + 'Btn').style.borderColor = (id === tabId ? '#00bfff' : '#444');
+    document.getElementById(btns[i]).style.borderColor = (id === tabId ? '#00bfff' : '#444');
   });
 }
 
