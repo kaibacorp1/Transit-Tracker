@@ -44,11 +44,16 @@
         <button onclick="showTab('radarboxTab')" id="radarboxTabBtn">🛰️ RadarBox</button>
       </div>
 
-       <div id="adsboneTab" style="display:none; padding:1rem;">
-       <h2>ADSB-One</h2>
+      <div id="adsboneTab" style="display:none; padding:1rem;">
+         <details>
+         <summary>📡 ADSB-One</summary>
+        <div style="margin-top:0.5rem;">
        <button onclick="useAdsbOneAPI()">📡 Use ADSB-One</button>
-       <div id="adsboneApiNotice" style="margin-top:0.5rem;"></div>
+        <div id="adsboneApiNotice" style="margin-top:0.5rem;"></div>
        </div>
+        </details>
+       </div>
+
       
       <div id="openskyTab">
         <details open>
