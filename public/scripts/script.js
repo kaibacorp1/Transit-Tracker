@@ -314,11 +314,19 @@ if (window.useAdsbOne) {
   const statusEl = document.getElementById('transitStatus');
   const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
   statusEl.textContent = 'Checking ADSB-One flights…';
+
   fetchAdsbOne({ lat: uLat, lon: uLon, radiusKm })
-    .then(data => callTransitAPI(data, uLat, uLon, uElev, bodyAz, bodyAlt))
+    .then(data => {
+      // ← Log here, where `data` actually exists
+      console.log('ℹ️ ADSB-One fetched', data.length, 'flights:', data);
+
+      // Then hand them off to your detector
+      callTransitAPI(data, uLat, uLon, uElev, bodyAz, bodyAlt);
+    })
     .catch(err => {
       statusEl.textContent = `🚫 ADSB-One error: ${err.message}`;
     });
+
   return;
 }
 
