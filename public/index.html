@@ -70,22 +70,15 @@
         </details>
       </div>
 
-      <div id="radarboxTab" style="display:none;">
-  <details open>
-    <summary><strong>RadarBox API</strong></summary>
-    <p style="font-size:0.9rem; color:#666;">
-      Enter your RadarBox “On-Demand” API token.
-      <a href="https://www.radarbox.com/api/documentation" target="_blank">Get yours</a>
-    </p>
-    <label>🔑 API Key:</label>
-    <input type="text" id="radarboxKeyInput"
-           placeholder="Enter RadarBox token" style="width:100%;" />
-    <button onclick="saveRadarboxKey()">💾 Save Key</button>
-    <button onclick="useRadarboxAPI()">🛰️ Use RadarBox</button>
-    <div id="radarboxApiNotice" style="margin-top:0.5rem; color:red;"></div>
-  </details>
-</div>
-      
+       <div id="radarboxTab" style="display:none; padding:1rem">
+       <h2>RadarBox Setup</h2>
+       <label for="radarboxKeyInput">API Token:</label>
+       <input id="radarboxKeyInput" type="text" placeholder="Enter your RadarBox token" />
+      <button onclick="saveRadarboxKey()">💾 Save Token</button>
+      <span id="radarboxApiNotice" style="margin-left:1rem"></span>
+       <hr style="margin:1rem 0" />
+       <button onclick="useRadarboxAPI()">🛰️ Use RadarBox</button>
+      </div>
     </div>
 
     <div class="data">
