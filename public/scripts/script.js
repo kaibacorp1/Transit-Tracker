@@ -56,8 +56,10 @@ function useAdsbOneAPI() {
   window.useRadarBox     = false;
   showTab('adsboneTab');
   getCurrentLocationAndRun();
-}
 
+  // 👇 collapse the ADSB-One dropdown
+  document.getElementById('adsboneDetails').open = false;
+}
 
 // ─── RadarBox Helpers ──────────────────────────────────────────────────
 function saveRadarboxKey() {
