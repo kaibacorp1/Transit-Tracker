@@ -2,6 +2,7 @@
 
 // --- Mode Flags ---
 window.useAdsbexchange = false;
+window.useRadarBox      = false;   
 
 // --- State Variables ---
 let selectedBody   = 'moon';
@@ -22,6 +23,23 @@ function logDetectionLocally(message, metadata = {}) {
   history.push({ time: new Date().toISOString(), message, ...metadata });
   localStorage.setItem('transitLog', JSON.stringify(history));
 }
+
+  // ─── RadarBox mode ─────────────────────────────────────────────────
+  if (window.useRadarBox) {
+    const statusEl = document.getElementById('transitStatus');
+    const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
+    const range    = radiusKm / 111;
+    const minLat   = uLat - range, maxLat = uLat + range;
+    const minLon   = uLon - range, maxLon = uLon + range;
+
+    statusEl.textContent = 'Checking RadarBox flights…';
+    fetchRadarBox({ minLat, maxLat, minLon, maxLon })
+      .then(data => callTransitAPI(data, uLat, uLon, uElev, bodyAz, bodyAlt))
+      .catch(err => {
+        statusEl.textContent = `🚫 RadarBox error: ${err.message}`;
+      });
+    return;
+  }
 
 // --- DOMContent Loaded Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -64,7 +82,7 @@ document.getElementById('locationMode').addEventListener('change', e => {
     navigator.geolocation.getCurrentPosition(success, error);
   } else {
     // user switched to manual: immediately use their inputs
-    getCurrentLocationAndRun();
+    getCurrentLocationAndRun();x
   }
 });
 document.getElementById('refreshBtn').addEventListener('click', getCurrentLocationAndRun);
@@ -200,6 +218,22 @@ function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
   const statusEl = document.getElementById('transitStatus');
   statusEl.textContent = `Checking flights near the ${selectedBody}...`;
   const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
+
+  // ─── RadarBox mode ─────────────────────────────────────────────────
+  if (window.useRadarBox) {
+    const statusEl = document.getElementById('transitStatus');
+    const range    = radiusKm / 111;
+    const minLat   = uLat - range, maxLat = uLat + range;
+    const minLon   = uLon - range, maxLon = uLon + range;
+
+    statusEl.textContent = 'Checking RadarBox flights…';
+    fetchRadarBox({ minLat, maxLat, minLon, maxLon })
+      .then(data => callTransitAPI(data, uLat, uLon, uElev, bodyAz, bodyAlt))
+      .catch(err => {
+        statusEl.textContent = `🚫 RadarBox error: ${err.message}`;
+      });
+    return;
+  }
 
 
   // ADS-B Exchange mode
@@ -354,7 +388,7 @@ function useAdsbExchangeAPI() {
 }
 
 function showTab(tabId) {
-  ['openskyTab','adsbexTab'].forEach(id => {
+  ['openskyTab','adsbexTab','flightapiTab'].forEach(id => {
     document.getElementById(id).style.display = (id === tabId ? 'block' : 'none');
     document.getElementById(id+'Btn').style.borderColor = (id === tabId ? '#00bfff' : '#444');
   });
@@ -430,3 +464,7 @@ function stopAutoRefresh() {
 function updateCountdownDisplay() {
   document.getElementById('countdownTimer').textContent = `Next check in: ${countdown}s`;
 }
+
+// Expose RadarBox handlers globally
+window.saveRadarboxKey = saveRadarboxKey;
+window.useRadarboxAPI  = useRadarboxAPI;
