@@ -24,22 +24,54 @@ function logDetectionLocally(message, metadata = {}) {
   localStorage.setItem('transitLog', JSON.stringify(history));
 }
 
-  // ─── RadarBox mode ─────────────────────────────────────────────────
-  if (window.useRadarBox) {
-    const statusEl = document.getElementById('transitStatus');
-    const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
-    const range    = radiusKm / 111;
-    const minLat   = uLat - range, maxLat = uLat + range;
-    const minLon   = uLon - range, maxLon = uLon + range;
-
-    statusEl.textContent = 'Checking RadarBox flights…';
-    fetchRadarBox({ minLat, maxLat, minLon, maxLon })
-      .then(data => callTransitAPI(data, uLat, uLon, uElev, bodyAz, bodyAlt))
-      .catch(err => {
-        statusEl.textContent = `🚫 RadarBox error: ${err.message}`;
-      });
+// ─── RadarBox Helpers ──────────────────────────────────────────────────
+function saveRadarboxKey() {
+  const k = document.getElementById('radarboxKeyInput').value.trim();
+  if (!k) {
+    document.getElementById('radarboxApiNotice').textContent = '❌ Please enter a token.';
     return;
   }
+  sessionStorage.setItem('radarboxKey', k);
+  document.getElementById('radarboxApiNotice').textContent = '✅ Token saved.';
+}
+
+function useRadarboxAPI() {
+  const k = sessionStorage.getItem('radarboxKey');
+  if (!k) {
+    document.getElementById('radarboxApiNotice').textContent = '❌ Save your token first.';
+    return;
+  }
+  window.useRadarBox     = true;
+  window.useAdsbexchange = false;
+  document.getElementById('radarboxApiNotice').textContent = '✅ RadarBox mode enabled.';
+  showTab('radarboxTab');
+  getCurrentLocationAndRun();
+}
+
+async function fetchRadarBox({ minLat, maxLat, minLon, maxLon }) {
+  const key = sessionStorage.getItem('radarboxKey');
+  if (!key) throw new Error('Missing RadarBox token');
+
+  const res = await fetch('https://api.airnavradar.com/v2/flights/geosearch', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': key
+    },
+    body: JSON.stringify({ minLatitude: minLat, maxLatitude: maxLat, minLongitude: minLon, maxLongitude: maxLon })
+  });
+  if (!res.ok) throw new Error(`RadarBox ${res.status}`);
+  const json = await res.json();
+  return (json.flights || []).map(f => ({
+    latitude:  f.latitude,
+    longitude: f.longitude,
+    altitude:  (f.altitude_ft  || 0) * 0.3048,
+    heading:   f.heading_deg    || 0,
+    speed:     (f.speed_kt      || 0) * 0.514444,
+    callsign:  f.callsign        || ''
+  }));
+}
+// ─────────────────────────────────────────────────────────────────────────
 
 // --- DOMContent Loaded Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -221,10 +253,9 @@ function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
 
   // ─── RadarBox mode ─────────────────────────────────────────────────
   if (window.useRadarBox) {
-    const statusEl = document.getElementById('transitStatus');
-    const range    = radiusKm / 111;
-    const minLat   = uLat - range, maxLat = uLat + range;
-    const minLon   = uLon - range, maxLon = uLon + range;
+    const range  = radiusKm / 111;
+    const minLat = uLat - range, maxLat = uLat + range;
+    const minLon = uLon - range, maxLon = uLon + range;
 
     statusEl.textContent = 'Checking RadarBox flights…';
     fetchRadarBox({ minLat, maxLat, minLon, maxLon })
@@ -234,7 +265,6 @@ function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
       });
     return;
   }
-
 
   // ADS-B Exchange mode
   if (window.useAdsbexchange) {
