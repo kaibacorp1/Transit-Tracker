@@ -463,7 +463,7 @@ function useAdsbExchangeAPI() {
 }
 
 function showTab(tabId) {
-  ['openskyTab','adsbexTab','adsboneTab','radarboxTab','flightapiTab'].forEach(id => {
+    ['openskyTab','adsbexTab','radarboxTab','adsboneTab'].forEach(id => {
     document.getElementById(id).style.display = (id === tabId ? 'block' : 'none');
     document.getElementById(id+'Btn').style.borderColor = (id === tabId ? '#00bfff' : '#444');
   });
