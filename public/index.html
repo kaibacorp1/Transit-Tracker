@@ -38,21 +38,11 @@
       <a href="public/providers.html" class="small-link">What are these?</a>
 
       <div class="tab-buttons">
-        <button id="adsboneTabBtn" onclick="useAdsbOneAPI()" class="active">📡 ADSB-One</button>
         <button onclick="showTab('openskyTab')" id="openskyTabBtn" class="active">✈️ OpenSky</button>
-        <button onclick="showTab('adsbexTab')" id="adsbexTabBtn">🛩️ ADS-B Ex</button>
+        <button onclick="showTab('adsbexTab')" id="adsbexTabBtn">📡 ADS-B Exchange</button>
+        <button id="adsboneTabBtn" onclick="showTab('adsboneTab')">📡 ADSB-One</button>
         <button onclick="showTab('radarboxTab')" id="radarboxTabBtn">🛰️ RadarBox</button>
       </div>
-
-     <div id="adsboneTab" style="display:none; padding:1rem;">
-  <details id="adsboneDetails" open>
-    <summary>📡 ADSB-One</summary>
-    <div style="margin-top:0.5rem;">
-      <button onclick="useAdsbOneAPI()">📡 Use ADSB-One</button>
-      <div id="adsboneApiNotice" style="margin-top:0.5rem;"></div>
-    </div>
-  </details>
-    </div>
 
       <div id="openskyTab">
         <details open>
@@ -80,6 +70,12 @@
           <div id="adsbApiNotice"></div>
         </details>
       </div>
+
+       <div id="adsboneTab" style="display:none; padding:1rem;">
+       <h2>ADSB-One</h2>
+       <button onclick="useAdsbOneAPI()">📡 Use ADSB-One</button>
+       <div id="adsboneApiNotice" style="margin-top:0.5rem;"></div>
+       </div>
 
        <div id="radarboxTab" style="display:none; padding:1rem">
        <h2>RadarBox Setup</h2>
