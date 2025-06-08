@@ -28,13 +28,13 @@ function logDetectionLocally(message, metadata = {}) {
 // ─── ADSB-One Integration (no API key) ───────────────────────────────────
 
 async function fetchAdsbOne({ lat, lon, radiusKm }) {
-  // ADSB-One uses endpoint: /v2/point/{lat}/{lon}/{radius_nm}
-  // Convert km to nautical miles:
+  // Convert km → nautical miles
   const radiusNm = (radiusKm / 1.852).toFixed(1);
-  const res = await fetch(`https://api.adsb.one/v2/point/${lat}/${lon}/${radiusNm}`);
+  const res = await fetch(
+    `https://api.adsb.one/v2/point/${lat}/${lon}/${radiusNm}`
+  );
   if (!res.ok) throw new Error(`ADSB-One ${res.status}`);
   const json = await res.json();
-  // json.data.ac is array of aircraft:
   const acList = (json.data && Array.isArray(json.data.ac)) ? json.data.ac : [];
   return acList.map(f => ({
     latitude:  f.lat       || 0,
@@ -45,6 +45,15 @@ async function fetchAdsbOne({ lat, lon, radiusKm }) {
     callsign:  f.flight    || ''
   }));
 }
+
+function useAdsbOneAPI() {
+  window.useAdsbOne      = true;
+  window.useAdsbexchange = false;
+  window.useRadarBox     = false;
+  showTab('adsboneTab');
+  getCurrentLocationAndRun();
+}
+
 
 // ─── RadarBox Helpers ──────────────────────────────────────────────────
 function saveRadarboxKey() {
@@ -300,19 +309,18 @@ function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
     return;
   }
 
-  // ─── ADSB-One mode ───────────────────────────────────────────────────
-  if (window.useAdsbOne) {
-    const statusEl = document.getElementById('transitStatus');
-    const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
-    // Use min-lat/lon as the center point; radius in km is radiusKm
-    statusEl.textContent = 'Checking ADSB-One flights…';
-    fetchAdsbOne({ minLat: uLat, minLon: uLon, maxLat: uLat, maxLon: uLon })
-      .then(data => callTransitAPI(data, uLat, uLon, uElev, bodyAz, bodyAlt))
-      .catch(err => {
-        statusEl.textContent = `🚫 ADSB-One error: ${err.message}`;
-      });
-    return;
-  }
+// ─── ADSB-One mode ───────────────────────────────────────────────────
+if (window.useAdsbOne) {
+  const statusEl = document.getElementById('transitStatus');
+  const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
+  statusEl.textContent = 'Checking ADSB-One flights…';
+  fetchAdsbOne({ lat: uLat, lon: uLon, radiusKm })
+    .then(data => callTransitAPI(data, uLat, uLon, uElev, bodyAz, bodyAlt))
+    .catch(err => {
+      statusEl.textContent = `🚫 ADSB-One error: ${err.message}`;
+    });
+  return;
+}
 
   
   // Default (OpenSky mode)
@@ -536,3 +544,5 @@ function updateCountdownDisplay() {
 window.saveRadarboxKey = saveRadarboxKey;
 window.useRadarboxAPI  = useRadarboxAPI;
 
+// Expose ADSB-One handler globally
+window.useAdsbOneAPI    = useAdsbOneAPI;
