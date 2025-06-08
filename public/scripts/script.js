@@ -108,13 +108,16 @@ async function fetchRadarBox({ minLat, maxLat, minLon, maxLon }) {
 }
 // ─────────────────────────────────────────────────────────────────────────
 
-// --- DOMContent Loaded Initialization ---
+// DOMContent Loaded Initialization
 document.addEventListener('DOMContentLoaded', () => {
   // Prompt for location
   navigator.geolocation.getCurrentPosition(success, error);
-  // Initialize first tab
-  showTab('openskyTab');
+  // Default to ADSB-One
+  window.useAdsbOne = true;
+  showTab('adsboneTab');
+  getCurrentLocationAndRun();
 });
+
 
 // --- UI Event Listeners ---
 document.getElementById('bodyToggle').addEventListener('change', e => {
@@ -475,11 +478,12 @@ function useAdsbExchangeAPI() {
 }
 
 function showTab(tabId) {
-    ['openskyTab','adsbexTab','radarboxTab','adsboneTab'].forEach(id => {
+  ['adsboneTab','openskyTab','adsbexTab','radarboxTab'].forEach(id => {
     document.getElementById(id).style.display = (id === tabId ? 'block' : 'none');
     document.getElementById(id+'Btn').style.borderColor = (id === tabId ? '#00bfff' : '#444');
   });
 }
+
 
 // --- Math Helpers ---
 function projectPosition(lat, lon, heading, speed, seconds) {
