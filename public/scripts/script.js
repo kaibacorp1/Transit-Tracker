@@ -3,8 +3,7 @@
 // --- Mode Flags ---
 window.useAdsbexchange = false;
 window.useRadarBox      = false;   
-window.useAdsbOne = true;
-
+window.useAdsbOne = false;
 
 // --- State Variables ---
 let selectedBody   = 'moon';
@@ -56,10 +55,8 @@ function useAdsbOneAPI() {
   window.useRadarBox     = false;
   showTab('adsboneTab');
   getCurrentLocationAndRun();
-
-  // 👇 collapse the ADSB-One dropdown
-  document.getElementById('adsboneDetails').open = false;
 }
+
 
 // ─── RadarBox Helpers ──────────────────────────────────────────────────
 function saveRadarboxKey() {
@@ -110,16 +107,13 @@ async function fetchRadarBox({ minLat, maxLat, minLon, maxLon }) {
 }
 // ─────────────────────────────────────────────────────────────────────────
 
-// DOMContent Loaded Initialization
+// --- DOMContent Loaded Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
   // Prompt for location
   navigator.geolocation.getCurrentPosition(success, error);
-  // Default to ADSB-One
-  window.useAdsbOne = true;
-  showTab('adsboneTab');
-  getCurrentLocationAndRun();
+  // Initialize first tab
+  showTab('openskyTab');
 });
-
 
 // --- UI Event Listeners ---
 document.getElementById('bodyToggle').addEventListener('change', e => {
@@ -480,12 +474,11 @@ function useAdsbExchangeAPI() {
 }
 
 function showTab(tabId) {
-  ['adsboneTab','openskyTab','adsbexTab','radarboxTab'].forEach(id => {
+    ['openskyTab','adsbexTab','radarboxTab','adsboneTab'].forEach(id => {
     document.getElementById(id).style.display = (id === tabId ? 'block' : 'none');
     document.getElementById(id+'Btn').style.borderColor = (id === tabId ? '#00bfff' : '#444');
   });
 }
-
 
 // --- Math Helpers ---
 function projectPosition(lat, lon, heading, speed, seconds) {
