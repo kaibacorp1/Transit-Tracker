@@ -25,55 +25,24 @@ function logDetectionLocally(message, metadata = {}) {
   localStorage.setItem('transitLog', JSON.stringify(history));
 }
 
-// ─── ADSB-One Helpers ──────────────────────────────────────────────────
+// ─── ADSB-One Integration (no API key) ───────────────────────────────────
 
-function saveAdsbOneKey() {
-  const k = document.getElementById('adsboneApiKey').value.trim();
-  if (!k) {
-    document.getElementById('adsboneApiNotice').textContent = '❌ Please enter a valid API key.';
-    return;
-  }
-  sessionStorage.setItem('adsbOneKey', k);
-  document.getElementById('adsboneApiNotice').textContent = '✅ ADSB-One key saved.';
-}
-
-function useAdsbOneAPI() {
-  const k = sessionStorage.getItem('adsbOneKey');
-  if (!k) {
-    alert('❌ Save your ADSB-One key first.');
-    return;
-  }
-  window.useAdsbOne    = true;
-  window.useAdsbexchange = false;
-  window.useRadarBox   = false;
-  window.useGoFlightLabs = false;
-  window.useFlightAPI  = false;
-  document.getElementById('adsboneApiNotice').textContent = '✅ ADSB-One mode enabled.';
-  showTab('adsboneTab');
-  getCurrentLocationAndRun();
-}
-
-async function fetchAdsbOne({ minLat, maxLat, minLon, maxLon }) {
-  const key = sessionStorage.getItem('adsbOneKey');
-  if (!key) throw new Error('Missing ADSB-One key');
-
-  const url = `https://api.adsb.one/v2/point/${minLat}/${minLon}/${(maxLat-minLat)*111}`;
-  // ADSB-One uses URL path: /point/{lat}/{lon}/{radius_km}
-  // We approximate radius as half the lat-span*111km
-  const res = await fetch(url, {
-    headers: { 'Authorization': key }
-  });
+async function fetchAdsbOne({ lat, lon, radiusKm }) {
+  // ADSB-One uses endpoint: /v2/point/{lat}/{lon}/{radius_nm}
+  // Convert km to nautical miles:
+  const radiusNm = (radiusKm / 1.852).toFixed(1);
+  const res = await fetch(`https://api.adsb.one/v2/point/${lat}/${lon}/${radiusNm}`);
   if (!res.ok) throw new Error(`ADSB-One ${res.status}`);
   const json = await res.json();
-
-  // json.data.ac is array of aircraft objects
-  return (json.data.ac || []).map(f => ({
-    latitude:  f.lat || 0,
-    longitude: f.lon || 0,
-    altitude:  f.alt_geom || 0,
-    heading:   f.track  || 0,
-    speed:     f.gs     || 0,
-    callsign:  f.flight || ''
+  // json.data.ac is array of aircraft:
+  const acList = (json.data && Array.isArray(json.data.ac)) ? json.data.ac : [];
+  return acList.map(f => ({
+    latitude:  f.lat       || 0,
+    longitude: f.lon       || 0,
+    altitude:  f.alt_geom  || 0,
+    heading:   f.track     || 0,
+    speed:     f.gs        || 0,
+    callsign:  f.flight    || ''
   }));
 }
 
@@ -566,8 +535,4 @@ function updateCountdownDisplay() {
 // Expose RadarBox handlers globally
 window.saveRadarboxKey = saveRadarboxKey;
 window.useRadarboxAPI  = useRadarboxAPI;
-
-//
-window.saveAdsbOneKey   = saveAdsbOneKey;
-window.useAdsbOneAPI    = useAdsbOneAPI;
 
