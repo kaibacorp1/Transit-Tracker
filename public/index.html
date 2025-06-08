@@ -40,6 +40,7 @@
       <div class="tab-buttons">
         <button onclick="showTab('openskyTab')" id="openskyTabBtn" class="active">✈️ OpenSky</button>
         <button onclick="showTab('adsbexTab')" id="adsbexTabBtn">📡 ADS-B Exchange</button>
+        <button onclick="showTab('radarboxTab')" id="radarboxTabBtn">🛰️ RadarBox</button>
       </div>
 
       <div id="openskyTab">
@@ -68,6 +69,23 @@
           <div id="adsbApiNotice"></div>
         </details>
       </div>
+
+      <div id="radarboxTab" style="display:none;">
+  <details open>
+    <summary><strong>RadarBox API</strong></summary>
+    <p style="font-size:0.9rem; color:#666;">
+      Enter your RadarBox “On-Demand” API token.
+      <a href="https://www.radarbox.com/api/documentation" target="_blank">Get yours</a>
+    </p>
+    <label>🔑 API Key:</label>
+    <input type="text" id="radarboxKeyInput"
+           placeholder="Enter RadarBox token" style="width:100%;" />
+    <button onclick="saveRadarboxKey()">💾 Save Key</button>
+    <button onclick="useRadarboxAPI()">🛰️ Use RadarBox</button>
+    <div id="radarboxApiNotice" style="margin-top:0.5rem; color:red;"></div>
+  </details>
+</div>
+      
     </div>
 
     <div class="data">
