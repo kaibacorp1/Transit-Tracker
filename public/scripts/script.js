@@ -28,23 +28,26 @@ function logDetectionLocally(message, metadata = {}) {
 // ─── ADSB-One Integration (no API key) ───────────────────────────────────
 
 async function fetchAdsbOne({ lat, lon, radiusKm }) {
-  // Convert km → nautical miles
   const radiusNm = (radiusKm / 1.852).toFixed(1);
   const res = await fetch(
     `https://api.adsb.one/v2/point/${lat}/${lon}/${radiusNm}`
   );
   if (!res.ok) throw new Error(`ADSB-One ${res.status}`);
   const json = await res.json();
-  const acList = (json.data && Array.isArray(json.data.ac)) ? json.data.ac : [];
+
+  // Use json.ac (not json.data.ac)
+  const acList = Array.isArray(json.ac) ? json.ac : [];
+
   return acList.map(f => ({
     latitude:  f.lat       || 0,
     longitude: f.lon       || 0,
     altitude:  f.alt_geom  || 0,
     heading:   f.track     || 0,
     speed:     f.gs        || 0,
-    callsign:  f.flight    || ''
+    callsign:  f.callsign  || ''
   }));
 }
+
 
 function useAdsbOneAPI() {
   window.useAdsbOne      = true;
