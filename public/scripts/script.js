@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Prompt for location
   navigator.geolocation.getCurrentPosition(success, error);
   // Initialize first tab
-  showTab('useAdsbOne');
+  showTab('openskyTab');
 });
 
 // --- UI Event Listeners ---
