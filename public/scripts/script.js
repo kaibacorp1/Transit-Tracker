@@ -1,7 +1,6 @@
 /* script.js - Final merged version for Vercel */
 
 // --- Mode Flags ---
-window.useAviationstack = false;
 window.useAdsbexchange = false;
 
 // --- State Variables ---
@@ -202,25 +201,6 @@ function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
   statusEl.textContent = `Checking flights near the ${selectedBody}...`;
   const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
 
-  // Aviationstack mode
-  if (window.useAviationstack) {
-    const key = getAviationstackKey();
-    if (!key) {
-      statusEl.textContent = '❌ Missing Aviationstack API key.';
-      return;
-    }
-    fetch(`http://api.aviationstack.com/v1/flights?access_key=${key}&limit=100`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.error) {
-          statusEl.textContent = `❌ Aviationstack error: ${data.error.message || data.error}`;
-          return;
-        }
-        callTransitAPI(data.data || [], uLat, uLon, uElev, bodyAz, bodyAlt);
-      })
-      .catch(() => { statusEl.textContent = '🚫 Error fetching Aviationstack data.'; });
-    return;
-  }
 
   // ADS-B Exchange mode
   if (window.useAdsbexchange) {
@@ -354,21 +334,6 @@ function saveCredentials() {
   getCurrentLocationAndRun();             // immediately re-run location → transit check
 }
 
-function saveAviationstackKey() {
-  const key = document.getElementById('aviationstackKey').value.trim();
-  if (!key) return alert('Please enter a valid API key.');
-  sessionStorage.setItem('aviationstackKey', key);
-  alert('✅ API key saved.');
-}
-
-function useAviationstackAPI() {
-  if (!getAviationstackKey()) return alert('❌ Enter & save your Aviationstack key first.');
-  window.useAviationstack = true; window.useAdsbexchange = false;
-  document.getElementById('apiNotice').textContent = '✅ Aviationstack mode enabled.';
-  showTab('aviationstackTab');
-  getCurrentLocationAndRun();
-}
-
 function saveAdsbExSettings() {
   const key = document.getElementById('adsbApiKey').value.trim();
   const host = document.getElementById('adsbApiHost').value.trim();
@@ -389,7 +354,7 @@ function useAdsbExchangeAPI() {
 }
 
 function showTab(tabId) {
-  ['openskyTab','aviationstackTab','adsbexTab'].forEach(id => {
+  ['openskyTab','adsbexTab'].forEach(id => {
     document.getElementById(id).style.display = (id === tabId ? 'block' : 'none');
     document.getElementById(id+'Btn').style.borderColor = (id === tabId ? '#00bfff' : '#444');
   });
