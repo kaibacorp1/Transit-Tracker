@@ -44,6 +44,12 @@
         <button onclick="showTab('radarboxTab')" id="radarboxTabBtn">🛰️ RadarBox</button>
       </div>
 
+             <div id="adsboneTab" style="display:none; padding:1rem;">
+       <h2>ADSB-One</h2>
+       <button onclick="useAdsbOneAPI()">📡 Use ADSB-One</button>
+       <div id="adsboneApiNotice" style="margin-top:0.5rem;"></div>
+       </div>
+
       <div id="openskyTab">
         <details open>
           <summary><strong>OpenSky Login</strong></summary>
@@ -70,12 +76,6 @@
           <div id="adsbApiNotice"></div>
         </details>
       </div>
-
-       <div id="adsboneTab" style="display:none; padding:1rem;">
-       <h2>ADSB-One</h2>
-       <button onclick="useAdsbOneAPI()">📡 Use ADSB-One</button>
-       <div id="adsboneApiNotice" style="margin-top:0.5rem;"></div>
-       </div>
 
        <div id="radarboxTab" style="display:none; padding:1rem">
        <h2>RadarBox Setup</h2>
