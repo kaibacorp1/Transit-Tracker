@@ -3,6 +3,7 @@
 // --- Mode Flags ---
 window.useAdsbexchange = false;
 window.useRadarBox      = false;   
+window.useAdsbOne = false;
 
 // --- State Variables ---
 let selectedBody   = 'moon';
@@ -22,6 +23,58 @@ function logDetectionLocally(message, metadata = {}) {
   const history = JSON.parse(localStorage.getItem('transitLog') || '[]');
   history.push({ time: new Date().toISOString(), message, ...metadata });
   localStorage.setItem('transitLog', JSON.stringify(history));
+}
+
+// ─── ADSB-One Helpers ──────────────────────────────────────────────────
+
+function saveAdsbOneKey() {
+  const k = document.getElementById('adsboneApiKey').value.trim();
+  if (!k) {
+    document.getElementById('adsboneApiNotice').textContent = '❌ Please enter a valid API key.';
+    return;
+  }
+  sessionStorage.setItem('adsbOneKey', k);
+  document.getElementById('adsboneApiNotice').textContent = '✅ ADSB-One key saved.';
+}
+
+function useAdsbOneAPI() {
+  const k = sessionStorage.getItem('adsbOneKey');
+  if (!k) {
+    alert('❌ Save your ADSB-One key first.');
+    return;
+  }
+  window.useAdsbOne    = true;
+  window.useAdsbexchange = false;
+  window.useRadarBox   = false;
+  window.useGoFlightLabs = false;
+  window.useFlightAPI  = false;
+  document.getElementById('adsboneApiNotice').textContent = '✅ ADSB-One mode enabled.';
+  showTab('adsboneTab');
+  getCurrentLocationAndRun();
+}
+
+async function fetchAdsbOne({ minLat, maxLat, minLon, maxLon }) {
+  const key = sessionStorage.getItem('adsbOneKey');
+  if (!key) throw new Error('Missing ADSB-One key');
+
+  const url = `https://api.adsb.one/v2/point/${minLat}/${minLon}/${(maxLat-minLat)*111}`;
+  // ADSB-One uses URL path: /point/{lat}/{lon}/{radius_km}
+  // We approximate radius as half the lat-span*111km
+  const res = await fetch(url, {
+    headers: { 'Authorization': key }
+  });
+  if (!res.ok) throw new Error(`ADSB-One ${res.status}`);
+  const json = await res.json();
+
+  // json.data.ac is array of aircraft objects
+  return (json.data.ac || []).map(f => ({
+    latitude:  f.lat || 0,
+    longitude: f.lon || 0,
+    altitude:  f.alt_geom || 0,
+    heading:   f.track  || 0,
+    speed:     f.gs     || 0,
+    callsign:  f.flight || ''
+  }));
 }
 
 // ─── RadarBox Helpers ──────────────────────────────────────────────────
@@ -278,6 +331,21 @@ function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
     return;
   }
 
+  // ─── ADSB-One mode ───────────────────────────────────────────────────
+  if (window.useAdsbOne) {
+    const statusEl = document.getElementById('transitStatus');
+    const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
+    // Use min-lat/lon as the center point; radius in km is radiusKm
+    statusEl.textContent = 'Checking ADSB-One flights…';
+    fetchAdsbOne({ minLat: uLat, minLon: uLon, maxLat: uLat, maxLon: uLon })
+      .then(data => callTransitAPI(data, uLat, uLon, uElev, bodyAz, bodyAlt))
+      .catch(err => {
+        statusEl.textContent = `🚫 ADSB-One error: ${err.message}`;
+      });
+    return;
+  }
+
+  
   // Default (OpenSky mode)
   const username = sessionStorage.getItem('osUser');
   const password = sessionStorage.getItem('osPass');
@@ -418,7 +486,7 @@ function useAdsbExchangeAPI() {
 }
 
 function showTab(tabId) {
-  ['openskyTab','adsbexTab','radarboxTab','flightapiTab'].forEach(id => {
+  ['openskyTab','adsbexTab','adsboneTab','radarboxTab','flightapiTab'].forEach(id => {
     document.getElementById(id).style.display = (id === tabId ? 'block' : 'none');
     document.getElementById(id+'Btn').style.borderColor = (id === tabId ? '#00bfff' : '#444');
   });
@@ -498,3 +566,8 @@ function updateCountdownDisplay() {
 // Expose RadarBox handlers globally
 window.saveRadarboxKey = saveRadarboxKey;
 window.useRadarboxAPI  = useRadarboxAPI;
+
+//
+window.saveAdsbOneKey   = saveAdsbOneKey;
+window.useAdsbOneAPI    = useAdsbOneAPI;
+
