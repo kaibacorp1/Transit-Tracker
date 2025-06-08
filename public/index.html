@@ -39,7 +39,6 @@
 
       <div class="tab-buttons">
         <button onclick="showTab('openskyTab')" id="openskyTabBtn" class="active">✈️ OpenSky</button>
-        <button onclick="showTab('aviationstackTab')" id="aviationstackTabBtn">🌐 Aviationstack</button>
         <button onclick="showTab('adsbexTab')" id="adsbexTabBtn">📡 ADS-B Exchange</button>
       </div>
 
@@ -54,17 +53,6 @@
           <label>Password: <input type="password" id="osPassword" /></label><br>
           <button onclick="saveCredentials()">🔐 Save Credentials</button>
           <small>We do not store your credentials. Used only this session.</small>
-        </details>
-      </div>
-
-      <div id="aviationstackTab" style="display:none;">
-        <details open>
-          <summary><strong>Aviationstack API</strong></summary>
-          <label>🔑 API Key:</label>
-          <input type="text" id="aviationstackKey" placeholder="Enter your API key" style="width:100%;" />
-          <button onclick="saveAviationstackKey()">💾 Save Key</button>
-          <button onclick="useAviationstackAPI()" style="margin-top:0.5rem;">🌐 Use Aviationstack</button>
-          <div id="apiNotice"></div>
         </details>
       </div>
 
