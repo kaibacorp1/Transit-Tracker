@@ -40,6 +40,7 @@
       <div class="tab-buttons">
         <button onclick="showTab('openskyTab')" id="openskyTabBtn" class="active">✈️ OpenSky</button>
         <button onclick="showTab('adsbexTab')" id="adsbexTabBtn">📡 ADS-B Exchange</button>
+        <button id="adsboneTabBtn" onclick="showTab('adsboneTab')">📡 ADSB-One</button>
         <button onclick="showTab('radarboxTab')" id="radarboxTabBtn">🛰️ RadarBox</button>
       </div>
 
@@ -69,6 +70,16 @@
           <div id="adsbApiNotice"></div>
         </details>
       </div>
+
+      <div id="adsboneTab" style="display:none; padding:1rem;">
+  <h2>ADSB-One Setup</h2>
+  <label for="adsboneApiKey">API Key:</label>
+  <input id="adsboneApiKey" type="text" placeholder="Enter your ADSB-One key" />
+  <button onclick="saveAdsbOneKey()">💾 Save Key</button>
+  <span id="adsboneApiNotice" style="margin-left:1rem;"></span>
+  <hr style="margin:1rem 0;" />
+  <button onclick="useAdsbOneAPI()">📡 Use ADSB-One</button>
+</div>
 
        <div id="radarboxTab" style="display:none; padding:1rem">
        <h2>RadarBox Setup</h2>
