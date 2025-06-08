@@ -114,7 +114,7 @@ document.getElementById('locationMode').addEventListener('change', e => {
     navigator.geolocation.getCurrentPosition(success, error);
   } else {
     // user switched to manual: immediately use their inputs
-    getCurrentLocationAndRun();x
+    getCurrentLocationAndRun();
   }
 });
 document.getElementById('refreshBtn').addEventListener('click', getCurrentLocationAndRun);
