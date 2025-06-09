@@ -109,19 +109,11 @@ async function fetchRadarBox({ minLat, maxLat, minLon, maxLon }) {
 
 // --- DOMContent Loaded Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
-  // ask for your location, as before
+  // Prompt for location
   navigator.geolocation.getCurrentPosition(success, error);
-
-  // force ADSB-One mode as the default
-  window.useAdsbOne      = true;
-  window.useAdsbexchange = false;
-  window.useRadarBox     = false;
-  window.useOpenSky      = false;
-
-  // show the default tab (this also sets its status message)
+  // Initialize first tab
   showTab('adsboneTab');
 });
-
 
 // --- UI Event Listeners ---
 document.getElementById('bodyToggle').addEventListener('change', e => {
@@ -477,41 +469,16 @@ function useAdsbExchangeAPI() {
   if (!key || !host) return alert('❌ Enter & save your ADS-B settings.');
   window.useAdsbexchange = true; window.useAviationstack = false;
   document.getElementById('adsbApiNotice').textContent = '✅ ADS-B mode enabled.';
-  showTab('adsbexchangeTab');
+  showTab('adsbexTab');
   getCurrentLocationAndRun();
 }
 
-function showTab(tabName) {
-  // hide all tabs
-  document.querySelectorAll('.tab').forEach(t => t.style.display = 'none');
-  // un-highlight all tab buttons
-  document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
-
-  // show the chosen tab
-  document.getElementById(tabName).style.display = 'block';
-  // highlight its button
-  document.querySelector(`button[data-tab="${tabName}"]`).classList.add('active');
-
-  // set the per-tab status message
-  const status = document.getElementById('tabStatus');
-  switch (tabName) {
-    case 'adsboneTab':
-      status.textContent = 'click ADSB-One button to use';
-      break;
-    case 'openskyTab':
-      status.textContent = '❌ Missing OpenSky login.';
-      break;
-    case 'adsbexchangeTab':
-      status.textContent = 'enter ADSB-Exchange API key to use';
-      break;
-    case 'radarboxTab':
-      status.textContent = 'coming soon';
-      break;
-    default:
-      status.textContent = '';
-  }
+function showTab(tabId) {
+    ['openskyTab','adsbexTab','radarboxTab','adsboneTab'].forEach(id => {
+    document.getElementById(id).style.display = (id === tabId ? 'block' : 'none');
+    document.getElementById(id+'Btn').style.borderColor = (id === tabId ? '#00bfff' : '#444');
+  });
 }
-
 
 // --- Math Helpers ---
 function projectPosition(lat, lon, heading, speed, seconds) {
