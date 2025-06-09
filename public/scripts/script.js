@@ -109,11 +109,19 @@ async function fetchRadarBox({ minLat, maxLat, minLon, maxLon }) {
 
 // --- DOMContent Loaded Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
-  // Prompt for location
+  // ask for your location, as before
   navigator.geolocation.getCurrentPosition(success, error);
-  // Initialize first tab
+
+  // force ADSB-One mode as the default
+  window.useAdsbOne      = true;
+  window.useAdsbexchange = false;
+  window.useRadarBox     = false;
+  window.useOpenSky      = false;
+
+  // show the default tab (this also sets its status message)
   showTab('adsboneTab');
 });
+
 
 // --- UI Event Listeners ---
 document.getElementById('bodyToggle').addEventListener('change', e => {
@@ -473,12 +481,37 @@ function useAdsbExchangeAPI() {
   getCurrentLocationAndRun();
 }
 
-function showTab(tabId) {
-    ['openskyTab','adsbexTab','radarboxTab','adsboneTab'].forEach(id => {
-    document.getElementById(id).style.display = (id === tabId ? 'block' : 'none');
-    document.getElementById(id+'Btn').style.borderColor = (id === tabId ? '#00bfff' : '#444');
-  });
+function showTab(tabName) {
+  // hide all tabs
+  document.querySelectorAll('.tab').forEach(t => t.style.display = 'none');
+  // un-highlight all tab buttons
+  document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+
+  // show the chosen tab
+  document.getElementById(tabName).style.display = 'block';
+  // highlight its button
+  document.querySelector(`button[data-tab="${tabName}"]`).classList.add('active');
+
+  // set the per-tab status message
+  const status = document.getElementById('tabStatus');
+  switch (tabName) {
+    case 'adsboneTab':
+      status.textContent = 'click ADSB-One button to use';
+      break;
+    case 'openskyTab':
+      status.textContent = '❌ Missing OpenSky login.';
+      break;
+    case 'adsbexchangeTab':
+      status.textContent = 'enter ADSB-Exchange API key to use';
+      break;
+    case 'radarboxTab':
+      status.textContent = 'coming soon';
+      break;
+    default:
+      status.textContent = '';
+  }
 }
+
 
 // --- Math Helpers ---
 function projectPosition(lat, lon, heading, speed, seconds) {
