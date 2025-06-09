@@ -133,6 +133,6 @@ footer a:hover {
 #trackerTitle {
   font-family: 'Anton', sans-serif;
   font-size: 2rem;        /* tweak size as needed */
-  letter-spacing: 0.1em;  /* optional—adds extra spacing */
+  letter-spacing: 0.3em;  /* optional—adds extra spacing */
 }
 
