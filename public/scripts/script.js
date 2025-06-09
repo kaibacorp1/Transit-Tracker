@@ -3,7 +3,7 @@
 // --- Mode Flags ---
 window.useAdsbexchange = false;
 window.useRadarBox      = false;   
-window.useAdsbOne = true;
+window.useAdsbOne = false;
 
 // --- State Variables ---
 let selectedBody   = 'moon';
