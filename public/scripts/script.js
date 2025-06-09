@@ -477,7 +477,7 @@ function useAdsbExchangeAPI() {
   if (!key || !host) return alert('❌ Enter & save your ADS-B settings.');
   window.useAdsbexchange = true; window.useAviationstack = false;
   document.getElementById('adsbApiNotice').textContent = '✅ ADS-B mode enabled.';
-  showTab('adsbexTab');
+  showTab('adsbexchangeTab');
   getCurrentLocationAndRun();
 }
 
