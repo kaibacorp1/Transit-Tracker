@@ -1,76 +1,80 @@
-Copyright (c) 2025 REY SANDU GODAKUMBURA  
-www.lifebeyondstars.com  
+Copyright (c) 2025 REY SANDU GODAKUMBURA
+[www.lifebeyondstars.com](http://www.lifebeyondstars.com)
 All rights reserved.
 
-No part of this software, in source or compiled form—including associated documentation, images, scripts, or code—may be copied, modified, distributed, republished, reverse-engineered, decompiled, disassembled, or used in any way without the express prior written permission of the author. Unauthorized use, reproduction, or distribution of this software, or any portion of it, is strictly prohibited and may result in civil or criminal penalties.
+No part of this software, in source or compiled form—including associated documentation, images, scripts, or code—may be copied, modified, distributed, republished, reverse‑engineered, decompiled, disassembled, or used in any way without the express prior written permission of the author. Unauthorized use, reproduction, or distribution of this software, or any portion of it, is strictly prohibited and may result in civil or criminal penalties.
 
 ────────────────────────────────────────────────────────────────────────────────
 
-Acknowledgments and Third-Party Data/Components:
+## Acknowledgments and Third‑Party Data/Components
 
-1. SunCalc  
-   • This app uses SunCalc (https://github.com/mourner/suncalc) for computing solar and lunar ephemerides. SunCalc is provided under the MIT License. See the SunCalc repository for full license text.  
-   • Any alterations to SunCalc’s code within this project remain subject to the original MIT License, and the original copyright notice must be retained if SunCalc code is redistributed.  
-   • All third-party software (SunCalc, etc.) used by this application is included only by reference—SunCalc’s own MIT license text must be retained in any redistribution of its code, whether modified or not.
+1. **SunCalc**
+   • This app uses SunCalc ([https://github.com/mourner/suncalc](https://github.com/mourner/suncalc)) for computing solar and lunar ephemerides. SunCalc is provided under the MIT License. See the SunCalc repository for full license text.
+   • Any alterations to SunCalc’s code within this project remain subject to the original MIT License, and the original copyright notice must be retained if SunCalc code is redistributed.
+   • All third‑party software (SunCalc, etc.) used by this application is included only by reference—SunCalc’s own MIT license text must be retained in any redistribution of its code, whether modified or not.
 
-2. OpenSky Network API  
-   • Flight data is retrieved via the OpenSky Network REST API (https://opensky-network.org). Use of OpenSky data is governed by OpenSky’s Terms of Service.  
-   • By using this application, you acknowledge that flight data requests are forwarded through the author’s proxy endpoint (opensky-proxy.onrender.com). Neither the author nor this app guarantees continued access to OpenSky’s services; users must provide valid OpenSky credentials and comply with OpenSky rate limits and usage policies.  
-   • The author makes no representation that the opensky-proxy.onrender.com endpoint (or any external data source) will be continuously available. Service interruptions, maintenance windows, or API-rate limitations may temporarily render the software partially or completely non-functional. Use this software at your own risk.
+2. **OpenSky Network API**
+   • Flight data is retrieved via the OpenSky Network REST API ([https://opensky-network.org](https://opensky-network.org)). Use of OpenSky data is governed by OpenSky’s Terms of Service.
+   • By using this application, you acknowledge that flight‑data requests are forwarded through the author’s proxy endpoint ([https://opensky-proxy.onrender.com](https://opensky-proxy.onrender.com)). Neither the author nor this app guarantees continued access to OpenSky’s services; users must provide valid OpenSky credentials and comply with OpenSky rate limits and usage policies.
+   • The author makes no representation that the opensky‑proxy.onrender.com endpoint (or any external data source) will be continuously available. Service interruptions, maintenance windows, or API‑rate limitations may temporarily render the software partially or completely non‑functional. Use this software at your own risk.
 
-3. ADS-B Exchange  
-   • An optional mode uses ADS-B Exchange (https://www.adsbexchange.com/) as a data source. ADS-B Exchange data is subject to their Terms of Service.  
-   • This app does not store or redistribute ADS-B Exchange data beyond real-time lookup and display. Users must supply their own ADS-B Exchange credentials where required.
+3. **ADS‑B Exchange**
+   • An optional mode uses ADS‑B Exchange ([https://www.adsbexchange.com/](https://www.adsbexchange.com/)) as a data source. ADS‑B Exchange data is subject to their Terms of Service.
+   • This app does not store or redistribute ADS‑B Exchange data beyond real‑time lookup and display. Users must supply their own ADS‑B Exchange credentials where required.
 
-4. AviationStack  
-   • An optional mode allows queries to AviationStack (https://aviationstack.com/) for flight information. Users must supply their own AviationStack API key.  
-   • All AviationStack data usage is subject to AviationStack’s Terms of Service and any applicable billing or rate limits. This application does not collect or store AviationStack API keys beyond the browser session’s local storage.
+4. **ADS‑B One**
+   • Another optional mode uses ADS‑B One’s public endpoint ([https://api.adsb.one](https://api.adsb.one)) for flight data. No API key is required.
+   • ADS‑B One data remains subject to any terms or usage limits published by the ADS‑B One project. The app retrieves data on‑demand and does not cache or redistribute it.
 
-5. Geolocation  
+5. **RadarBox**
+   • A future mode will support AirNav RadarBox ([https://www.radarbox.com/](https://www.radarbox.com/)) flight data. Implementation is in progress and subject to RadarBox licensing terms.
+   • Until the feature is released, no RadarBox data is fetched or stored by this application.
+
+6. **Geolocation**
    • On page load, this app requests the user’s geographical coordinates via the browser’s Geolocation API. By granting permission, the user consents to share latitude, longitude, and altitude (if available) for the sole purpose of computing celestial transits. No location data is stored on any external server beyond what is required to perform the transit calculation at runtime. The author assumes no responsibility for any misuse of geolocation data outside of the intended purpose.
 
 ────────────────────────────────────────────────────────────────────────────────
 
-Additional Terms:
+## Additional Terms
 
-6. Third-Party Terms of Service Changes  
-   Third-party data providers (OpenSky, ADS-B Exchange, AviationStack, etc.) may change their Terms of Service, data formats, or API availability at any time. The author is not responsible for any service disruptions or policy changes by these providers. It is the user’s responsibility to verify compliance with those providers’ current Terms before using the app.
+7. **Third‑Party Terms of Service Changes**
+   Third‑party providers (OpenSky, ADS‑B Exchange, ADS‑B One, RadarBox, etc.) may change their Terms of Service, data formats, or API availability at any time. The author is not responsible for any service disruptions or policy changes by these providers. It is the user’s responsibility to verify compliance with those providers’ current Terms before using the app.
 
-7. Privacy and User Data  
-   This application does not collect or store any personal user data beyond what is strictly necessary to perform the flight-detection calculation at runtime. User credentials (OpenSky, ADS-B Exchange, AviationStack) are forwarded only to the respective data provider and are held in browser sessionStorage for the duration of the session. No user-specific flight history or location data is persisted on the server beyond the immediate API request/response.
+8. **Privacy and User Data**
+   This application does not collect or store any personal user data beyond what is strictly necessary to perform the flight‑detection calculation at runtime. User credentials (OpenSky, ADS‑B Exchange) are forwarded only to the respective data provider and are held in browser sessionStorage for the duration of the session. No user‑specific flight history or location data is persisted on the server beyond the immediate API request/response.
 
-8. Trademark and Branding  
-   “Transit-Tracker” and “LifeBeyondStars.com” are trademarks of Rey Sandu Godakumbura. No part of this software may be redistributed under the same branding, logo, or trade name without the express written permission of the author.
+9. **Trademark and Branding**
+   “Transit‑Tracker” and “LifeBeyondStars.com” are trademarks of Rey Sandu Godakumbura. No part of this software may be redistributed under the same branding, logo, or trade name without the express written permission of the author.
 
-9. DMCA and Takedown Enforcement  
-   The author reserves the right to enforce intellectual property rights under the Digital Millennium Copyright Act (DMCA) or any equivalent local legislation. If you find an unauthorized copy of this software, please contact the author immediately at www.lifebeyondstars.com/contact.
+10. **DMCA and Takedown Enforcement**
+    The author reserves the right to enforce intellectual‑property rights under the Digital Millennium Copyright Act (DMCA) or any equivalent local legislation. If you find an unauthorized copy of this software, please contact the author immediately at [https://www.lifebeyondstars.com/contact](https://www.lifebeyondstars.com/contact).
 
-10. No Support or Maintenance  
-   The author is under no obligation to provide support, maintenance, bug fixes, or future updates. Use this software at your own risk.
+11. **No Support or Maintenance**
+    The author is under no obligation to provide support, maintenance, bug fixes, or future updates. Use this software at your own risk.
 
-11. Compiled/Minified and Obfuscated Code  
-   Reproduction of this LICENSE file in its entirety is required in any form—source, compiled, minified, or obfuscated—whenever any portion of this software is redistributed. Attempting to remove, alter, or omit this LICENSE text from any derived or redistributed version constitutes a violation of the author’s rights.
+12. **Compiled/Minified and Obfuscated Code**
+    Reproduction of this LICENSE file in its entirety is required in any form—source, compiled, minified, or obfuscated—whenever any portion of this software is redistributed. Attempting to remove, alter, or omit this LICENSE text from any derived or redistributed version constitutes a violation of the author’s rights.
 
-12. Local Law Carve-Out  
-   If any provision of this LICENSE is held to be unenforceable under applicable law (for example, a jurisdiction that does not permit exclusion of certain warranties), that provision shall be enforced to the maximum extent permitted, and the remaining provisions shall remain in full force and effect.
-
-────────────────────────────────────────────────────────────────────────────────
-
-Disclaimer of Warranties and Liability:
-
-THIS SOFTWARE IS PROVIDED “AS IS” AND WITHOUT WARRANTY OF ANY KIND. TO THE FULLEST EXTENT PERMITTED BY APPLICABLE LAW, REY SANDU GODAKUMBURA (the “Author”) DISCLAIMS ALL WARRANTIES, WHETHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE, EVEN IF THE AUTHOR HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+13. **Local‑Law Carve‑Out**
+    If any provision of this LICENSE is held unenforceable under applicable law, that provision shall be enforced to the maximum extent permitted, and the remaining provisions shall remain in full force and effect.
 
 ────────────────────────────────────────────────────────────────────────────────
 
-Developer Acknowledgment:
+## Disclaimer of Warranties and Liability
 
-This application was built with a little help from OpenAI. Any errors, omissions, or inaccuracies in code or documentation are the sole responsibility of the author. If you discover any mistakes, please contact the author directly via www.lifebeyondstars.com/contact.
+THIS SOFTWARE IS PROVIDED “AS IS” AND WITHOUT WARRANTY OF ANY KIND. TO THE FULLEST EXTENT PERMITTED BY APPLICABLE LAW, REY SANDU GODAKUMBURA (the “Author”) DISCLAIMS ALL WARRANTIES, WHETHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON‑INFRINGEMENT. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE, EVEN IF THE AUTHOR HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 
 ────────────────────────────────────────────────────────────────────────────────
 
-Version History:
+## Developer Acknowledgment
 
-• 2025-01-01: Initial release of Transit-Tracker  
-• 2025-06-04: Updated COPYRIGHT and LICENSE to reflect current ownership and third-party acknowledgments
+This application was built with a little help from OpenAI. Any errors, omissions, or inaccuracies in code or documentation are the sole responsibility of the author. If you discover any mistakes, please contact the author directly via [https://www.lifebeyondstars.com/contact](https://www.lifebeyondstars.com/contact).
+
+────────────────────────────────────────────────────────────────────────────────
+
+## Version History
+
+• 2025‑01‑01: Initial release of Transit‑Tracker
+• 2025‑06‑09: Updated LICENSE to remove AviationStack, add ADS‑B One & RadarBox, and reflect current acknowledgments
 
 (Reproduction of this LICENSE file in its entirety is required whenever any portion of this software is duplicated, redistributed, or otherwise made available—whether in source, compiled, minified, or obfuscated form. Any attempt to remove, alter, or omit this LICENSE text from any derived or redistributed version constitutes a violation of the author’s rights.)
