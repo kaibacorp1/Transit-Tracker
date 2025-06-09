@@ -131,9 +131,9 @@ footer a:hover {
 }
 
 #trackerTitle {
-  font-family: 'Orbitron', sans-serif;
-  font-weight: 700;       /* or 400 for lighter weight */
-  font-size: 2rem;        /* tweak as needed */
-  letter-spacing: 0.05em; /* gives it some space */
+  font-family: 'Anton', sans-serif;
+  font-variant: small-caps;
+  font-size: 2rem;        /* tweak size as needed */
+  letter-spacing: 0.1em;  /* optional—adds extra spacing */
 }
 
