@@ -129,3 +129,11 @@ footer a:hover {
   width: 70%;        /* fills its parent */
   max-width: 500px;   /* caps it at 500px so it doesn’t get absurdly huge */
 }
+
+#trackerTitle {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;       /* or 400 for lighter weight */
+  font-size: 2rem;        /* tweak as needed */
+  letter-spacing: 0.05em; /* gives it some space */
+}
+
