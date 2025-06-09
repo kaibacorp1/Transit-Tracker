@@ -6,32 +6,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Celestial Transit Tracker – Technical User Guide</title>
   <style>
-    /* Global Styles */
-    *,
-    *::before,
-    *::after {
-      box-sizing: border-box;
-    }
-
+    *, *::before, *::after { box-sizing: border-box; }
     body {
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans",
-        "Helvetica Neue", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
       line-height: 1.6;
       background-color: #f9fafb;
       color: #111827;
     }
-
-    a {
-      color: #2563eb;
-      text-decoration: none;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
-
+    a { color: #2563eb; text-decoration: none; }
+    a:hover { text-decoration: underline; }
     code {
       background-color: #f3f4f6;
       padding: 0.2em 0.4em;
@@ -39,40 +24,30 @@
       font-family: "Source Code Pro", monospace;
       font-size: 0.95em;
     }
-
-    h1,
-    h2,
-    h3 {
+    h1, h2, h3 {
       color: #1f2937;
       margin-top: 1.5em;
       margin-bottom: 0.5em;
     }
-
     h1 {
       font-size: 2rem;
       border-bottom: 2px solid #e5e7eb;
       padding-bottom: 0.3rem;
     }
-
     h2 {
       font-size: 1.5rem;
       border-bottom: 1px solid #e5e7eb;
       padding-bottom: 0.25rem;
     }
-
     h3 {
       font-size: 1.2rem;
       margin-top: 1.25em;
     }
-
-    /* Container */
     .container {
       max-width: 900px;
       margin: 2rem auto;
       padding: 0 1rem;
     }
-
-    /* Navigation (Table of Contents) */
     .toc {
       background-color: #ffffff;
       padding: 1rem 1.5rem;
@@ -80,25 +55,9 @@
       border-radius: 6px;
       margin-bottom: 2rem;
     }
-
-    .toc h2 {
-      margin-top: 0;
-    }
-
-    .toc ul {
-      list-style: none;
-      padding-left: 0;
-    }
-
-    .toc li {
-      margin: 0.5rem 0;
-    }
-
-    .toc a {
-      font-size: 0.95rem;
-    }
-
-    /* Step Sections */
+    .toc ul { list-style: none; padding-left: 0; }
+    .toc li { margin: 0.5rem 0; }
+    .toc a { font-size: 0.95rem; }
     section.step {
       background-color: #ffffff;
       border: 1px solid #e5e7eb;
@@ -106,23 +65,9 @@
       padding: 1.5rem;
       margin-bottom: 2rem;
     }
-
-    section.step:last-of-type {
-      margin-bottom: 3rem;
-    }
-
-    section.step h2 {
-      margin-top: 0;
-    }
-
-    /* Lists */
-    li ul,
-    li ol {
-      margin-top: 0.5rem;
-      margin-bottom: 0.5rem;
-    }
-
-    /* Footer */
+    section.step:last-of-type { margin-bottom: 3rem; }
+    section.step h2 { margin-top: 0; }
+    li ul, li ol { margin-top: 0.5rem; margin-bottom: 0.5rem; }
     footer {
       text-align: center;
       padding: 1.5rem 0;
@@ -144,85 +89,46 @@
       <li><a href="#step-1">1. Open the App</a></li>
       <li><a href="#step-2">2. Choose a Data Source (API)</a></li>
       <li><a href="#step-3">3. Set Your Location</a></li>
-      <li><a href="#step-4">4. Configure Tracking Parameters</a></li>
-      <li><a href="#step-5">5. Adjust Detection Margin</a></li>
-      <li><a href="#step-6">6. Watch Real-Time Status</a></li>
-      <li><a href="#step-7">7. Advanced Settings &amp; Logs</a></li>
-      <li><a href="#step-8">8. Manual Refresh</a></li>
-      <li><a href="#step-9">9. Interpreting Transit Alerts</a></li>
-      <li><a href="#step-10">10. Downloading &amp; Using Logs</a></li>
-      <li><a href="#step-11">11. Clearing the Log</a></li>
-      <li><a href="#step-12">12. Tips &amp; Troubleshooting</a></li>
-      <li><a href="#step-13">13. Switching Between Moon &amp; Sun</a></li>
-      <li><a href="#step-14">14. Getting Help</a></li>
+      <!-- ... other steps ... -->
     </ul>
   </nav>
 
   <main class="container">
-    <!-- Step 1 -->
     <section id="step-1" class="step">
       <h2>1. Open the App</h2>
-      <p>In your browser, navigate to:</p>
-      <p><code>https://transit-tracker.vercel.app</code></p>
-      <p>
-        You should see a page titled <strong>🌙 Moon Transit Tracker</strong> (or <strong>☀️ Sun
-        Transit Tracker</strong> depending on the last selection). At the top, a status banner will read
-        <em>“Checking flights near the Moon…”</em> (or <em>“…near the Sun…”</em>).
-      </p>
+      <p>Visit <code>https://transit-tracker.vercel.app</code> to begin using the tracker.</p>
     </section>
 
-    <!-- Step 2 -->
     <section id="step-2" class="step">
       <h2>2. Choose a Data Source (API)</h2>
       <p>
-        By default, the app uses <strong>OpenSky</strong> to fetch nearby flight data. If you already have an
-        OpenSky account, proceed to Step 3. Otherwise, you can switch to <strong>Aviationstack</strong> or
-        <strong>ADS-B Exchange</strong>.
+        The app supports several flight data sources. By default, it uses <strong>OpenSky</strong>, but you can also choose <strong>ADS-B One</strong> or preview <strong>RadarBox</strong>.
       </p>
 
       <h3>OpenSky (default)</h3>
       <ol>
-        <li>Under the header, locate three tab buttons:
-          <ul>
-            <li>✈️ <strong>OpenSky</strong> (active by default)</li>
-            <li>🌐 <strong>Aviationstack</strong></li>
-            <li>📡 <strong>ADS-B Exchange</strong></li>
-          </ul>
-        </li>
+        <li>Click the <strong>OpenSky</strong> tab.</li>
         <li>
-          In the “OpenSky Login” panel (under the OpenSky tab):
+          In the “OpenSky Login” panel:
           <ul>
             <li>Enter your <strong>Username</strong> and <strong>Password</strong>.</li>
             <li>Click <strong>🔐 Save Credentials</strong>.</li>
-            <li>If you don’t have an account, click the “Sign up here” link to create one. Once registered,
-              return and paste your credentials.</li>
+            <li>Don’t have an account? Sign up at <a href="https://opensky-network.org/" target="_blank" rel="noopener noreferrer">opensky-network.org</a>.</li>
           </ul>
         </li>
       </ol>
 
-      <h3>Aviationstack</h3>
+      <h3>ADS-B One</h3>
       <ol>
-        <li>Click the <strong>🌐 Aviationstack</strong> tab.</li>
-        <li>In the “Aviationstack API” panel:
-          <ul>
-            <li>Paste your <strong>API Key</strong> into the text field.</li>
-            <li>Click <strong>💾 Save Key</strong>, then <strong>🌐 Use Aviationstack</strong>.</li>
-            <li>If valid, the app switches to Aviationstack for flight data.</li>
-          </ul>
-        </li>
+        <li>Click the <strong>ADS-B One</strong> tab.</li>
+        <li>No API key or login is required — public data is used automatically.</li>
+        <li>Click <strong>✈️ Use ADS-B One</strong> to begin tracking.</li>
       </ol>
 
-      <h3>ADS-B Exchange</h3>
+      <h3>RadarBox</h3>
       <ol>
-        <li>Click the <strong>📡 ADS-B Exchange</strong> tab.</li>
-        <li>In the settings panel:
-          <ul>
-            <li>Paste your <strong>RapidAPI Key</strong> into the designated field.</li>
-            <li>Ensure “API Host” is set to <code>adsbexchange-com1.p.rapidapi.com</code>.</li>
-            <li>Click <strong>💾 Save Settings</strong>, then <strong>📡 Use ADS-B Exchange</strong>.</li>
-            <li>Once confirmed, the app uses ADS-B Exchange as its data source.</li>
-          </ul>
-        </li>
+        <li>Click the <strong>RadarBox</strong> tab.</li>
+        <li>This feature is <strong>coming soon</strong>.</li>
       </ol>
     </section>
 
