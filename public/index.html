@@ -44,7 +44,11 @@
         <button onclick="showTab('radarboxTab')" id="radarboxTabBtn">🛰️ RadarBox</button>
       </div>
 
-             <div id="adsboneTab" style="display:none; padding:1rem;">
+<!-- status message area for whichever tab is active -->
+<div id="tabStatus" style="padding: 8px; font-weight: bold;"></div>
+
+      
+      <div id="adsboneTab" style="display:none; padding:1rem;">
        <h2>ADSB-One</h2>
        <button onclick="useAdsbOneAPI()">📡 Use ADSB-One</button>
        <div id="adsboneApiNotice" style="margin-top:0.5rem;"></div>
