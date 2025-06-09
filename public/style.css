@@ -127,7 +127,7 @@ footer a:hover {
 /* Make the Detection Margin slider span nearly the full container */
 #marginSlider {
   width: 70%;        /* fills its parent */
-  max-width: 500px;   /* caps it at 500px so it doesn’t get absurdly huge */
+  max-width: 300px;   /* caps it at 500px so it doesn’t get absurdly huge */
 }
 
 
