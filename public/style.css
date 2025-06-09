@@ -39,17 +39,17 @@
   --input-bg:               #8f8c8c;
   --input-fg:               #222222;
   --input-border-color:     #cccccc;
-  --button-bg:              #007acc;
-  --button-hover-bg:        #005ea6;
+  --button-bg:              #2e8dcd;
+  --button-hover-bg:        #2c72a8;
   --controls-gap:           0.8rem;
   --tab-bg:                 #333333;
-  --tab-border-color:       #cccccc;
+  --tab-border-color:       #dfdfdf;
   --tab-active-bg:          #e0e0e0;
-  --tab-active-border-color:#006bb3;
+  --tab-active-border-color:#3580b2;
   --feedback-color:         #555555;
   --info-bg:                #dddddd;
   --footer-color:           #555555;
-  --footer-link-color:      #007acc;
+  --footer-link-color:      #398fc8;
   --slider-width:           70%;
   --slider-max-width:       300px;
 }
