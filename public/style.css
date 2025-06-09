@@ -122,3 +122,10 @@ footer a {
 footer a:hover {
   text-decoration: underline;
 }
+
+
+/* Make the Detection Margin slider span nearly the full container */
+#marginSlider {
+  width: 100%;        /* fills its parent */
+  max-width: 500px;   /* caps it at 500px so it doesn’t get absurdly huge */
+}
