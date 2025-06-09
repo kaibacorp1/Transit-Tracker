@@ -49,6 +49,32 @@ async function fetchAdsbOne({ lat, lon, radiusKm }) {
 }
 
 
+// ——————————————————————————
+// Pick the right “welcome” message
+function setInitialStatus() {
+  const statusEl = document.getElementById('transitStatus');
+
+  if (window.useAdsbOne) {
+    statusEl.textContent = 'Click “ADS-B One” to start';
+  }
+  else if (window.useAdsbexchange) {
+    statusEl.textContent = 'Enter your ADS-B Exchange API settings.';
+  }
+  else if (window.useRadarBox) {
+    statusEl.textContent = 'RadarBox support coming soon';
+  }
+  else {
+    // OpenSky tab
+    const user = sessionStorage.getItem('osUser');
+    const pass = sessionStorage.getItem('osPass');
+    statusEl.textContent = user && pass
+      ? 'Ready — click “Check” to fetch flights'
+      : '❌ Missing OpenSky login.';
+  }
+}
+// ——————————————————————————
+
+
 function useAdsbOneAPI() {
   window.useAdsbOne      = true;
   window.useAdsbexchange = false;
@@ -474,11 +500,22 @@ function useAdsbExchangeAPI() {
 }
 
 function showTab(tabId) {
-    ['openskyTab','adsbexTab','radarboxTab','adsboneTab'].forEach(id => {
-    document.getElementById(id).style.display = (id === tabId ? 'block' : 'none');
-    document.getElementById(id+'Btn').style.borderColor = (id === tabId ? '#00bfff' : '#444');
+  // 1) show/hide panels & highlight the button
+  ['openskyTab','adsbexTab','radarboxTab','adsboneTab'].forEach(id => {
+    document.getElementById(id).style.display     = (id === tabId ? 'block' : 'none');
+    document.getElementById(id + 'Btn').style.borderColor = (id === tabId ? '#00bfff' : '#444');
   });
+
+  // 2) set the mode flags
+  window.useAdsbOne      = (tabId === 'adsboneTab');
+  window.useAdsbexchange = (tabId === 'adsbexTab');
+  window.useRadarBox     = (tabId === 'radarboxTab');
+  // (if none are true, we'll fall back to OpenSky)
+
+  // 3) update the top-of-page message
+  setInitialStatus();
 }
+
 
 // --- Math Helpers ---
 function projectPosition(lat, lon, heading, speed, seconds) {
