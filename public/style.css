@@ -129,35 +129,3 @@ footer a:hover {
   width: 100%;        /* fills its parent */
   max-width: 500px;   /* caps it at 500px so it doesn’t get absurdly huge */
 }
-
-/* Collapsible Data Source box */
-#dataSourceToggle > summary {
-  cursor: pointer;
-  font-weight: bold;
-  padding: 0.5em;
-  border: 1px solid #ccc;
-  background: #f9f9f9;
-  border-radius: 4px;
-  list-style: none;       /* hide default arrow */
-}
-#dataSourceToggle > summary::marker { display: none; }
-#dataSourceToggle > summary::before {
-  content: "▾";
-  display: inline-block;
-  width: 1em;
-  transform-origin: center;
-  transition: transform 0.2s ease;
-}
-#dataSourceToggle[open] > summary::before {
-  transform: rotate(180deg);
-}
-/* tuck the inner .data box under the summary */
-#dataSourceToggle > .data {
-  margin-top: -1px;
-  border: 1px solid #ddd;
-  border-top: none;
-  border-radius: 0 0 4px 4px;
-  padding: 1em;
-  background: #fff;
-}
-
