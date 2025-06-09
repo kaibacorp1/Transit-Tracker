@@ -4,44 +4,21 @@
   <meta charset="UTF-8">
   <title>Transit-Tracker Terms and Conditions</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      line-height: 1.6;
-      margin: 20px;
-      max-width: 800px;
-    }
-    h1, h2 {
-      color: #333;
-    }
-    h1 {
-      margin-bottom: 0.5em;
-    }
-    h2 {
-      margin-top: 1.5em;
-      margin-bottom: 0.5em;
-    }
-    p {
-      margin: 0.75em 0;
-    }
-    ul {
-      margin: 0.5em 0 0.5em 1.5em;
-    }
-    li {
-      margin-bottom: 0.25em;
-    }
-    .small {
-      font-size: 0.9em;
-      color: #555;
-    }
-    .section {
-      margin-bottom: 1.5em;
-    }
+    body {font-family: Arial, sans-serif; line-height: 1.6; margin: 20px; max-width: 800px;}
+    h1, h2 {color: #333;}
+    h1 {margin-bottom: 0.5em;}
+    h2 {margin-top: 1.5em; margin-bottom: 0.5em;}
+    p {margin: 0.75em 0;}
+    ul {margin: 0.5em 0 0.5em 1.5em;}
+    li {margin-bottom: 0.25em;}
+    .small {font-size: 0.9em; color: #555;}
+    .section {margin-bottom: 1.5em;}
   </style>
 </head>
 <body>
 
   <h1>Terms and Conditions</h1>
-  <p class="small"><strong>Last Updated:</strong> June 5, 2025</p>
+  <p class="small"><strong>Last Updated:</strong> June 9, 2025</p>
 
   <p>Welcome to Transit-Tracker! Please read these Terms and Conditions (“<strong>Terms</strong>”) carefully before using the Transit-Tracker application (the “<strong>App</strong>”) operated by Rey Sandu Godakumbura (“<strong>Author</strong>,” “<strong>we</strong>,” “<strong>us</strong>,” or “<strong>our</strong>”). By accessing or using the App (whether via web browser, mobile device, or any other means), you (“<strong>User</strong>,” “<strong>you</strong>,” or “<strong>your</strong>”) agree to be bound by these Terms. If you do not agree with any part of these Terms, you may not use the App.</p>
 
@@ -55,7 +32,7 @@
     <h3>2.1 Age Requirement</h3>
     <p>You must be at least 13 years old (or older if local law requires a higher age) to use the App. If you are under 18, you agree to use the App only with the involvement and permission of a parent or legal guardian.</p>
     <h3>2.2 Accurate Information</h3>
-    <p>You agree to provide accurate, current, and complete information when prompted (e.g., valid OpenSky/ADS-B Exchange/AviationStack credentials, correct API keys, and valid geolocation). You are solely responsible for maintaining the confidentiality of any account credentials you supply or generate.</p>
+    <p>You agree to provide accurate, current, and complete information when prompted (e.g., valid OpenSky/ADS-B Exchange credentials, correct API keys, and valid geolocation). You are solely responsible for maintaining the confidentiality of any account credentials you supply or generate.</p>
     <h3>2.3 Prohibited Conduct</h3>
     <p>When using the App, you shall not:</p>
     <ul>
@@ -90,103 +67,99 @@
     <p>The App integrates data and/or code from the following third parties. You acknowledge and agree that:</p>
     <ul>
       <li><strong>SunCalc</strong> (<a href="https://github.com/mourner/suncalc" target="_blank" rel="noopener">https://github.com/mourner/suncalc</a>) is licensed under the MIT License; any redistribution of its code must include the original MIT license text.</li>
-      <li><strong>OpenSky Network API</strong> (<a href="https://opensky-network.org" target="_blank" rel="noopener">https://opensky-network.org</a>) is governed by OpenSky’s Terms of Service. Flight data requests are forwarded through the Author’s proxy endpoint (<code>opensky-proxy.onrender.com</code>). We do not store or cache any flight data beyond the immediate request/response. You must supply valid OpenSky credentials and comply with OpenSky’s rate limits and usage policies. The Author does not warrant that OpenSky services will remain continuously available; service interruptions or policy changes can occur at any time.</li>
+      <li><strong>OpenSky Network API</strong> (<a href="https://opensky-network.org" target="_blank" rel="noopener">https://opensky-network.org</a>) is governed by OpenSky’s Terms of Service. Flight data requests are forwarded through the Author’s proxy endpoint (<code>opensky-proxy.onrender.com</code>). We do not store or cache any flight data beyond the immediate request/response. You must supply valid OpenSky credentials and comply with OpenSky’s rate limits and usage policies.</li>
       <li><strong>ADS-B Exchange</strong> (<a href="https://www.adsbexchange.com/" target="_blank" rel="noopener">https://www.adsbexchange.com/</a>) data is subject to ADS-B Exchange’s Terms of Service. You must supply your own ADS-B Exchange credentials. We do not store or redistribute ADS-B Exchange data beyond real-time lookup.</li>
-      <li><strong>AviationStack</strong> (<a href="https://aviationstack.com/" target="_blank" rel="noopener">https://aviationstack.com/</a>) data is subject to AviationStack’s Terms of Service. You must supply your own valid AviationStack API key. Any usage or billing is solely the User’s responsibility; the App does not collect or store your API key beyond the browser session.</li>
-      <li><strong>Browser Geolocation API</strong>: By granting geolocation permission, you consent to share latitude, longitude, and (optionally) altitude with our backend solely to compute celestial transits. We do not store or share your location data beyond the immediate, ephemeral transit calculation.</li>
+      <li><strong>ADS-B One</strong> (<a href="https://api.adsb.one" target="_blank" rel="noopener">https://api.adsb.one</a>) data is publicly available and subject to any usage limits published by the project. No API key is required; we retrieve data on-demand and do not cache or redistribute it.</li>
+      <li><strong>Browser Geolocation API</strong>: By granting geolocation permission, you consent to share latitude, longitude, and altitude (if available) with our backend solely to compute celestial transits. We do not store or share your location data beyond the immediate, ephemeral transit calculation.</li>
     </ul>
     <h3>4.2 Third-Party Change Disclaimer</h3>
-    <p>You acknowledge that any Third-Party provider (OpenSky, ADS-B Exchange, AviationStack, SunCalc) may change its Terms of Service, data formats, rate limits, or availability at any time. The Author is not responsible for any disruptions or policy changes by these providers. It is your responsibility to verify compliance with their current Terms before using the App.</p>
+    <p>You acknowledge that any Third-Party provider (OpenSky, ADS-B Exchange, ADS-B One, SunCalc) may change its Terms of Service, data formats, rate limits, or availability at any time. The Author is not responsible for any disruptions or policy changes by these providers. It is your responsibility to verify compliance with their current Terms before using the App.</p>
   </div>
 
   <div class="section">
     <h2>5. Privacy and User Data</h2>
     <h3>5.1 Location Data</h3>
-    <p>To function, the App requests your geographical coordinates via the browser’s Geolocation API. You may decline or revoke permission at any time; however, declining geolocation will disable certain features. If you grant permission, your latitude/longitude/altitude (if available) is transmitted to our backend only to compute flight transits. We do not store this data on any external server beyond the immediate API request/response. We assume no responsibility for any misuse of geolocation data by you or any other party after you grant permission.</p>
+    <p>To function, the App requests your geographical coordinates via the browser’s Geolocation API. Declining permission will disable certain features. Granted coordinates are transmitted only to compute flight transits and are not stored on any external server.</p>
     <h3>5.2 Credentials</h3>
-    <p>Your OpenSky, ADS-B Exchange, and AviationStack credentials are stored locally in your browser’s <code>sessionStorage</code>. We do not transmit, log, or store your credentials on our server beyond forwarding them (only once per query) to the respective Third-Party API. If you close your browser or clear session data, you must re-enter your credentials.</p>
+    <p>Your OpenSky and ADS-B Exchange credentials are stored locally in your browser’s <code>sessionStorage</code>. We do not transmit, log, or store these credentials on our server beyond forwarding them (once per query) to the respective Third-Party API. ADS-B One requires no credentials.</p>
     <h3>5.3 Local Logs</h3>
-    <p>All flight-detection logs (timestamp, callsign, azimuth, etc.) are stored in your browser’s <code>localStorage</code>. These logs remain on your device and are never transmitted to the server. You may export or delete your local logs at any time via the “Download log” or “Clear log” functions.</p>
+    <p>All flight-detection logs are stored in your browser’s <code>localStorage</code>. They remain on your device and are never transmitted to the server.</p>
   </div>
 
   <div class="section">
     <h2>6. Intellectual Property and Trademarks</h2>
     <h3>6.1 Ownership</h3>
-    <p>All content, code, design, screenshots, and documentation included in the App are © 2025 Rey Sandu Godakumbura. “Transit-Tracker” and “LifeBeyondStars.com” are trademarks of Rey Sandu Godakumbura. All rights are reserved to the fullest extent permitted by law.</p>
+    <p>All content, code, design, screenshots, and documentation included in the App are © 2025 Rey Sandu Godakumbura. “Transit-Tracker” and “LifeBeyondStars.com” are trademarks of Rey Sandu Godakumbura. All rights are reserved.</p>
     <h3>6.2 Trademark Restrictions</h3>
-    <p>No part of the App may be used under the same branding, logo, or trade name without the prior written consent of the Author. Any unauthorized use of the trademarks is strictly prohibited and may be prosecuted.</p>
+    <p>No part of the App may be used under the same branding, logo, or trade name without prior written consent of the Author.</p>
   </div>
 
   <div class="section">
     <h2>7. Prohibited Uses</h2>
-    <p>When using the App, you specifically agree never to:</p>
+    <p>You specifically agree never to:</p>
     <ul>
-      <li>Use the App to store, transmit, or distribute any content that is unlawful, harmful, defamatory, obscene, infringing, invasive of privacy, or otherwise objectionable.</li>
-      <li>Use automated means (bots, scrapers, scripts) to query or harvest data from the App or any Third-Party APIs faster than the App’s default 5-second polling interval. Any abuse of rate limits is grounds for immediate suspension.</li>
-      <li>Resell, sublicense, or commercially exploit any part of the App or its output without prior written permission from the Author.</li>
-      <li>Attempt to reverse-engineer, decompile, disassemble, or otherwise derive the source code from any compiled or obfuscated files provided by the App.</li>
+      <li>Use the App to store, transmit, or distribute unlawful or infringing content.</li>
+      <li>Query or harvest data faster than the default 5-second interval.</li>
+      <li>Resell or commercially exploit any part of the App without permission.</li>
+      <li>Reverse-engineer or decompile compiled code.</li>
     </ul>
   </div>
 
   <div class="section">
     <h2>8. Disclaimer of Warranties</h2>
-    <p><strong>THE APP AND ALL CONTENT ARE PROVIDED “AS IS” AND “AS AVAILABLE,” WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED.</strong> TO THE FULLEST EXTENT PERMITTED BY LAW, THE AUTHOR DISCLAIMS ALL WARRANTIES, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT. THE AUTHOR DOES NOT GUARANTEE THAT:</p>
+    <p><strong>THE APP AND ALL CONTENT ARE PROVIDED “AS IS” AND “AS AVAILABLE,” WITHOUT WARRANTY OF ANY KIND.</strong> THE AUTHOR DOES NOT GUARANTEE THAT:</p>
     <ul>
-      <li>THE APP WILL MEET YOUR REQUIREMENTS OR PERFORM WITHOUT INTERRUPTION, ERROR, OR OMISSION.</li>
-      <li>THE OUTPUT (FLIGHT TRANSIT RESULTS) WILL BE ACCURATE, COMPLETE, OR UP-TO-DATE.</li>
-      <li>ANY THIRD-PARTY SERVICE (OPEN SKY, ADS-B EXCHANGE, AVIATIONSTACK, OR GEOCODING) WILL BE CONTINUOUSLY AVAILABLE.</li>
+      <li>THE APP WILL PERFORM WITHOUT INTERRUPTION OR ERROR;</li>
+      <li>OUTPUT WILL BE ACCURATE OR UP-TO-DATE;</li>
+      <li>ANY THIRD-PARTY SERVICE (OPEN SKY, ADS-B EXCHANGE, ADS-B ONE, OR GEOLOCATION) WILL BE CONTINUOUSLY AVAILABLE.</li>
     </ul>
   </div>
 
   <div class="section">
     <h2>9. Limitation of Liability</h2>
-    <p>TO THE EXTENT PERMITTED BY APPLICABLE LAW, <strong>IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES</strong> ARISING FROM OR RELATED TO YOUR USE OF OR INABILITY TO USE THE APP, EVEN IF THE AUTHOR HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. THIS INCLUDES, BUT IS NOT LIMITED TO, LOSS OF PROFITS, INTERRUPTION OF BUSINESS, LOSS OF DATA, OR COST OF PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES, WHETHER IN CONTRACT, TORT, NEGLIGENCE, STRICT LIABILITY, OR OTHERWISE.</p>
+    <p>TO THE EXTENT PERMITTED BY LAW, IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES ARISING FROM OR RELATED TO YOUR USE OF THE APP.</p>
   </div>
 
   <div class="section">
     <h2>10. Indemnification</h2>
-    <p>You agree to defend, indemnify, and hold harmless Rey Sandu Godakumbura and his officers, employees, agents, and affiliates from and against any and all claims, damages, losses, liabilities, costs, or expenses (including reasonable attorneys’ fees) arising out of or related to:</p>
+    <p>You agree to defend, indemnify, and hold harmless Rey Sandu Godakumbura from any claims arising out of:</p>
     <ul>
-      <li>Your use or misuse of the App, including any violation of these Terms.</li>
-      <li>Any content, data, or information you transmit or provide.</li>
-      <li>Any Third-Party services you choose to integrate or depend upon (OpenSky, ADS-B Exchange, AviationStack, SunCalc), including any claim that your use of those services violates the provider’s Terms.</li>
+      <li>Your misuse of the App or violation of these Terms;</li>
+      <li>Content or data you transmit;</li>
+      <li>Your integration with any Third-Party service (OpenSky, ADS-B Exchange, ADS-B One, SunCalc).</li>
     </ul>
   </div>
 
   <div class="section">
     <h2>11. Termination</h2>
-    <p>We reserve the right, in our sole discretion, to suspend or terminate your access to the App (or any part of it) at any time and without notice if you violate these Terms, for reasons of security, or for technical reasons. Upon termination, your right to use the App will immediately cease, and you must cease all use of the App. Sections that by their nature survive termination (e.g., Intellectual Property, Disclaimer, Limitation of Liability, Indemnification) will remain in effect.</p>
+    <p>We may suspend or terminate your access without notice if you violate these Terms or for technical/security reasons.</p>
   </div>
 
   <div class="section">
     <h2>12. Changes to Terms</h2>
-    <p>We may modify, update, or replace these Terms at any time, at our sole discretion. When changes are made, we will update the “Last Updated” date at the top of this page. Your continued use of the App after the “Last Updated” date constitutes acceptance of the amended Terms. If you do not agree to any new or modified Terms, you must stop using the App immediately.</p>
+    <p>We may modify these Terms at any time. Continued use after the “Last Updated” date signifies acceptance.</p>
   </div>
 
   <div class="section">
     <h2>13. Governing Law and Dispute Resolution</h2>
-    <h3>13.1 Governing Law</h3>
-    <p>These Terms and any disputes arising hereunder shall be governed by and construed in accordance with the laws of the State of New South Wales, Australia, without regard to conflict of laws principles.</p>
-    <h3>13.2 Jurisdiction and Venue</h3>
-    <p>Any legal action or proceeding arising under these Terms shall be brought exclusively in a court of competent jurisdiction located in Sydney, New South Wales, Australia. You irrevocably consent to the personal jurisdiction and venue of such courts.</p>
+    <p>These Terms are governed by the laws of New South Wales, Australia. Any disputes shall be resolved exclusively in Sydney courts.</p>
   </div>
 
   <div class="section">
     <h2>14. No Support or Maintenance</h2>
-    <p>The Author is under no obligation to provide technical support, error correction, updates, or maintenance for the App. Features, functionality, or availability may change or be discontinued at any time without notice.</p>
+    <p>The Author is not obligated to provide support, updates, or maintenance. Use the App at your own risk.</p>
   </div>
 
   <div class="section">
-    <h2>15. Contact Information</h2>
-    <p>If you have any questions about these Terms, please contact us at:</p>
+    <h2>15. Contact</h2>
     <p>
       Rey Sandu Godakumbura<br>
-      Website: <a href="https://www.lifebeyondstars.com" target="_blank" rel="noopener">https://www.lifebeyondstars.com</a><br>
-      Email: <a href="mailto:sandu.godakumbura@gmail.com">contact me</a>
+      Website: <a href="https://www.lifebeyondstars.com" target="_blank" rel="noopener">lifebeyondstars.com</a><br>
+      Email: <a href="mailto:admin@lifebeyondstars.com">admin@lifebeyondstars.com</a>
     </p>
   </div>
 
-  <p><strong>BY USING THE TRANSIT-TRACKER APP, YOU ACKNOWLEDGE THAT YOU HAVE READ, UNDERSTAND, AND AGREE TO BE BOUND BY THESE TERMS AND CONDITIONS.</strong> If you do not agree with these Terms, please do not use the App.</p>
+  <p><strong>BY USING THE TRANSIT-TRACKER APP, YOU ACKNOWLEDGE THAT YOU HAVE READ, UNDERSTOOD, AND AGREE TO BE BOUND BY THESE TERMS.</strong></p>
 
 </body>
 </html>
