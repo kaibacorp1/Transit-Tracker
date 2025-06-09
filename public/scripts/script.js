@@ -1,5 +1,11 @@
 /* script.js - Final merged version for Vercel */
 
+// ---- SESSION TIMER SETUP ----
+// If this is the first load, stamp the start time
+if (!sessionStorage.getItem('sessionStart')) {
+  sessionStorage.setItem('sessionStart', Date.now());
+}
+
 // --- Mode Flags ---
 window.useAdsbexchange = false;
 window.useRadarBox      = false;   
@@ -23,6 +29,14 @@ function logDetectionLocally(message, metadata = {}) {
   const history = JSON.parse(localStorage.getItem('transitLog') || '[]');
   history.push({ time: new Date().toISOString(), message, ...metadata });
   localStorage.setItem('transitLog', JSON.stringify(history));
+}
+
+//___________
+
+function hasSessionExpired() {
+  const start = parseInt(sessionStorage.getItem('sessionStart'), 10);
+  // 1,800,000 ms = 30 minutes
+  return (Date.now() - start) > 1_800_000;
 }
 
 // ─── ADSB-One Integration (no API key) ───────────────────────────────────
@@ -177,7 +191,14 @@ document.getElementById('locationMode').addEventListener('change', e => {
     getCurrentLocationAndRun();
   }
 });
-document.getElementById('refreshBtn').addEventListener('click', getCurrentLocationAndRun);
+document.getElementById('refreshBtn')
+        .addEventListener('click', () => {
+          if (hasSessionExpired()) {
+            alert("⏳ Time expired. Let the pass cool for a bit now.");
+            return;
+          }
+          getCurrentLocationAndRun();
+        });
 
 document.getElementById('marginSlider').addEventListener('input', e => {
   margin = parseFloat(e.target.value);
@@ -573,11 +594,17 @@ function startAutoRefresh() {
     countdown--;
     updateCountdownDisplay();
     if (countdown <= 0) {
+      // ←► HERE: session timeout check
+      if (hasSessionExpired()) {
+        alert("⏳ Time expired. Let the pass cool for a bit now.");
+        return;
+      }
       getCurrentLocationAndRun();
       updateCountdown();
     }
   }, 1000);
 }
+
 
 function stopAutoRefresh() {
   clearInterval(countdownInterval);
