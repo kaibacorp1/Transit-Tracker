@@ -29,12 +29,12 @@
 
 /* 2. Light‐mode overrides */
 [data-theme="light"] {
-  --bg-color:               #7e7e7e;
+  --bg-color:               #b4b4b4;
   --fg-color:               #222222;
-  --container-bg:           #9d9b9b;
+  --container-bg:           #b2afaf;
   --container-shadow:       0 0 20px rgba(0, 0, 0, 0.1);
-  --heading-color:          #007acc;
-  --data-bg:                #87898b;
+  --heading-color:          #4891c2;
+  --data-bg:                #d1d1d1;
   --data-border-color:      #212122;
   --input-bg:               #8f8c8c;
   --input-fg:               #222222;
@@ -42,7 +42,7 @@
   --button-bg:              #007acc;
   --button-hover-bg:        #005ea6;
   --controls-gap:           0.8rem;
-  --tab-bg:                 #f0f0f0;
+  --tab-bg:                 #333333;
   --tab-border-color:       #cccccc;
   --tab-active-bg:          #e0e0e0;
   --tab-active-border-color:#006bb3;
