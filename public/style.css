@@ -130,9 +130,4 @@ footer a:hover {
   max-width: 500px;   /* caps it at 500px so it doesn’t get absurdly huge */
 }
 
-#trackerTitle {
-  font-family: 'Anton', sans-serif;
-  font-size: 2rem;        /* tweak size as needed */
-  letter-spacing: 0.3em;  /* optional—adds extra spacing */
-}
 
