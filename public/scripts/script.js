@@ -110,7 +110,7 @@ function useRadarboxAPI() {
 
 async function fetchRadarBox({ minLat, maxLat, minLon, maxLon }) {
   const key = sessionStorage.getItem('radarboxKey');
-  if (!key) throw new Error('Missing RadarBox token');
+  if (!key) throw new Error('RadarBox support is not ready, coming soon!');
 
   const res = await fetch('https://api.airnavradar.com/v2/flights/geosearch', {
     method: 'POST',
