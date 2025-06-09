@@ -588,6 +588,21 @@ function updateCountdownDisplay() {
   document.getElementById('countdownTimer').textContent = `Next check in: ${countdown}s`;
 }
 
+// === Theme Toggle ===
+const toggleBtn = document.getElementById('themeToggle');
+// On load: read last choice (default = dark)
+const saved = localStorage.getItem('theme') || 'dark';
+document.documentElement.setAttribute('data-theme', saved);
+
+toggleBtn.addEventListener('click', () => {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark'
+    ? 'light'
+    : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('theme', next);
+});
+
+
 // Expose RadarBox handlers globally
 window.saveRadarboxKey = saveRadarboxKey;
 window.useRadarboxAPI  = useRadarboxAPI;
