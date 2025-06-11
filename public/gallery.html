@@ -104,6 +104,21 @@
     #lightbox:target {
       display: flex;
     }
+    footer {
+      margin-top: 2rem;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+      margin: 0 0.25rem;
+    }
+    footer a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -114,6 +129,18 @@
     </div>
     <h1>Community Gallery</h1>
     <div id="gallery">Loading…</div>
+
+    <!-- Footer -->
+    <footer>
+      &copy; Rey Sandu Godakumbura<br>
+      <a href="public/aboutus.html">About Us</a> |
+      <a href="https://www.lifebeyondstars.com/about-me" target="_blank">About Creator</a> |
+      <a href="public/terms.html">Terms of Use</a> |
+      <a href="public/privacy.html">Privacy & Cookies</a> |
+      <a href="LICENSE.txt">License</a> |
+      <a href="mailto:sandu.godakumbura@gmail.com">Contact</a> |
+      <a href="public/how_to_use.html">How to Use</a>
+    </footer>
   </div>
 
   <!-- Lightbox overlay -->
@@ -150,8 +177,7 @@
       const q = query(
         collection(db, 'gallery'),
         where('status', '==', 'approved'),
-        orderBy('uploadedAt', 'desc'),
-        // limit(200)  // optional limit
+        orderBy('uploadedAt', 'desc')
       );
       try {
         const snap = await getDocs(q);
@@ -161,10 +187,8 @@
         }
         snap.forEach(docSnap => {
           const data = docSnap.data();
-          // build card
           const card = document.createElement('div');
           card.className = 'card';
-          // thumbnail with click handler
           const thumb = document.createElement('img');
           thumb.src = data.url;
           thumb.alt = data.title || 'Photo';
@@ -174,33 +198,22 @@
             location.hash = 'lightbox';
           });
           card.appendChild(thumb);
-          // info section
           const info = document.createElement('div');
           info.className = 'info';
           if (data.title) {
-            const d = document.createElement('div');
-            d.innerHTML = `<strong>${data.title}</strong>`;
-            info.appendChild(d);
+            const d = document.createElement('div'); d.innerHTML = `<strong>${data.title}</strong>`; info.appendChild(d);
           }
           if (data.dateTaken) {
-            const d = document.createElement('div');
-            d.textContent = `Date: ${data.dateTaken}`;
-            info.appendChild(d);
+            const d = document.createElement('div'); d.textContent = `Date: ${data.dateTaken}`; info.appendChild(d);
           }
           if (data.location) {
-            const d = document.createElement('div');
-            d.textContent = `Location: ${data.location}`;
-            info.appendChild(d);
+            const d = document.createElement('div'); d.textContent = `Location: ${data.location}`; info.appendChild(d);
           }
           if (data.equipment) {
-            const d = document.createElement('div');
-            d.textContent = `Equipment: ${data.equipment}`;
-            info.appendChild(d);
+            const d = document.createElement('div'); d.textContent = `Equipment: ${data.equipment}`; info.appendChild(d);
           }
           if (data.description) {
-            const d = document.createElement('div');
-            d.textContent = data.description;
-            info.appendChild(d);
+            const d = document.createElement('div'); d.textContent = data.description; info.appendChild(d);
           }
           card.appendChild(info);
           gallery.appendChild(card);
