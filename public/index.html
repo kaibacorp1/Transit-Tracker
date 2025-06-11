@@ -4,11 +4,26 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flight Transit Tracker</title>
-  <link rel="stylesheet" href="style.css" />
   <style>
-    /* Nav button styling */
-    .nav-btn {
-      display: inline-block;
+    body { margin:0; font-family: Arial, sans-serif; }
+    .container { max-width: 1024px; margin: 0 auto; padding: 1rem; }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    header h1 { margin: 0; font-size: 1.5rem; }
+    .btn-group {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       background-color: #f0f0f0;
       color: #333;
       padding: 0.4rem 0.8rem;
@@ -16,46 +31,23 @@
       border-radius: 4px;
       text-decoration: none;
       font-size: 0.9rem;
+      cursor: pointer;
       transition: background-color 0.2s;
+      white-space: nowrap;
     }
-    .nav-btn:hover {
-      background-color: #e0e0e0;
-    }
-    /* Small-link styling (optional) */
-    .small-link {
-      font-size: 0.9rem;
-      color: #20489f;
-      text-decoration: none;
-      margin-bottom: 0.5rem;
-      display: inline-block;
-    }
-    .small-link:hover {
-      text-decoration: underline;
-    }
+    .btn:hover { background-color: #e0e0e0; }
   </style>
 </head>
 <body>
   <div class="container">
-    <header style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;">
-      <h1 style="margin: 0;"><span id="trackerTitle">🌙 Moon</span> Transit Tracker</h1>
-      <!-- Theme toggle button -->
-      <div style="display:flex; gap:0.5rem; align-items:center; margin-top:0.5rem;">
-        <a href="public/upload.html" class="nav-btn">Upload Photo</a>
-        <a href="public/gallery.html" class="nav-btn">Gallery</a>
+    <header>
+      <h1><span id="trackerTitle">🌙 Moon</span> Transit Tracker</h1>
+      <div class="btn-group">
+        <a href="public/upload.html" class="btn">Upload Photo</a>
+        <a href="public/gallery.html" class="btn">Gallery</a>
+        <a href="https://www.paypal.com/donate/buttons/manage/AFG7SH9Y552KL" target="_blank" class="btn">🫰 Donate</a>
+        <button id="themeToggle" class="btn" aria-label="Toggle theme">💡</button>
       </div>
-      <a href="https://www.paypal.com/donate/buttons/manage/AFG7SH9Y552KL" target="_blank"
-         style="background-color: #1a8837; color: #121212; padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: bold; text-decoration: none;">
-         🫰 Donate
-      </a>
-            <button id="themeToggle"
-              aria-label="Toggle light/dark mode"
-              style="background: none;
-                     border: none;
-                     font-size: 1.2rem;
-                     cursor: pointer;
-                     margin-bottom: 1rem;">
-        💡
-      </button>
     </header>
 
     <!-- Add this right below -->
