@@ -13,6 +13,8 @@
       --text-secondary: #555555;
       --primary: #6c757d;
       --primary-hover: #5a6268;
+      --link-color: #6c757d;
+      --link-hover: #5a6268;
     }
     body {
       margin: 0;
@@ -26,6 +28,19 @@
     .container {
       width: 100%;
       max-width: 600px;
+    }
+    .top-links {
+      margin-bottom: 0.75rem;
+      font-size: 0.9rem;
+    }
+    .top-links a {
+      color: var(--link-color);
+      text-decoration: none;
+      margin-right: 1rem;
+    }
+    .top-links a:hover {
+      color: var(--link-hover);
+      text-decoration: underline;
     }
     h1 {
       margin: 0 0 0.5rem;
@@ -96,21 +111,35 @@
       font-size: 0.95rem;
       color: var(--text-secondary);
     }
-    a {
-      color: var(--primary);
-      text-decoration: none;
+    footer {
+      margin-top: 1.5rem;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
     }
-    a:hover {
+    footer a {
+      color: var(--link-color);
+      text-decoration: none;
+      margin: 0 0.25rem;
+    }
+    footer a:hover {
+      color: var(--link-hover);
       text-decoration: underline;
-      color: var(--primary-hover);
     }
   </style>
 </head>
 <body>
   <div class="container">
+    <!-- Top navigation -->
+    <div class="top-links">
+      <a href="index.html">&larr; Back to App</a>
+      <a href="gallery.html">Gallery</a>
+    </div>
+
     <!-- Info message -->
     <div class="info-message">
-      Welcome to the Community Transit Gallery! Share your finest Moon and Sun transit photographs—and the story behind them—to inspire fellow enthusiasts. Once you submit, our team will review your upload; approved images will appear in the gallery within a few hours. Submissions must be strictly transit-related; inappropriate or off-topic content will be declined. Please keep each file under 10 MB.
+      Welcome to the Community Transit Gallery! Share your finest Moon, Sun, or airplane transit photographs—and the story behind them—to inspire fellow enthusiasts. Once you submit, our team will review your upload; approved images will appear in the gallery within a few hours. Inappropriate or off-topic content will be declined. Please keep each file under 10 MB.
     </div>
 
     <h1>Upload Your Photo</h1>
@@ -138,13 +167,27 @@
     <div class="consent-box">
       <input type="checkbox" id="agree" />
       <label for="agree">
-        I confirm I own this image and grant a non-exclusive license to display it. I agree to the <a href="/public/terms.html" target="_blank">Terms of Use</a> and <a href="/public/privacy.html" target="_blank">Privacy Policy</a>.
+        I confirm I own this image and grant a non-exclusive license to display it. I agree to the
+        <a href="public/terms.html" target="_blank">Terms of Use</a> and
+        <a href="public/privacy.html" target="_blank">Privacy & Cookies Policy</a>.
       </label>
     </div>
 
     <!-- Upload button -->
     <button id="uploadBtn" disabled>📤 Upload Photo</button>
     <div id="uploadStatus"></div>
+
+    <!-- Footer -->
+    <footer>
+      &copy; Rey Sandu Godakumbura<br>
+      <a href="public/aboutus.html">About Us</a> |
+      <a href="https://www.lifebeyondstars.com/about-me" target="_blank">About Creator</a> |
+      <a href="public/terms.html">Terms of Use</a> |
+      <a href="public/privacy.html">Privacy & Cookies</a> |
+      <a href="LICENSE.txt">License</a> |
+      <a href="mailto:sandu.godakumbura@gmail.com">Contact</a> |
+      <a href="public/how_to_use.html">How to Use</a>
+    </footer>
   </div>
 
   <!-- Cloudinary widget -->
@@ -159,6 +202,7 @@
       serverTimestamp
     } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBnPNWITBW92erbxYKLxJaj-s85c1xoiGU",
       authDomain: "transits-9c696.firebaseapp.com",
@@ -166,7 +210,7 @@
       storageBucket: "transits-9c696.firebasestorage.app",
       messagingSenderId: "83794226858",
       appId: "1:83794226858:web:2cb7f6a8e8f05bd699ead3",
-      measurementId: "G-88JRQSFZGZ5"
+      measurementId: "G-88JRQSFZG5"
     };
     const app = initializeApp(firebaseConfig);
     const db  = getFirestore(app);
