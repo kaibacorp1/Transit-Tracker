@@ -3,48 +3,70 @@
 <head>
   <meta charset="utf-8">
   <title>Upload to Community Gallery</title>
+  <!-- Pull in your global stylesheet for colors, typography, etc. -->
+  <link rel="stylesheet" href="style.css" />
+
   <style>
-    body { font-family: sans-serif; margin: 1rem; background: #f5f5f5; }
+    /* Layout & spacing only—colors come from style.css */
+    body {
+      font-family: sans-serif;
+      margin: 1rem;
+    }
     .info-message {
-      background: #fff;
       padding: 1rem;
       border-radius: 8px;
       margin-bottom: 1rem;
-      border-left: 4px solid #007bff;
-      color: #333;
     }
-    form { background: #fff; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; }
-    form label { display: block; margin-bottom: 0.75rem; font-weight: bold; }
+    form {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+    form label {
+      display: block;
+      margin-bottom: 0.75rem;
+      font-weight: bold;
+    }
     input, textarea {
       width: 100%;
       padding: 0.6rem;
-      border: 1px solid #ccc;
       border-radius: 4px;
-      font-size: 1rem;
       margin-top: 0.25rem;
+      border: 1px solid var(--border-color);
+      background-color: var(--input-bg);
+      color: var(--text-primary);
     }
-    textarea { min-height: 120px; resize: vertical; }
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
     #uploadBtn {
       padding: 0.6rem 1.2rem;
       font-size: 1rem;
-      border: none;
       border-radius: 4px;
-      background: #007bff;
-      color: #fff;
       cursor: pointer;
+      border: none;
+      background-color: var(--color-primary);
+      color: var(--on-primary);
     }
-    #uploadBtn:hover { background: #0056b3; }
-    #uploadStatus { margin-top: 1rem; font-weight: bold; }
+    #uploadBtn:hover {
+      background-color: var(--color-primary-dark);
+    }
+    #uploadStatus {
+      margin-top: 1rem;
+      font-weight: bold;
+      color: var(--text-secondary);
+    }
   </style>
 </head>
 <body>
   <!-- Info message -->
   <div class="info-message">
     <p>
-      Welcome! This is a public area for your photos, and we'd love to see your sun or moon transit shots.
-      You're welcome to post just the sun, moon, or related sky photos, but ideally keep it to transit images.
-      Once uploaded, we will review and approve your photo—it will appear in the gallery within a few hours.
-      Please no inappropriate images; any will be rejected. Do not upload images over 10 MB.
+      Welcome to the Community Transit Gallery! Submit your best Moon and Sun transit photos along with the story behind them to inspire fellow enthusiasts. 
+      Once you upload, our team will review your submission—approved images will appear in the public gallery within a few hours. 
+      Submissions must be strictly transit-related; inappropriate or off-topic images will be declined. 
+      Please keep each file under 10 MB.
     </p>
   </div>
 
@@ -52,27 +74,27 @@
 
   <!-- Metadata form -->
   <form id="metaForm">
-    <label for="title">Title:
+    <label for="title">Title
       <input type="text" id="title" placeholder="Short description">
     </label>
-    <label for="dateTaken">Date Taken:
+    <label for="dateTaken">Date Taken
       <input type="date" id="dateTaken">
     </label>
-    <label for="location">Location:
+    <label for="location">Location
       <input type="text" id="location" placeholder="City, venue, etc.">
     </label>
-    <label for="equipment">Equipment:
+    <label for="equipment">Equipment
       <input type="text" id="equipment" placeholder="Camera / lens">
     </label>
-    <label for="description">Description:
-      <textarea id="description" placeholder="Tell us more about your photo..."></textarea>
+    <label for="description">Description
+      <textarea id="description" placeholder="Tell us more about your photo…"></textarea>
     </label>
   </form>
 
   <button id="uploadBtn">📤 Upload Photo</button>
   <div id="uploadStatus"></div>
 
-  <!-- Cloudinary upload widget -->
+  <!-- Cloudinary widget -->
   <script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
 
   <!-- Firebase (modular v11) -->
@@ -85,7 +107,6 @@
       serverTimestamp
     } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
-    // Your Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBnPNWITBW92erbxYKLxJaj-s85c1xoiGU",
       authDomain: "transits-9c696.firebaseapp.com",
@@ -95,32 +116,27 @@
       appId: "1:83794226858:web:2cb7f6a8e8f05bd699ead3",
       measurementId: "G-88JRQSFZG5"
     };
-
-    // Initialize Firebase & Firestore
     const app = initializeApp(firebaseConfig);
     const db  = getFirestore(app);
 
-    // Configure Cloudinary widget
     const widget = cloudinary.createUploadWidget({
       cloudName: 'dotbgstrs',
       uploadPreset: 'Transits'
     }, (err, result) => {
       const statusEl = document.getElementById('uploadStatus');
       if (err) {
-        statusEl.textContent = 'Upload error – check console';
+        statusEl.textContent = 'Upload error—please check the console.';
         console.error(err);
         return;
       }
       if (result.event === 'success') {
         const url = result.info.secure_url;
-        // grab metadata from form
         const title       = document.getElementById('title').value;
         const dateTaken   = document.getElementById('dateTaken').value;
         const location    = document.getElementById('location').value;
         const equipment   = document.getElementById('equipment').value;
         const description = document.getElementById('description').value;
 
-        // Save URL + metadata + pending status to Firestore
         addDoc(collection(db, 'gallery'), {
           url,
           uploadedAt:  serverTimestamp(),
@@ -135,15 +151,14 @@
           statusEl.textContent = '✅ Uploaded and pending approval!';
         })
         .catch(e => {
-          statusEl.textContent = '❌ Firestore write error';
+          statusEl.textContent = '❌ Error saving data.';
           console.error(e);
         });
       }
     });
 
-    // Open widget on button click
     document.getElementById('uploadBtn')
-      .addEventListener('click', () => widget.open(), false);
+      .addEventListener('click', () => widget.open());
   </script>
 </body>
 </html>
