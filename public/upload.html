@@ -5,27 +5,28 @@
   <title>Upload to Community Gallery</title>
 </head>
 <body>
-  <form id="metaForm">
-  <label>
-    Title:<br>
-    <input type="text" id="title" placeholder="Short description">
-  </label><br><br>
-  <label>
-    Date Taken:<br>
-    <input type="date" id="dateTaken">
-  </label><br><br>
-  <label>
-    Location:<br>
-    <input type="text" id="location" placeholder="City, venue, etc.">
-  </label><br><br>
-  <label>
-    Equipment:<br>
-    <input type="text" id="equipment" placeholder="Camera / lens">
-  </label><br><br>
-</form>
-<button id="uploadBtn">📤 Upload Photo</button>
-<div id="uploadStatus"></div>
   <h1>Upload Your Photo</h1>
+
+  <!-- Metadata form -->
+  <form id="metaForm">
+    <label>
+      Title:<br>
+      <input type="text" id="title" placeholder="Short description">
+    </label><br><br>
+    <label>
+      Date Taken:<br>
+      <input type="date" id="dateTaken">
+    </label><br><br>
+    <label>
+      Location:<br>
+      <input type="text" id="location" placeholder="City, venue, etc.">
+    </label><br><br>
+    <label>
+      Equipment:<br>
+      <input type="text" id="equipment" placeholder="Camera / lens">
+    </label><br><br>
+  </form>
+
   <button id="uploadBtn">📤 Upload Photo</button>
   <div id="uploadStatus"></div>
 
@@ -42,7 +43,7 @@
       serverTimestamp
     } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
-    // — Your Firebase config —
+    // Your Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBnPNWITBW92erbxYKLxJaj-s85c1xoiGU",
       authDomain: "transits-9c696.firebaseapp.com",
@@ -69,13 +70,25 @@
         return;
       }
       if (result.event === 'success') {
-        // Save the image URL into Firestore
         const url = result.info.secure_url;
+        // grab metadata from form
+        const title     = document.getElementById('title').value;
+        const dateTaken = document.getElementById('dateTaken').value;
+        const location  = document.getElementById('location').value;
+        const equipment = document.getElementById('equipment').value;
+
+        // Save URL + metadata to Firestore
         addDoc(collection(db, 'gallery'), {
           url,
-          uploadedAt: serverTimestamp()
+          uploadedAt:  serverTimestamp(),
+          title,
+          dateTaken,
+          location,
+          equipment
         })
-        .then(() => { statusEl.textContent = '✅ Uploaded!'; })
+        .then(() => {
+          statusEl.textContent = '✅ Uploaded!';
+        })
         .catch(e => {
           statusEl.textContent = '❌ Firestore write error';
           console.error(e);
