@@ -2,76 +2,48 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Moderation Queue</title>
+  <title>Moderation Queue (Admin Only)</title>
   <style>
-    body {
-      font-family: sans-serif;
-      margin: 1rem;
-      background: #fafafa;
-    }
-    h1 {
-      margin-bottom: 1rem;
-    }
-    #pending {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
+    body { font-family: sans-serif; margin: 1rem; background: #fafafa; }
+    h1 { margin-bottom: 1rem; }
+    #pending { display: flex; flex-direction: column; gap: 1rem; }
     .item {
-      display: flex;
-      align-items: center;
-      background: #fff;
-      padding: 0.75rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      display: flex; align-items: center;
+      background: #fff; padding: .75rem;
+      border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
     .item img {
-      width: 120px;
-      height: 90px;
-      object-fit: cover;
-      border-radius: 4px;
+      width: 120px; height: 90px;
+      object-fit: cover; border-radius: 4px;
       margin-right: 1rem;
     }
-    .meta {
-      flex: 1;
-      font-size: 0.9rem;
-      line-height: 1.4;
-    }
-    .buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
+    .meta { flex: 1; font-size: .9rem; line-height: 1.4; }
+    .buttons { display: flex; flex-direction: column; gap: .5rem; }
     .btn {
-      padding: 0.4rem 0.8rem;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      color: #fff;
+      padding: .4rem .8rem; border: none; border-radius: 4px;
+      cursor: pointer; font-size: .9rem; color: #fff;
     }
     .btn.approve { background: #28a745; }
     .btn.reject  { background: #dc3545; }
   </style>
 </head>
 <body>
-  <h1>Moderation Queue</h1>
+  <h1>Moderation Queue (Admin Only)</h1>
   <div id="pending">Loading…</div>
 
   <script type="module">
+    // 1) Firebase SDKs
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
     import {
-      getFirestore,
-      collection,
-      query,
-      where,
-      orderBy,
-      getDocs,
-      doc,
-      updateDoc
+      getFirestore, collection, query, where, orderBy,
+      getDocs, doc, updateDoc
     } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+    import {
+      getAuth, onAuthStateChanged,
+      signInWithPopup, GoogleAuthProvider
+    } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
 
-    // Your Firebase config
+    // 2) Your Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBnPNWITBW92erbxYKLxJaj-s85c1xoiGU",
       authDomain: "transits-9c696.firebaseapp.com",
@@ -82,69 +54,78 @@
       measurementId: "G-88JRQSFZG5"
     };
 
-    // Initialize Firebase & Firestore
-    const app = initializeApp(firebaseConfig);
-    const db  = getFirestore(app);
+    // 3) Initialize Firebase services
+    const app   = initializeApp(firebaseConfig);
+    const db    = getFirestore(app);
+    const auth  = getAuth(app);
+    const googleProvider = new GoogleAuthProvider();
 
+    // 4) Moderation loader (only to be called after auth)
     async function loadPending() {
       const container = document.getElementById('pending');
-      container.textContent = ''; // clear loading text
-
-      // Query for pending items
+      container.textContent = ''; 
       const q = query(
         collection(db, 'gallery'),
-        where('status', '==', 'pending'),
-        orderBy('uploadedAt', 'asc')
+        where('status','==','pending'),
+        orderBy('uploadedAt','asc')
       );
-
       try {
         const snap = await getDocs(q);
         if (snap.empty) {
           container.textContent = 'No pending uploads.';
           return;
         }
-
         snap.forEach(docSnap => {
-          const data = docSnap.data();
-          const item = document.createElement('div');
-          item.className = 'item';
-          item.innerHTML = `
-            <img src="${data.url}" alt="Pending photo">
+          const d = docSnap.data();
+          const el = document.createElement('div');
+          el.className = 'item';
+          el.innerHTML = `
+            <img src="${d.url}" alt="Pending photo">
             <div class="meta">
-              ${data.title ? `<strong>${data.title}</strong><br>` : ''}
-              ${data.dateTaken || ''}<br>
-              ${data.location || ''}<br>
-              ${data.equipment || ''}
+              ${d.title ? `<strong>${d.title}</strong><br>` : ''}
+              ${d.dateTaken || ''}<br>
+              ${d.location  || ''}<br>
+              ${d.equipment || ''}
             </div>
             <div class="buttons">
               <button class="btn approve" data-id="${docSnap.id}">Approve</button>
               <button class="btn reject"  data-id="${docSnap.id}">Reject</button>
             </div>
           `;
-          container.appendChild(item);
+          container.appendChild(el);
         });
 
-        // Handle button clicks
-        container.addEventListener('click', async event => {
-          if (!event.target.matches('button')) return;
-          const id = event.target.dataset.id;
-          const newStatus = event.target.classList.contains('approve') ? 'approved' : 'rejected';
-          try {
-            await updateDoc(doc(db, 'gallery', id), { status: newStatus });
-            // Remove the item from the queue
-            event.target.closest('.item').remove();
-          } catch (e) {
-            console.error('Failed to update status:', e);
-          }
+        // click handler for approve/reject
+        container.addEventListener('click', async e => {
+          if (!e.target.matches('button')) return;
+          const newStatus = e.target.classList.contains('approve')
+            ? 'approved'
+            : 'rejected';
+          await updateDoc(doc(db, 'gallery', e.target.dataset.id), { status: newStatus });
+          e.target.closest('.item').remove();
         });
 
-      } catch (e) {
-        console.error('Error loading pending items:', e);
-        container.textContent = '🚫 Failed to load moderation queue.';
+      } catch (err) {
+        console.error('Error loading pending items:', err);
+        document.getElementById('pending')
+          .textContent = '🚫 Failed to load moderation queue.';
       }
     }
 
-    loadPending();
+    // 5) Auth gating: only loadPending() once signed in
+    onAuthStateChanged(auth, user => {
+      if (!user) {
+        // not signed in → prompt Google popup
+        signInWithPopup(auth, googleProvider)
+          .catch(err => {
+            console.error('Auth failed:', err);
+            document.body.innerHTML = '<p>⚠️ Admin login required.</p>';
+          });
+      } else {
+        // signed in → show moderation UI
+        loadPending();
+      }
+    });
   </script>
 </body>
 </html>
