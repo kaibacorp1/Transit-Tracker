@@ -5,8 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flight Transit Tracker</title>
   <link rel="stylesheet" href="style.css" />
-  <button id="themeToggle" aria-label="Toggle light/dark mode">💡</button>
   <style>
+    /* Nav button styling */
+    .nav-btn {
+      display: inline-block;
+      background-color: #f0f0f0;
+      color: #333;
+      padding: 0.4rem 0.8rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: background-color 0.2s;
+    }
+    .nav-btn:hover {
+      background-color: #e0e0e0;
+    }
     /* Small-link styling (optional) */
     .small-link {
       font-size: 0.9rem;
@@ -24,7 +38,7 @@
   <div class="container">
     <header style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;">
       <h1 style="margin: 0;"><span id="trackerTitle">🌙 Moon</span> Transit Tracker</h1>
-        <!-- Theme toggle button -->
+      <!-- Theme toggle button -->
       <button id="themeToggle"
               aria-label="Toggle light/dark mode"
               style="background: none;
@@ -32,12 +46,13 @@
                      font-size: 1.2rem;
                      cursor: pointer;
                      margin-bottom: 1rem;">
+        💡
       </button>
-     <div style="display:flex; gap:0.5rem; align-items:center; margin-top:0.5rem;">
-       <a href="public/upload.html" class="small-link">Upload Photo</a>
-       <a href="public/gallery.html" class="small-link">Gallery</a>
-     </div>
-            <a href="https://www.paypal.com/donate/buttons/manage/AFG7SH9Y552KL" target="_blank"
+      <div style="display:flex; gap:0.5rem; align-items:center; margin-top:0.5rem;">
+        <a href="public/upload.html" class="nav-btn">Upload Photo</a>
+        <a href="public/gallery.html" class="nav-btn">Gallery</a>
+      </div>
+      <a href="https://www.paypal.com/donate/buttons/manage/AFG7SH9Y552KL" target="_blank"
          style="background-color: #1a8837; color: #121212; padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: bold; text-decoration: none;">
          🫰 Donate
       </a>
