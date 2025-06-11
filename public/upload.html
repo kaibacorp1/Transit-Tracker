@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <title>Upload to Community Gallery</title>
   <style>
-    /* Light grey theme */
+    /* Light grey theme, constrained width */
     :root {
       --bg-page: #f7f7f7;
       --bg-panel: #ffffff;
@@ -20,50 +20,62 @@
       background-color: var(--bg-page);
       color: var(--text-primary);
       padding: 1rem;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      width: 100%;
+      max-width: 600px;
     }
     h1 {
-      margin-top: 0;
+      margin: 0 0 0.5rem;
+      font-size: 1.5rem;
     }
     .info-message,
     .consent-box,
     form {
       background-color: var(--bg-panel);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1rem;
-      margin-bottom: 1rem;
+      border-radius: 6px;
+      padding: 0.75rem;
+      margin-bottom: 0.75rem;
     }
     .info-message {
       border-left: 4px solid var(--primary);
+      font-size: 0.95rem;
+      line-height: 1.4;
     }
     .consent-box {
       border-left: 4px solid var(--primary);
-      font-size: 0.95rem;
+      font-size: 0.9rem;
+      line-height: 1.3;
     }
     form label {
       display: block;
-      margin-bottom: 0.75rem;
+      margin-bottom: 0.5rem;
       font-weight: bold;
+      font-size: 0.95rem;
     }
     input[type="text"],
     input[type="date"],
     textarea {
       width: 100%;
-      padding: 0.5rem;
+      padding: 0.4rem;
       border: 1px solid var(--border);
       border-radius: 4px;
       margin-top: 0.25rem;
-      font-size: 1rem;
+      font-size: 0.95rem;
       background-color: #fafafa;
       color: var(--text-primary);
     }
     textarea {
-      min-height: 120px;
+      min-height: 100px;
       resize: vertical;
     }
     #uploadBtn {
-      display: inline-block;
-      padding: 0.6rem 1.2rem;
+      display: block;
+      width: 100%;
+      padding: 0.5rem;
       font-size: 1rem;
       border: none;
       border-radius: 4px;
@@ -79,68 +91,64 @@
       background-color: var(--primary-hover);
     }
     #uploadStatus {
-      margin-top: 1rem;
+      margin-top: 0.75rem;
       font-weight: bold;
+      font-size: 0.95rem;
       color: var(--text-secondary);
     }
     a {
       color: var(--primary);
-      text-decoration: underline;
+      text-decoration: none;
     }
     a:hover {
+      text-decoration: underline;
       color: var(--primary-hover);
     }
   </style>
 </head>
 <body>
-  <!-- Info message -->
-  <div class="info-message">
-    <p>
-      Welcome to the Community Transit Gallery! Share your finest Moon and Sun transit photographs—and the story behind them—to inspire fellow enthusiasts.
-      Once you submit, our team will review your upload; approved images will appear in the gallery within a few hours.
-      Submissions must be strictly transit-related; inappropriate or off-topic content will be declined.
-      Please keep each file under 10 MB.
-    </p>
+  <div class="container">
+    <!-- Info message -->
+    <div class="info-message">
+      Welcome to the Community Transit Gallery! Share your finest Moon and Sun transit photographs—and the story behind them—to inspire fellow enthusiasts. Once you submit, our team will review your upload; approved images will appear in the gallery within a few hours. Submissions must be strictly transit-related; inappropriate or off-topic content will be declined. Please keep each file under 10 MB.
+    </div>
+
+    <h1>Upload Your Photo</h1>
+
+    <!-- Metadata form -->
+    <form id="metaForm">
+      <label for="title">Title
+        <input type="text" id="title" placeholder="Short description">
+      </label>
+      <label for="dateTaken">Date Taken
+        <input type="date" id="dateTaken">
+      </label>
+      <label for="location">Location
+        <input type="text" id="location" placeholder="City, venue, etc.">
+      </label>
+      <label for="equipment">Equipment
+        <input type="text" id="equipment" placeholder="Camera / lens">
+      </label>
+      <label for="description">Description
+        <textarea id="description" placeholder="Tell us more about your photo…"></textarea>
+      </label>
+    </form>
+
+    <!-- Consent box -->
+    <div class="consent-box">
+      <input type="checkbox" id="agree" />
+      <label for="agree">
+        I confirm I own this image and grant a non-exclusive license to display it. I agree to the <a href="/public/terms.html" target="_blank">Terms of Use</a> and <a href="/public/privacy.html" target="_blank">Privacy Policy</a>.
+      </label>
+    </div>
+
+    <!-- Upload button -->
+    <button id="uploadBtn" disabled>📤 Upload Photo</button>
+    <div id="uploadStatus"></div>
   </div>
-
-  <h1>Upload Your Photo</h1>
-
-  <!-- Metadata form -->
-  <form id="metaForm">
-    <label for="title">Title
-      <input type="text" id="title" placeholder="Short description">
-    </label>
-    <label for="dateTaken">Date Taken
-      <input type="date" id="dateTaken">
-    </label>
-    <label for="location">Location
-      <input type="text" id="location" placeholder="City, venue, etc.">
-    </label>
-    <label for="equipment">Equipment
-      <input type="text" id="equipment" placeholder="Camera / lens">
-    </label>
-    <label for="description">Description
-      <textarea id="description" placeholder="Tell us more about your photo…"></textarea>
-    </label>
-  </form>
-
-  <!-- Consent box -->
-  <div class="consent-box">
-    <input type="checkbox" id="agree" />
-    <label for="agree">
-      I confirm I own this image and grant a non-exclusive license to display it. I have read and agree to the
-      <a href="/public/terms.html" target="_blank">Terms of Use</a> and
-      <a href="/public/privacy.html" target="_blank">Privacy & Cookies Policy</a>.
-    </label>
-  </div>
-
-  <!-- Upload button -->
-  <button id="uploadBtn" disabled>📤 Upload Photo</button>
-  <div id="uploadStatus"></div>
 
   <!-- Cloudinary widget -->
   <script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
-
   <!-- Firebase (modular v11) -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
@@ -151,7 +159,6 @@
       serverTimestamp
     } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
-    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBnPNWITBW92erbxYKLxJaj-s85c1xoiGU",
       authDomain: "transits-9c696.firebaseapp.com",
@@ -159,7 +166,7 @@
       storageBucket: "transits-9c696.firebasestorage.app",
       messagingSenderId: "83794226858",
       appId: "1:83794226858:web:2cb7f6a8e8f05bd699ead3",
-      measurementId: "G-88JRQSFZG5"
+      measurementId: "G-88JRQSFZGZ5"
     };
     const app = initializeApp(firebaseConfig);
     const db  = getFirestore(app);
@@ -211,9 +218,7 @@
     });
 
     // Launch widget on click
-    uploadBtn.addEventListener('click', () => {
-      widget.open();
-    });
+    uploadBtn.addEventListener('click', () => widget.open());
   </script>
 </body>
 </html>
