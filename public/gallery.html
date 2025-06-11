@@ -9,11 +9,16 @@
       margin: 1rem;
       background: #f5f5f5;
     }
-   #gallery {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
+    #gallery {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+    @media (max-width: 600px) {
+      #gallery {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
     .tile {
       position: relative;
       overflow: hidden;
@@ -58,6 +63,7 @@
       getFirestore,
       collection,
       query,
+      where,
       orderBy,
       limit,
       getDocs
@@ -82,8 +88,10 @@
       const container = document.getElementById('gallery');
       container.textContent = ''; // clear “Loading…”
 
+      // Only approved images, newest first
       const q = query(
         collection(db, 'gallery'),
+        where('status', '==', 'approved'),
         orderBy('uploadedAt', 'desc'),
         limit(1000)
       );
@@ -91,7 +99,7 @@
       try {
         const snap = await getDocs(q);
         if (snap.empty) {
-          container.textContent = 'No photos yet.';
+          container.textContent = 'No approved photos yet.';
           return;
         }
 
