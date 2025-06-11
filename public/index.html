@@ -14,7 +14,7 @@
       background-color: #f0f0f0;
       color: #333;
       padding: 0.4rem 0.8rem;
-      border: 1px solid #ccc;
+      border: 1px solid #000;
       border-radius: 4px;
       text-decoration: none;
       font-size: 0.9rem;
@@ -27,18 +27,18 @@
       background-color: #e0e0e0;
     }
     /* Donate button override */
-    .nav-btn.donate-btn {
+    .donate-btn {
       background-color: #1a8837;
       color: #fff;
     }
-    .nav-btn.donate-btn:hover {
+    .donate-btn:hover {
       background-color: #166e2f;
     }
     /* Theme toggle override */
-    .nav-btn.theme-toggle {
-      background-color: #d0d0d0;
+    .theme-toggle {
+      background-color: #a2a2a2;
     }
-    .nav-btn.theme-toggle:hover {
+    .theme-toggle:hover {
       background-color: #b0b0b0;
     }
     /* Small-link styling */
@@ -59,8 +59,8 @@
     <header style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
       <h1 style="margin: 0;"><span id="trackerTitle">🌙 Moon</span> Transit Tracker</h1>
       <div style="display: flex; gap: 0.5rem; align-items: center;">
-        <a href="public/upload.html" class="nav-btn">Upload</a>
-        <a href="public/gallery.html" class="nav-btn">Gallery</a>
+        <a href="public/upload.html">Upload</a>
+        <a href="public/gallery.html">Gallery</a>
         <a href="https://www.paypal.com/donate/buttons/manage/AFG7SH9Y552KL" target="_blank" class="nav-btn donate-btn">🫰 Donate</a>
         <button id="themeToggle" class="nav-btn theme-toggle" aria-label="Toggle light/dark mode">💡</button>
       </div>
