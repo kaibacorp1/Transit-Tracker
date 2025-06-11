@@ -8,7 +8,9 @@
   <style>
     /* Nav button styling */
     .nav-btn {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       background-color: #f0f0f0;
       color: #333;
       padding: 0.4rem 0.8rem;
@@ -17,45 +19,23 @@
       text-decoration: none;
       font-size: 0.9rem;
       transition: background-color 0.2s;
+      line-height: 1;
     }
     .nav-btn:hover {
       background-color: #e0e0e0;
-    }
-    /* Small-link styling (optional) */
-    .small-link {
-      font-size: 0.9rem;
-      color: #20489f;
-      text-decoration: none;
-      margin-bottom: 0.5rem;
-      display: inline-block;
-    }
-    .small-link:hover {
-      text-decoration: underline;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <header style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+    <header style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
       <h1 style="margin: 0;"><span id="trackerTitle">🌙 Moon</span> Transit Tracker</h1>
-      <!-- Theme toggle button -->
-      <button id="themeToggle"
-              aria-label="Toggle light/dark mode"
-              style="background: none;
-                     border: none;
-                     font-size: 1.2rem;
-                     cursor: pointer;
-                     margin-bottom: 1rem;">
-        💡
-      </button>
-      <div style="display:flex; gap:0.5rem; align-items:center; margin-top:0.5rem;">
+      <div style="display: flex; gap: 0.5rem; align-items: center;">
+        <button id="themeToggle" class="nav-btn" aria-label="Toggle light/dark mode">💡</button>
         <a href="public/upload.html" class="nav-btn">Upload Photo</a>
         <a href="public/gallery.html" class="nav-btn">Gallery</a>
+        <a href="https://www.paypal.com/donate/buttons/manage/AFG7SH9Y552KL" target="_blank" class="nav-btn">🫰 Donate</a>
       </div>
-      <a href="https://www.paypal.com/donate/buttons/manage/AFG7SH9Y552KL" target="_blank"
-         style="background-color: #1a8837; color: #121212; padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: bold; text-decoration: none;">
-         🫰 Donate
-      </a>
     </header>
 
     <!-- Add this right below -->
