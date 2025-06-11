@@ -4,58 +4,122 @@
   <meta charset="utf-8">
   <title>Community Gallery</title>
   <style>
+    :root {
+      --bg-page: #f0f2f5;
+      --bg-card: #ffffff;
+      --border-color: #e0e0e0;
+      --text-primary: #222222;
+      --text-secondary: #555555;
+      --accent: #007bff;
+      --shadow: rgba(0, 0, 0, 0.1);
+    }
     body {
+      margin: 0;
+      padding: 1rem;
       font-family: sans-serif;
-      margin: 1rem;
-      background: #f5f5f5;
+      background-color: var(--bg-page);
+      color: var(--text-primary);
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      width: 100%;
+      max-width: 1024px;
+    }
+    .top-links {
+      margin-bottom: 1rem;
+      text-align: right;
+    }
+    .top-links a {
+      color: var(--accent);
+      text-decoration: none;
+      margin-left: 1rem;
+      font-size: 0.9rem;
+    }
+    .top-links a:hover {
+      text-decoration: underline;
+    }
+    h1 {
+      margin: 0 0 1rem;
+      font-size: 2rem;
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: 0.5rem;
     }
     #gallery {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1rem;
     }
-    @media (max-width: 600px) {
-      #gallery {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-    .tile {
-      position: relative;
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      box-shadow: 0 2px 8px var(--shadow);
       overflow: hidden;
-      border-radius: 8px;
-      background: #fff;
-      cursor: pointer;
-      transition: transform .2s, box-shadow .2s;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s, box-shadow 0.2s;
     }
-    .tile:hover {
-      transform: scale(1.03);
-      box-shadow: 0 8px 16px rgba(0,0,0,.2);
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 4px 12px var(--shadow);
     }
-    .tile img {
+    .thumb {
       width: 100%;
       aspect-ratio: 4/3;
       object-fit: cover;
       display: block;
+      cursor: pointer;
     }
-    .overlay {
-      position: absolute;
-      bottom: 0;
-      left: 0; right: 0;
-      padding: 8px;
-      color: #fff;
-      background: linear-gradient(transparent, rgba(0,0,0,.7));
-      font-size: .9rem;
-      opacity: 0;
-      transition: opacity .2s;
+    .info {
+      padding: 0.75rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
     }
-    .tile:hover .overlay {
-      opacity: 1;
+    .info div {
+      margin-bottom: 0.5rem;
+    }
+    .info strong {
+      color: var(--text-primary);
+    }
+    /* Simple lightbox overlay */
+    #lightbox {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    #lightbox img {
+      max-width: 90%;
+      max-height: 90%;
+      border: 4px solid #fff;
+      border-radius: 4px;
+    }
+    #lightbox:target {
+      display: flex;
     }
   </style>
 </head>
 <body>
-  <h1>Community Gallery</h1>
-  <div id="gallery">Loading…</div>
+  <div class="container">
+    <div class="top-links">
+      <a href="index.html">&larr; Back to App</a>
+      <a href="upload.html">📤 Upload Photo</a>
+    </div>
+    <h1>Community Gallery</h1>
+    <div id="gallery">Loading…</div>
+  </div>
+
+  <!-- Lightbox overlay -->
+  <div id="lightbox" onclick="location.hash=''">
+    <img id="lightbox-img" src="" alt="Full-size">
+  </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
@@ -65,11 +129,9 @@
       query,
       where,
       orderBy,
-      limit,
       getDocs
     } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
-    // Your Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBnPNWITBW92erbxYKLxJaj-s85c1xoiGU",
       authDomain: "transits-9c696.firebaseapp.com",
@@ -79,48 +141,73 @@
       appId: "1:83794226858:web:2cb7f6a8e8f05bd699ead3",
       measurementId: "G-88JRQSFZG5"
     };
-
-    // Initialize Firebase & Firestore
     const app = initializeApp(firebaseConfig);
     const db  = getFirestore(app);
 
     async function loadGallery() {
-      const container = document.getElementById('gallery');
-      container.textContent = ''; // clear “Loading…”
-
-      // Only approved images, newest first
+      const gallery = document.getElementById('gallery');
+      gallery.textContent = '';
       const q = query(
         collection(db, 'gallery'),
         where('status', '==', 'approved'),
         orderBy('uploadedAt', 'desc'),
-        limit(1000)
+        // limit(200)  // optional limit
       );
-
       try {
         const snap = await getDocs(q);
         if (snap.empty) {
-          container.textContent = 'No approved photos yet.';
+          gallery.textContent = 'No photos yet.';
           return;
         }
-
-        snap.forEach(doc => {
-          const { url, title, dateTaken, location, equipment } = doc.data();
-          const tile = document.createElement('div');
-          tile.className = 'tile';
-          tile.innerHTML = `
-            <img src="${url}" alt="${title || 'Photo'}">
-            <div class="overlay">
-              ${title ? `<strong>${title}</strong><br>` : ''}
-              ${dateTaken || ''}<br>
-              ${location || ''}<br>
-              ${equipment || ''}
-            </div>
-          `;
-          container.appendChild(tile);
+        snap.forEach(docSnap => {
+          const data = docSnap.data();
+          // build card
+          const card = document.createElement('div');
+          card.className = 'card';
+          // thumbnail with click handler
+          const thumb = document.createElement('img');
+          thumb.src = data.url;
+          thumb.alt = data.title || 'Photo';
+          thumb.className = 'thumb';
+          thumb.addEventListener('click', () => {
+            document.getElementById('lightbox-img').src = data.url;
+            location.hash = 'lightbox';
+          });
+          card.appendChild(thumb);
+          // info section
+          const info = document.createElement('div');
+          info.className = 'info';
+          if (data.title) {
+            const d = document.createElement('div');
+            d.innerHTML = `<strong>${data.title}</strong>`;
+            info.appendChild(d);
+          }
+          if (data.dateTaken) {
+            const d = document.createElement('div');
+            d.textContent = `Date: ${data.dateTaken}`;
+            info.appendChild(d);
+          }
+          if (data.location) {
+            const d = document.createElement('div');
+            d.textContent = `Location: ${data.location}`;
+            info.appendChild(d);
+          }
+          if (data.equipment) {
+            const d = document.createElement('div');
+            d.textContent = `Equipment: ${data.equipment}`;
+            info.appendChild(d);
+          }
+          if (data.description) {
+            const d = document.createElement('div');
+            d.textContent = data.description;
+            info.appendChild(d);
+          }
+          card.appendChild(info);
+          gallery.appendChild(card);
         });
       } catch (e) {
-        console.error('Error loading gallery:', e);
-        container.textContent = '🚫 Failed to load gallery.';
+        console.error(e);
+        gallery.textContent = 'Failed to load gallery.';
       }
     }
 
