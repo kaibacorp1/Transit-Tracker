@@ -1,8 +1,17 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <title>Upload to Community Gallery</title>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; background: #f5f5f5; }
+    form { background: #fff; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; }
+    form label { display: block; margin-bottom: 0.5rem; }
+    input { width: 100%; padding: 0.4rem; border: 1px solid #ccc; border-radius: 4px; }
+    #uploadBtn { padding: 0.6rem 1.2rem; font-size: 1rem; border:none; border-radius:4px; background:#007bff; color:#fff; cursor:pointer; }
+    #uploadBtn:hover { background:#0056b3; }
+    #uploadStatus { margin-top: 1rem; font-weight: bold; }
+  </style>
 </head>
 <body>
   <h1>Upload Your Photo</h1>
@@ -10,21 +19,21 @@
   <!-- Metadata form -->
   <form id="metaForm">
     <label>
-      Title:<br>
+      Title:
       <input type="text" id="title" placeholder="Short description">
-    </label><br><br>
+    </label>
     <label>
-      Date Taken:<br>
+      Date Taken:
       <input type="date" id="dateTaken">
-    </label><br><br>
+    </label>
     <label>
-      Location:<br>
+      Location:
       <input type="text" id="location" placeholder="City, venue, etc.">
-    </label><br><br>
+    </label>
     <label>
-      Equipment:<br>
+      Equipment:
       <input type="text" id="equipment" placeholder="Camera / lens">
-    </label><br><br>
+    </label>
   </form>
 
   <button id="uploadBtn">📤 Upload Photo</button>
@@ -35,13 +44,13 @@
 
   <!-- Firebase (modular v11) -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+    import { initializeApp }                      from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
     import {
       getFirestore,
       collection,
       addDoc,
       serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+    }                                              from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
     // Your Firebase config
     const firebaseConfig = {
@@ -77,17 +86,18 @@
         const location  = document.getElementById('location').value;
         const equipment = document.getElementById('equipment').value;
 
-        // Save URL + metadata to Firestore
+        // Save URL + metadata + pending status to Firestore
         addDoc(collection(db, 'gallery'), {
           url,
           uploadedAt:  serverTimestamp(),
           title,
           dateTaken,
           location,
-          equipment
+          equipment,
+          status:      'pending'
         })
         .then(() => {
-          statusEl.textContent = '✅ Uploaded!';
+          statusEl.textContent = '✅ Uploaded and pending approval!';
         })
         .catch(e => {
           statusEl.textContent = '❌ Firestore write error';
