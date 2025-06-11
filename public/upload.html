@@ -3,29 +3,33 @@
 <head>
   <meta charset="utf-8">
   <title>Upload to Community Gallery</title>
-  <!-- Pull in your global stylesheet for colors, typography, etc. -->
+  <!-- your global stylesheet for colors, typography, etc. -->
   <link rel="stylesheet" href="style.css" />
-
   <style>
     /* Layout & spacing only—colors come from style.css */
     body {
       font-family: sans-serif;
       margin: 1rem;
+      background: var(--bg-secondary);
+    }
+    .info-message, .consent-box, form {
+      background-color: var(--bg-primary);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1rem;
     }
     .info-message {
-      padding: 1rem;
-      border-radius: 8px;
-      margin-bottom: 1rem;
+      border-left: 4px solid var(--color-primary);
     }
-    form {
-      padding: 1rem;
-      border-radius: 8px;
-      margin-bottom: 1rem;
+    .consent-box {
+      border-left: 4px solid var(--color-primary);
+      font-size: 0.95rem;
     }
     form label {
       display: block;
       margin-bottom: 0.75rem;
       font-weight: bold;
+      color: var(--text-primary);
     }
     input, textarea {
       width: 100%;
@@ -35,6 +39,7 @@
       border: 1px solid var(--border-color);
       background-color: var(--input-bg);
       color: var(--text-primary);
+      font-size: 1rem;
     }
     textarea {
       min-height: 120px;
@@ -49,7 +54,11 @@
       background-color: var(--color-primary);
       color: var(--on-primary);
     }
-    #uploadBtn:hover {
+    #uploadBtn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    #uploadBtn:hover:not(:disabled) {
       background-color: var(--color-primary-dark);
     }
     #uploadStatus {
@@ -63,9 +72,9 @@
   <!-- Info message -->
   <div class="info-message">
     <p>
-      Welcome to the Community Transit Gallery! Submit your best Moon and Sun transit photos along with the story behind them to inspire fellow enthusiasts. 
-      Once you upload, our team will review your submission—approved images will appear in the public gallery within a few hours. 
-      Submissions must be strictly transit-related; inappropriate or off-topic images will be declined. 
+      Welcome to the Community Transit Gallery! Share your finest Moon and Sun transit photographs—and the story behind them—to inspire fellow enthusiasts.
+      Once you submit, our team will review your upload; approved images will appear in the gallery within a few hours.
+      Submissions must be strictly transit-related; inappropriate or off-topic content will be declined.
       Please keep each file under 10 MB.
     </p>
   </div>
@@ -91,7 +100,18 @@
     </label>
   </form>
 
-  <button id="uploadBtn">📤 Upload Photo</button>
+  <!-- Consent box -->
+  <div class="consent-box">
+    <input type="checkbox" id="agree" />
+    <label for="agree">
+      I confirm I own this image and grant a non-exclusive license to display it. I have read and agree to the
+      <a href="/public/terms.html" target="_blank">Terms of Use</a> and
+      <a href="/public/privacy.html" target="_blank">Privacy & Cookies Policy</a>.
+    </label>
+  </div>
+
+  <!-- Upload button -->
+  <button id="uploadBtn" disabled>📤 Upload Photo</button>
   <div id="uploadStatus"></div>
 
   <!-- Cloudinary widget -->
@@ -107,6 +127,7 @@
       serverTimestamp
     } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBnPNWITBW92erbxYKLxJaj-s85c1xoiGU",
       authDomain: "transits-9c696.firebaseapp.com",
@@ -119,6 +140,14 @@
     const app = initializeApp(firebaseConfig);
     const db  = getFirestore(app);
 
+    // Enable Upload button only when consent is given
+    const agreeCheckbox = document.getElementById('agree');
+    const uploadBtn = document.getElementById('uploadBtn');
+    agreeCheckbox.addEventListener('change', e => {
+      uploadBtn.disabled = !e.target.checked;
+    });
+
+    // Configure Cloudinary widget
     const widget = cloudinary.createUploadWidget({
       cloudName: 'dotbgstrs',
       uploadPreset: 'Transits'
@@ -157,8 +186,10 @@
       }
     });
 
-    document.getElementById('uploadBtn')
-      .addEventListener('click', () => widget.open());
+    // Open widget when button clicked (only enabled after consent)
+    uploadBtn.addEventListener('click', () => {
+      widget.open();
+    });
   </script>
 </body>
 </html>
