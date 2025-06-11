@@ -3,68 +3,92 @@
 <head>
   <meta charset="utf-8">
   <title>Upload to Community Gallery</title>
-  <!-- your global stylesheet for colors, typography, etc. -->
-  <link rel="stylesheet" href="style.css" />
   <style>
-    /* Layout & spacing only—colors come from style.css */
-    body {
-      font-family: sans-serif;
-      margin: 1rem;
-      background: var(--bg-secondary);
+    /* Light grey theme */
+    :root {
+      --bg-page: #f7f7f7;
+      --bg-panel: #ffffff;
+      --border: #d1d1d1;
+      --text-primary: #333333;
+      --text-secondary: #555555;
+      --primary: #6c757d;
+      --primary-hover: #5a6268;
     }
-    .info-message, .consent-box, form {
-      background-color: var(--bg-primary);
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: var(--bg-page);
+      color: var(--text-primary);
+      padding: 1rem;
+    }
+    h1 {
+      margin-top: 0;
+    }
+    .info-message,
+    .consent-box,
+    form {
+      background-color: var(--bg-panel);
+      border: 1px solid var(--border);
       border-radius: 8px;
       padding: 1rem;
       margin-bottom: 1rem;
     }
     .info-message {
-      border-left: 4px solid var(--color-primary);
+      border-left: 4px solid var(--primary);
     }
     .consent-box {
-      border-left: 4px solid var(--color-primary);
+      border-left: 4px solid var(--primary);
       font-size: 0.95rem;
     }
     form label {
       display: block;
       margin-bottom: 0.75rem;
       font-weight: bold;
-      color: var(--text-primary);
     }
-    input, textarea {
+    input[type="text"],
+    input[type="date"],
+    textarea {
       width: 100%;
-      padding: 0.6rem;
+      padding: 0.5rem;
+      border: 1px solid var(--border);
       border-radius: 4px;
       margin-top: 0.25rem;
-      border: 1px solid var(--border-color);
-      background-color: var(--input-bg);
-      color: var(--text-primary);
       font-size: 1rem;
+      background-color: #fafafa;
+      color: var(--text-primary);
     }
     textarea {
       min-height: 120px;
       resize: vertical;
     }
     #uploadBtn {
+      display: inline-block;
       padding: 0.6rem 1.2rem;
       font-size: 1rem;
-      border-radius: 4px;
-      cursor: pointer;
       border: none;
-      background-color: var(--color-primary);
-      color: var(--on-primary);
+      border-radius: 4px;
+      background-color: var(--primary);
+      color: #ffffff;
+      cursor: pointer;
     }
     #uploadBtn:disabled {
       opacity: 0.6;
       cursor: not-allowed;
     }
     #uploadBtn:hover:not(:disabled) {
-      background-color: var(--color-primary-dark);
+      background-color: var(--primary-hover);
     }
     #uploadStatus {
       margin-top: 1rem;
       font-weight: bold;
       color: var(--text-secondary);
+    }
+    a {
+      color: var(--primary);
+      text-decoration: underline;
+    }
+    a:hover {
+      color: var(--primary-hover);
     }
   </style>
 </head>
@@ -140,7 +164,7 @@
     const app = initializeApp(firebaseConfig);
     const db  = getFirestore(app);
 
-    // Enable Upload button only when consent is given
+    // Consent & enable upload button
     const agreeCheckbox = document.getElementById('agree');
     const uploadBtn = document.getElementById('uploadBtn');
     agreeCheckbox.addEventListener('change', e => {
@@ -154,12 +178,12 @@
     }, (err, result) => {
       const statusEl = document.getElementById('uploadStatus');
       if (err) {
-        statusEl.textContent = 'Upload error—please check the console.';
+        statusEl.textContent = 'Upload error—please check console.';
         console.error(err);
         return;
       }
       if (result.event === 'success') {
-        const url = result.info.secure_url;
+        const url         = result.info.secure_url;
         const title       = document.getElementById('title').value;
         const dateTaken   = document.getElementById('dateTaken').value;
         const location    = document.getElementById('location').value;
@@ -186,7 +210,7 @@
       }
     });
 
-    // Open widget when button clicked (only enabled after consent)
+    // Launch widget on click
     uploadBtn.addEventListener('click', () => {
       widget.open();
     });
