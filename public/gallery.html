@@ -28,8 +28,7 @@
     }
     .tile img {
       width: 100%;
-      height: 0;
-      padding-bottom: 75%;       /* 4:3 aspect ratio */
+      aspect-ratio: 4/3;
       object-fit: cover;
       display: block;
     }
@@ -53,7 +52,6 @@
   <h1>Community Gallery</h1>
   <div id="gallery">Loading…</div>
 
-  <!-- Firebase SDKs (modular v11) -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
     import {
@@ -65,7 +63,7 @@
       getDocs
     } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
-    // ←–– Your Firebase config ––→
+    // Your Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBnPNWITBW92erbxYKLxJaj-s85c1xoiGU",
       authDomain: "transits-9c696.firebaseapp.com",
@@ -80,12 +78,10 @@
     const app = initializeApp(firebaseConfig);
     const db  = getFirestore(app);
 
-    // Fetch and render gallery tiles
     async function loadGallery() {
       const container = document.getElementById('gallery');
       container.textContent = ''; // clear “Loading…”
 
-      // Build the query: newest first, limit to 1000
       const q = query(
         collection(db, 'gallery'),
         orderBy('uploadedAt', 'desc'),
