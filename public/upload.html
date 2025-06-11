@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Upload to Community Gallery</title>
+</head>
+<body>
+  <h1>Upload Your Photo</h1>
+  <button id="uploadBtn">📤 Upload Photo</button>
+  <div id="uploadStatus"></div>
+
+  <!-- Cloudinary upload widget -->
+  <script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
+
+  <!-- Firebase (modular v11) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+
+    // — Your Firebase config —
+    const firebaseConfig = {
+      apiKey: "AIzaSyBnPNWITBW92erbxYKLxJaj-s85c1xoiGU",
+      authDomain: "transits-9c696.firebaseapp.com",
+      projectId: "transits-9c696",
+      storageBucket: "transits-9c696.firebasestorage.app",
+      messagingSenderId: "83794226858",
+      appId: "1:83794226858:web:2cb7f6a8e8f05bd699ead3",
+      measurementId: "G-88JRQSFZG5"
+    };
+
+    // Initialize Firebase & Firestore
+    const app = initializeApp(firebaseConfig);
+    const db  = getFirestore(app);
+
+    // Configure Cloudinary widget
+    const widget = cloudinary.createUploadWidget({
+      cloudName: 'dotbgstrs',
+      uploadPreset: 'Transits'
+    }, (err, result) => {
+      const statusEl = document.getElementById('uploadStatus');
+      if (err) {
+        statusEl.textContent = 'Upload error – check console';
+        console.error(err);
+        return;
+      }
+      if (result.event === 'success') {
+        // Save the image URL into Firestore
+        const url = result.info.secure_url;
+        addDoc(collection(db, 'gallery'), {
+          url,
+          uploadedAt: serverTimestamp()
+        })
+        .then(() => { statusEl.textContent = '✅ Uploaded!'; })
+        .catch(e => {
+          statusEl.textContent = '❌ Firestore write error';
+          console.error(e);
+        });
+      }
+    });
+
+    // Open widget on button click
+    document.getElementById('uploadBtn')
+      .addEventListener('click', () => widget.open(), false);
+  </script>
+</body>
+</html>
