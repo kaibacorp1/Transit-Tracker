@@ -462,7 +462,13 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
       const label = predictSeconds > 0
         ? `⚠️ Possible ${selectedBody} transit in ~${predictSeconds} sec:`
         : `🔭 Possible ${selectedBody} transit:`;
-      statusEl.innerHTML = `${label}<br>${matches.map(m => `${m.callsign} (Az ${m.azimuth}°, Alt ${m.altitudeAngle}°)`).join('<br>')}`;
+      statusEl.innerHTML = `${label}<br>${
+  matches.map(m => {
+    const url = `https://www.flightradar24.com/${m.callsign}`;
+    return `<a href="${url}" target="_blank">${m.callsign}</a>` +
+           ` (Az ${m.azimuth}°, Alt ${m.altitudeAngle}°)`;
+  }).join('<br>')
+}`;
       if (!document.getElementById('muteToggle').checked) document.getElementById('alertSound').play().catch(()=>{});
       // For each detected flight, record a rich log entry
 matches.forEach(m => {
