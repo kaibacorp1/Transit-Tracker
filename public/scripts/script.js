@@ -62,8 +62,13 @@ async function fetchAdsbOne({ lat, lon, radiusKm }) {
  }));
 }
 
-
 // ——————————————————————————
+
+function toCardinal(deg) {
+  const dirs = ['N','NE','E','SE','S','SW','W','NW','N'];
+  return dirs[Math.round(deg / 45) % 8];
+}
+
 // Pick the right “welcome” message
 function setInitialStatus() {
   const statusEl = document.getElementById('transitStatus');
@@ -432,6 +437,7 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
         longitude: f[5],
         altitude:  (f[7] != null ? f[7] : f[13]) || 0,
         heading:   f[10] || 0,
+        track:     f[10] || 0,    // ← duplicate here
         speed:     f[9]  || 0,
         callsign:  f[1]  || ''
       };
@@ -442,6 +448,7 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
         longitude: f.longitude || f.lon  || 0,
         altitude:  f.altitude  || f.baro_altitude || 0,
         heading:   f.heading   || f.track || 0,
+        track:     f.heading   || f.track || 0,  // ← and here
         speed:     f.speed     || f.velocity || 0,
         callsign:  f.callsign  || f.flight || ''
       };
@@ -466,7 +473,7 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
   matches.map(m => {
     const url = `https://www.flightradar24.com/${m.callsign}`;
     return `<a href="${url}" target="_blank" class="callsign">${m.callsign}</a>` +
-       ` (Az ${m.azimuth}°, Alt ${m.altitudeAngle}°)`;
+          ` (Az ${m.azimuth}°, Alt ${m.altitudeAngle}°, Dir ${toCardinal(m.track)})`;
   }).join('<br>')
 }`;
       if (!document.getElementById('muteToggle').checked) document.getElementById('alertSound').play().catch(()=>{});
