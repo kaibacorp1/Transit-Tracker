@@ -63,6 +63,17 @@ body {
   padding: 1.5rem;
 }
 
+/* bright-orange transit callsigns, no underline */
+#transitStatus a.callsign {
+  color: #ff7d00;        /* vivid orange */
+  text-decoration: none; /* kill underline */
+  font-weight: 700;      /* optional—makes it pop */
+}
+
+#transitStatus a.callsign:hover {
+  text-decoration: underline; /* optional hover effect */
+}
+
 .container {
   max-width: 760px;
   margin: auto;
