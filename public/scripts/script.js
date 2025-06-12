@@ -473,7 +473,7 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
   matches.map(m => {
     const url = `https://www.flightradar24.com/${m.callsign}`;
     return `<a href="${url}" target="_blank" class="callsign">${m.callsign}</a>` +
-          ` (Az ${m.azimuth}°, Alt ${m.altitudeAngle}°, Dir ${toCardinal(m.track)})`;
+           ` (Az ${m.azimuth}°, Alt ${m.altitudeAngle}°, Dir ${toCardinal(m.track)})`;
   }).join('<br>')
 }`;
       if (!document.getElementById('muteToggle').checked) document.getElementById('alertSound').play().catch(()=>{});
