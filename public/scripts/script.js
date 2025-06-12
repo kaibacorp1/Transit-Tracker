@@ -334,7 +334,7 @@ function getCelestialPosition(lat, lon, elev) {
 // --- Flight Fetching & Backend Detection ---
 function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
   const statusEl = document.getElementById('transitStatus');
-  statusEl.textContent = `Checking flights near the ${selectedBody}...`;
+  checksEl.textContent = `Checking flights near the ${selectedBody}...`;
   const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
 
   // ─── RadarBox mode ─────────────────────────────────────────────────
@@ -491,6 +491,30 @@ matches.forEach(m => {
     margin:            margin
   });
 });
+      .then(({ matches, error }) => {
+  // Clear any previous “no data” in checksEl once we have a result:
+  if (error) {
+    checksEl.textContent = `❌ ${error}`;
+    return;
+  }
+
+  if (matches.length) {
+    // 1) Show new predictions in line #2
+    alertsEl.innerHTML = generateStatusHTML(matches);
+
+    // 2) Clear any old “no data” in line #1
+    checksEl.textContent = '';
+
+    // 3) Auto-clear line #2 after 30 s
+    if (window._alertTimer) clearTimeout(window._alertTimer);
+    window._alertTimer = setTimeout(() => { alertsEl.textContent = ''; }, 30_000);
+  } else {
+    // No matches this round → show the “no data” in line #1 only
+    checksEl.textContent = `No aircraft aligned with the ${selectedBody} right now.`;
+    // Leave alertsEl alone, so your last transit stays until its timer fires
+  }
+})
+
     } else {
       statusEl.textContent = `No aircraft aligned with the ${selectedBody} right now.`;
     }
