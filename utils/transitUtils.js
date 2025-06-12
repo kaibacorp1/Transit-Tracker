@@ -93,6 +93,7 @@ export function detectTransits({
           callsign,
           azimuth: azimuth.toFixed(1),
           altitudeAngle: elevationAngle.toFixed(1),
+          track:           f.track,   // ← include the track field
           distance: distance.toFixed(1),
           selectedBody,
           predictionSeconds: predictSeconds
