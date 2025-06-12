@@ -39,21 +39,6 @@ function hasSessionExpired() {
   return (Date.now() - start) > 1_800_000;
 }
 
-//________ new possible ______
-function generateStatusHTML(matches) {
-  const label = predictSeconds > 0
-    ? `⚠️ Possible ${selectedBody} transit in ~${predictSeconds} sec:`
-    : `🔭 Possible ${selectedBody} transit:`;
-  return `${label}<br>${
-    matches.map(m => {
-      const url = `https://www.flightradar24.com/${m.callsign}`;
-      return `<a href="${url}" target="_blank" class="callsign">${m.callsign}</a>` +
-             ` (Az ${m.azimuth}°, Alt ${m.altitudeAngle}°, Dir ${toCardinal(m.track)})`;
-    }).join('<br>')
-  }`;
-}
-
-
 // ─── ADSB-One Integration (no API key) ───────────────────────────────────
 
 async function fetchAdsbOne({ lat, lon, radiusKm }) {
@@ -348,12 +333,8 @@ function getCelestialPosition(lat, lon, elev) {
 
 // --- Flight Fetching & Backend Detection ---
 function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
-  const checksEl  = document.getElementById('transitChecks');
-  const alertsEl  = document.getElementById('transitAlerts');
-
-  // show the loading line
-  checksEl.textContent = `Checking flights near the ${selectedBody}...`;
-  
+  const statusEl = document.getElementById('transitStatus');
+  statusEl.textContent = `Checking flights near the ${selectedBody}...`;
   const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
 
   // ─── RadarBox mode ─────────────────────────────────────────────────
@@ -475,70 +456,47 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
   });
 
   // ── Send the normalized array instead of the raw one ──
-   fetch('/api/detect-transit', {
+  fetch('/api/detect-transit', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      flights: flightObjs,
-      userLat: uLat,
-      userLon: uLon,
-      userElev: uElev,
-      bodyAz,
-      bodyAlt,
-      margin,
-      predictSeconds,
-      selectedBody
-    })
+    body: JSON.stringify({ flights: flightObjs, userLat: uLat, userLon: uLon, userElev: uElev, bodyAz, bodyAlt, margin, predictSeconds, selectedBody })
   })
-  .then(res => {
-    if (!res.ok) throw new Error(res.status);
-    return res.json();
-  })
+  .then(res => { if (!res.ok) throw new Error(res.status); return res.json(); })
   .then(({ matches, error }) => {
-    // 1) Handle server errors
-    if (error) {
-      checksEl.textContent = `❌ ${error}`;
-      return;
-    }
-
-    // 2) If there are matches, show them in alertsEl
+    const statusEl = document.getElementById('transitStatus');
+    if (error) return statusEl.textContent = `❌ ${error}`;
     if (matches.length) {
-      alertsEl.innerHTML = generateStatusHTML(matches);
-
-      // clear any “no data” text
-      checksEl.textContent = '';
-
-      // reset the 30s clear timer
-      clearTimeout(window._alertTimer);
-      window._alertTimer = setTimeout(() => {
-        alertsEl.textContent = '';
-      }, 30_000);
-
-      // and still log locally as before
-      matches.forEach(m => {
-        const label = predictSeconds > 0
-          ? `⚠️ Possible ${selectedBody} transit in ~${predictSeconds} sec`
-          : `🔭 Possible ${selectedBody} transit`;
-        logDetectionLocally(label, {
-          callsign:          m.callsign,
-          azimuth:           m.azimuth,
-          altitudeAngle:     m.altitudeAngle,
-          body:              selectedBody,
-          predictionSeconds: predictSeconds,
-          margin:            margin
-        });
-      });
-
+      const label = predictSeconds > 0
+        ? `⚠️ Possible ${selectedBody} transit in ~${predictSeconds} sec:`
+        : `🔭 Possible ${selectedBody} transit:`;
+      statusEl.innerHTML = `${label}<br>${
+  matches.map(m => {
+    const url = `https://www.flightradar24.com/${m.callsign}`;
+    return `<a href="${url}" target="_blank" class="callsign">${m.callsign}</a>` +
+           ` (Az ${m.azimuth}°, Alt ${m.altitudeAngle}°, Dir ${toCardinal(m.track)})`;
+  }).join('<br>')
+}`;
+      if (!document.getElementById('muteToggle').checked) document.getElementById('alertSound').play().catch(()=>{});
+      // For each detected flight, record a rich log entry
+matches.forEach(m => {
+  const label = predictSeconds > 0
+    ? `⚠️ Possible ${selectedBody} transit in ~${predictSeconds} sec`
+    : `🔭 Possible ${selectedBody} transit`;
+  logDetectionLocally(label, {
+    callsign:          m.callsign,
+    azimuth:           m.azimuth,
+    altitudeAngle:     m.altitudeAngle,
+    body:              selectedBody,
+    predictionSeconds: predictSeconds,
+    margin:            margin
+  });
+});
     } else {
-      // 3) No matches → show “no data” on line 1, leave alertsEl alone
-      checksEl.textContent = `No aircraft aligned with the ${selectedBody} right now.`;
+      statusEl.textContent = `No aircraft aligned with the ${selectedBody} right now.`;
     }
   })
-  .catch(err => {
-    console.error(err);
-    checksEl.textContent = '🚫 Error checking transit.';
-  });
-
+  .catch(err => { console.error(err); document.getElementById('transitStatus').textContent = '🚫 Error checking transit.'; });
+}
 
 // --- UI Helpers for APIs & Tabs ---
 function saveCredentials() {
