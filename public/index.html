@@ -92,19 +92,9 @@
   www.lifebeyondstars.com
 </a>
 
- <!-- always-visible status -->
-<div id="transitStatus"
-     style="margin:1rem 0; font-size:1.4rem; font-weight:bold;">
-  <!-- JS will write “Checking ADSB-One flights…” here -->
-</div>
-
-<!-- only hide the alert list + dismiss -->
-<div id="transitAlertContainer"
-     style="display:none; margin-bottom:1rem;">
-  <ul id="transitList" style="list-style:none; padding:0; margin:0.5rem 0;"></ul>
-  <button id="dismissBtn" style="padding:0.4rem 0.8rem;">Dismiss</button>
-</div>
-
+  <div class="highlight" id="transitStatus" style="margin: 1rem 0; font-size: 1.4rem; font-weight: bold;">
+      Checking flights near the Moon...
+    </div>
 
     <details id="dataSourceToggle" open>
     <summary>Data Source</summary>
@@ -216,7 +206,7 @@
 
     <div class="data">
       <label><strong>Detection Margin</strong></label>
-      <a href="public/detection_visuals.html" class="small-link">Visuals</a><br>
+      <a href="public/detection_visuals.html" class="small-link">Visuals</a><be><br>
       <input id="marginSlider" type="range" min="1" max="50" step="0.5" value="2.5" />
       <span id="marginValue">2.5°</span>
       <div id="marginFeedback">🌟 Very strict (photography)</div>
