@@ -20,6 +20,9 @@ let locationMode   = 'auto';
 let predictSeconds = 0;
 let margin         = 2.5;
 
+const pendingTransits = [];
+let alertActive = false;
+
 // ⏰ Transit-queue state (add these right after line 16)
 const pendingTransits = [];
 const MAX_QUEUE_SIZE  = 20;
@@ -488,23 +491,25 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
     const statusEl = document.getElementById('transitStatus');
     if (error) return statusEl.textContent = `❌ ${error}`;
       if (matches.length) {
-    // for each detected flight, either show it or queue it
-    matches.forEach(m => {
-      if (!alertActive) {
-        showTransitAlert(m);
-      } else {
-        pendingTransits.push(m);
-        if (pendingTransits.length > MAX_QUEUE_SIZE) {
-          pendingTransits.shift();
-        }
-        updateQueueIndicator(pendingTransits.length);
-      }
-    });
+  // for every found match, enqueue it
+  matches.forEach(m => pendingTransits.push(m));
 
-  } else if (!alertActive) {
-    // only clear the status if no alert is onscreen
-    statusEl.textContent = `No aircraft aligned with the ${selectedBody} right now.`;
+  // ensure we show the container at least once
+  if (!alertActive) {
+    alertActive = true;
+    // (optional) play your alert sound here, once:
+    if (!document.getElementById('muteToggle').checked) {
+      document.getElementById('alertSound').play().catch(()=>{});
+    }
   }
+
+  // re-render the full list each time
+  updateTransitList();
+
+} else if (!alertActive) {
+  // only clear the status if no alert is up
+  statusEl.textContent = `No aircraft aligned with the ${selectedBody} right now.`;
+}
 
   })
   .catch(err => { console.error(err); document.getElementById('transitStatus').textContent = '🚫 Error checking transit.'; });
@@ -713,6 +718,41 @@ document.getElementById('dismissBtn').addEventListener('click', () => {
   clearTransitAlert();
 });
 
+function updateTransitList() {
+  const container = document.getElementById('transitAlertContainer');
+  const statusEl  = document.getElementById('transitStatus');
+  const listEl    = document.getElementById('transitList');
+
+  // show the container
+  container.style.display = 'block';
+
+  // leave status line as-is (it already shows the latest transit label)
+  // now build the UL of all queued & current transits
+  listEl.innerHTML = '';  // clear out old items
+
+  pendingTransits.forEach(m => {
+    // build each line: "SWA2899 look up West, ✈️ heading North"
+    const lookDir = verbalizeCardinal(toCardinal(m.azimuth));
+    const headDir = verbalizeCardinal(toCardinal(m.track));
+
+    const li = document.createElement('li');
+    li.textContent = `${m.callsign} look up ${lookDir}, ✈️ heading ${headDir}`;
+    listEl.appendChild(li);
+  });
+}
+
+document.getElementById('dismissBtn').addEventListener('click', () => {
+  // clear everything
+  pendingTransits.length = 0;
+  alertActive = false;
+
+  document.getElementById('transitList').innerHTML = '';
+  document.getElementById('transitAlertContainer').style.display = 'none';
+
+  // restore the normal status line:
+  document.getElementById('transitStatus').textContent =
+    `No aircraft aligned with the ${selectedBody} right now.`;
+});
 
 
 // Expose RadarBox handlers globally
