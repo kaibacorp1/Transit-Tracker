@@ -491,7 +491,7 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
     const lookDir = verbalizeCardinal(toCardinal(m.azimuth));
     const headDir = verbalizeCardinal(toCardinal(m.track));
     return `<a href="${url}" target="_blank" class="callsign">${m.callsign}</a>` +
-        ` (look up ${lookDir}, | ✈️ heading ${headDir})`;
+        ` - look up ${lookDir},  ✈️ heading ${headDir} `;
   }).join('<br>')
 }`;
       if (!document.getElementById('muteToggle').checked) document.getElementById('alertSound').play().catch(()=>{});
