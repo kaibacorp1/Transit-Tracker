@@ -69,6 +69,21 @@ function toCardinal(deg) {
   return dirs[Math.round(deg / 45) % 8];
 }
 
+// expand "N"/"NE"/… into full words
+function verbalizeCardinal(abbr) {
+  const map = {
+    N:  "North",
+    NE: "North East",
+    E:  "East",
+    SE: "South East",
+    S:  "South",
+    SW: "South West",
+    W:  "West",
+    NW: "North West"
+  };
+  return map[abbr] || abbr;
+}
+
 // Pick the right “welcome” message
 function setInitialStatus() {
   const statusEl = document.getElementById('transitStatus');
