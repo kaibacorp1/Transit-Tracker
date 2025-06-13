@@ -474,58 +474,78 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
     }
   });
 
-  // ── Send the normalized array instead of the raw one ──
+    // ── Send the normalized array instead of the raw one ──
   fetch('/api/detect-transit', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    flights: flightObjs,
-    userLat: uLat,
-    userLon: uLon,
-    userElev: uElev,
-    bodyAz,
-    bodyAlt,
-    margin,
-    predictSeconds,
-    selectedBody
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      flights:   flightObjs,
+      userLat:   uLat,
+      userLon:   uLon,
+      userElev:  uElev,
+      bodyAz,
+      bodyAlt,
+      margin,
+      predictSeconds,
+      selectedBody
+    })
   })
-})
-.then(res => {
-  if (!res.ok) throw new Error(res.status);
-  return res.json();
-})
-.then(({ matches, error }) => {
-  const statusEl = document.getElementById('transitStatus');
-  if (error) {
-    statusEl.textContent = `❌ ${error}`;
-    return;
-  }
+  .then(res => {
+    if (!res.ok) throw new Error(res.status);
+    return res.json();
+  })
+  .then(({ matches, error }) => {
+    const statusEl = document.getElementById('transitStatus');
+    if (error) {
+      statusEl.textContent = `❌ ${error}`;
+      return;
+    }
 
-  if (matches.length) {
-    const label = predictSeconds > 0
-      ? `⚠️ Possible ${selectedBody} transit in ~${predictSeconds} sec:`
-      : `🔭 Possible ${selectedBody} transit:`;
+    if (matches.length) {
+      const label = predictSeconds > 0
+        ? `⚠️ Possible ${selectedBody} transit in ~${predictSeconds} sec:`
+        : `🔭 Possible ${selectedBody} transit:`;
 
-    matches.forEach(m => {
-      const lookDir = verbalizeCardinal(toCardinal(m.azimuth));
-      const headDir = verbalizeCardinal(toCardinal(m.track));
-      const url     = `https://www.flightradar24.com/${m.callsign}`;
+      matches.forEach(m => {
+        const lookDir = verbalizeCardinal(toCardinal(m.azimuth));
+        const headDir = verbalizeCardinal(toCardinal(m.track));
+        const url     = `https://www.flightradar24.com/${m.callsign}`;
 
-      addAlert(
-        `${label} ${m.callsign} — ` +
-        `<a href="${url}" target="_blank">Track on FR24</a> ` +
-        `(look up ${lookDir}, heading ${headDir})`
-      );
-    });
+        // 1) show it in the alert stack
+        addAlert(
+          `${label} ${m.callsign} — ` +
+          `<a href="${url}" target="_blank">Track on FR24</a> ` +
+          `(look up ${lookDir}, heading ${headDir})`
+        );
 
-  } else {
-    statusEl.textContent = `No aircraft aligned with the ${selectedBody} right now.`;
-  }
-})
-.catch(err => {
-  const statusEl = document.getElementById('transitStatus');
-  statusEl.textContent = `❌ ${err.message}`;
-});
+        // 2) play sound if not muted
+        if (!document.getElementById('muteToggle').checked) {
+          document.getElementById('alertSound')
+                  .play()
+                  .catch(() => {});
+        }
+
+        // 3) log it locally
+        logDetectionLocally(label, {
+          callsign:          m.callsign,
+          azimuth:           m.azimuth,
+          altitudeAngle:     m.altitudeAngle,
+          body:              selectedBody,
+          predictionSeconds: predictSeconds,
+          margin:            margin
+        });
+      });
+
+    } else {
+      statusEl.textContent = `No aircraft aligned with the ${selectedBody} right now.`;
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    document.getElementById('transitStatus')
+            .textContent = '🚫 Error checking transit.';
+  });
+
 
     
     // turn numbers into “look up…, heading …”
