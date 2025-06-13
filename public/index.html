@@ -92,9 +92,25 @@
   www.lifebeyondstars.com
 </a>
 
-  <div class="highlight" id="transitStatus" style="margin: 1rem 0; font-size: 1.4rem; font-weight: bold;">
-      Checking flights near the Moon...
-    </div>
+  <div class="highlight" id="transitAlertContainer" style="margin: 1rem 0; font-size: 1.4rem; font-weight: bold;">
+  <!-- This is where your transit message goes -->
+  <div id="transitStatus"></div>
+
+  <!-- “+N more” indicator -->
+  <span id="queueIndicator"
+        style="display:none;
+               background:#007bff;color:white;
+               border-radius:0.75rem;padding:0.2rem 0.5rem;
+               margin-left:0.5rem;
+               font-size:0.85rem;">
+  </span>
+  <br>
+
+  <!-- Control buttons (hidden until needed) -->
+  <button id="nextBtn"    style="display:none; margin-top:0.5rem;">Show Next</button>
+  <button id="dismissBtn" style="display:none; margin-top:0.5rem;">Dismiss</button>
+</div>
+
 
     <details id="dataSourceToggle" open>
     <summary>Data Source</summary>
