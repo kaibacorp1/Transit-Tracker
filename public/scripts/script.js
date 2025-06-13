@@ -20,13 +20,6 @@ let locationMode   = 'auto';
 let predictSeconds = 0;
 let margin         = 2.5;
 
-// ⏰ Transit-queue state (add these right after line 16)
-const pendingTransits = [];
-const MAX_QUEUE_SIZE  = 20;
-let alertActive      = false;
-let currentTransit   = null;
-
-
 // --- Utility & Storage Helpers ---
 function getAviationstackKey() {
   return sessionStorage.getItem('aviationstackKey');
@@ -484,34 +477,45 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
     body: JSON.stringify({ flights: flightObjs, userLat: uLat, userLon: uLon, userElev: uElev, bodyAz, bodyAlt, margin, predictSeconds, selectedBody })
   })
   .then(res => { if (!res.ok) throw new Error(res.status); return res.json(); })
-    .then(({ matches, error }) => {
+  .then(({ matches, error }) => {
     const statusEl = document.getElementById('transitStatus');
-
-    if (error) {
-      statusEl.textContent = `❌ ${error}`;
-      return;
-    }
-
+    if (error) return statusEl.textContent = `❌ ${error}`;
     if (matches.length) {
-      // play sound on every hit (unless muted)
-      if (!document.getElementById('muteToggle').checked) {
-        document.getElementById('alertSound').play().catch(() => {});
-      }
-
-      // enqueue & render
-      matches.forEach(m => pendingTransits.push(m));
-      if (!alertActive) alertActive = true;
-      updateTransitList();
-
-    } else if (!alertActive) {
-      // only clear the status if no alert is up
+      const label = predictSeconds > 0
+        ? `⚠️ Possible ${selectedBody} transit in ~${predictSeconds} sec:`
+        : `🔭 Possible ${selectedBody} transit:`;
+      statusEl.innerHTML = `${label}<br>${
+  matches.map(m => {
+    const url = `https://www.flightradar24.com/${m.callsign}`;
+    
+    // turn numbers into “look up…, heading …”
+     const lookDir = verbalizeCardinal(toCardinal(m.azimuth));
+     const headDir = verbalizeCardinal(toCardinal(m.track));
+     return `<a href="${url}" target="_blank" class="callsign">${m.callsign}</a>` +
+        `  look up ${lookDir}, ✈️ heading ${headDir}`;
+        }).join('<br>')
+       }`;
+      if (!document.getElementById('muteToggle').checked) document.getElementById('alertSound').play().catch(()=>{});
+      // For each detected flight, record a rich log entry
+matches.forEach(m => {
+  const label = predictSeconds > 0
+    ? `⚠️ Possible ${selectedBody} transit in ~${predictSeconds} sec`
+    : `🔭 Possible ${selectedBody} transit`;
+  logDetectionLocally(label, {
+    callsign:          m.callsign,
+    azimuth:           m.azimuth,
+    altitudeAngle:     m.altitudeAngle,
+    body:              selectedBody,
+    predictionSeconds: predictSeconds,
+    margin:            margin
+  });
+});
+    } else {
       statusEl.textContent = `No aircraft aligned with the ${selectedBody} right now.`;
     }
   })
-  .catch(err => {
-    console.error(err);
-    document.getElementById('transitStatus').textContent = '🚫 Error checking transit.';
-  });
+  .catch(err => { console.error(err); document.getElementById('transitStatus').textContent = '🚫 Error checking transit.'; });
+}
 
 // --- UI Helpers for APIs & Tabs ---
 function saveCredentials() {
@@ -655,109 +659,6 @@ toggleBtn.addEventListener('click', () => {
     : 'dark';
   document.documentElement.setAttribute('data-theme', next);
   localStorage.setItem('theme', next);
-});
-
-// ───────────────────────────────────────────────────────────────────────────
-// Render a new transit alert
-function showTransitAlert(m) {
-  alertActive = true;
-  currentTransit = m;
-
-  const label = predictSeconds > 0
-    ? `⚠️ Possible ${selectedBody} transit in ~${predictSeconds} sec:`
-    : `🔭 Possible ${selectedBody} transit:`;
-
-  // build your HTML exactly as before
-  const lookDir = verbalizeCardinal(toCardinal(m.azimuth));
-  const headDir = verbalizeCardinal(toCardinal(m.track));
-  document.getElementById('transitStatus').innerHTML =
-    `${label}<br>` +
-    `<a href="https://www.flightradar24.com/${m.callsign}" target="_blank">${m.callsign}</a>` +
-    `  look up ${lookDir}, ✈️ heading ${headDir}`;
-
-  updateQueueIndicator(pendingTransits.length);
-
-  // show the control buttons
-  document.getElementById('nextBtn').style.display    = pendingTransits.length > 0 ? 'inline-block' : 'none';
-  document.getElementById('dismissBtn').style.display = 'inline-block';
-}
-
-// Update the little “+N more” badge
-function updateQueueIndicator(n) {
-  const badge = document.getElementById('queueIndicator');
-  badge.textContent = n > 0 ? `+${n} more` : '';
-  badge.style.display = n > 0 ? 'inline-block' : 'none';
-}
-
-// Clear everything and resume normal polling
-function clearTransitAlert() {
-  alertActive    = false;
-  currentTransit = null;
-  pendingTransits.length = 0;
-
-  document.getElementById('transitStatus').textContent = '';
-  updateQueueIndicator(0);
-
-  // reset to your “no aircraft…” message
-  document.getElementById('transitStatus').textContent =
-    `No aircraft aligned with the ${selectedBody} right now.`;
-}
-
-// Wire up the Next/Dismiss buttons
-document.getElementById('nextBtn').addEventListener('click', () => {
-  const next = pendingTransits.shift();
-  if (next) {
-    showTransitAlert(next);
-  } else {
-    clearTransitAlert();
-  }
-});
-document.getElementById('dismissBtn').addEventListener('click', () => {
-  clearTransitAlert();
-});
-
-function updateTransitList() {
-  const container = document.getElementById('transitAlertContainer');
-  const statusEl  = document.getElementById('transitStatus');
-  const listEl    = document.getElementById('transitList');
-
-  // show the container
-  container.style.display = 'block';
-
-  // leave status line as-is (it already shows the latest transit label)
-  // now build the UL of all queued & current transits
-  listEl.innerHTML = '';  // clear out old items
-
-  pendingTransits.forEach(m => {
-  const lookDir = verbalizeCardinal(toCardinal(m.azimuth));
-  const headDir = verbalizeCardinal(toCardinal(m.track));
-
-  const li = document.createElement('li');
-
-  // create the clickable callsign
-  const a = document.createElement('a');
-  a.href   = `https://www.flightradar24.com/${m.callsign}`;
-  a.target = '_blank';
-  a.textContent = m.callsign;
-  li.appendChild(a);
-
-  // append the rest of the text
-  li.append(` look up ${lookDir}, ✈️ heading ${headDir}`);
-  listEl.appendChild(li);
-});
-}
-
-document.getElementById('dismissBtn').addEventListener('click', () => {
-  // clear everything
-  pendingTransits.length = 0;
-  alertActive = false;
-
-  document.getElementById('transitList').innerHTML = '';
-  document.getElementById('transitAlertContainer').style.display = 'none';
-
-  // restore the normal status line:
-  document.getElementById('transitStatus').textContent =
-    `No aircraft aligned with the ${selectedBody} right now.`;
 });
 
 
