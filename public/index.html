@@ -92,18 +92,25 @@
   www.lifebeyondstars.com
 </a>
 
-  <div class="highlight" id="transitAlertContainer" style="margin: 1rem 0; font-size: 1.4rem; font-weight: bold;">
-  <!-- This is where your transit message goes -->
-  <div id="transitStatus"></div>
+    <!-- around line 95, swap out your old transitAlertContainer -->
+  <div id="transitAlertContainer"
+       class="highlight"
+       style="margin:1rem 0; font-size:1.4rem; font-weight:bold; display:none;">
 
-  <!-- “+N more” indicator -->
-  <span id="queueIndicator"
-        style="display:none;
-               background:#007bff;color:white;
-               border-radius:0.75rem;padding:0.2rem 0.5rem;
-               margin-left:0.5rem;
-               font-size:0.85rem;">
-  </span>
+    <!-- the normal status line stays here -->
+    <div id="transitStatus"></div>
+
+    <!-- our new list of all picked-up transits -->
+    <ul id="transitList" style="list-style:none; padding-left:0; margin:0.5rem 0;">
+      <!-- JS will inject <li>…</li> items here -->
+    </ul>
+
+    <!-- only need a Dismiss button now -->
+    <button id="dismissBtn"
+            style="margin-top:0.5rem; padding:0.4rem 0.8rem;">
+      Dismiss
+    </button>
+  </div>
   <br>
 
   <!-- Control buttons (hidden until needed) -->
