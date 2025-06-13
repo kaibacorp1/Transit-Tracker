@@ -487,8 +487,11 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
       statusEl.innerHTML = `${label}<br>${
   matches.map(m => {
     const url = `https://www.flightradar24.com/${m.callsign}`;
+  // turn numbers into “look up…, heading …”
+    const lookDir = verbalizeCardinal(toCardinal(m.azimuth));
+    const headDir = verbalizeCardinal(toCardinal(m.track));
     return `<a href="${url}" target="_blank" class="callsign">${m.callsign}</a>` +
-           ` (Az ${m.azimuth}°, Alt ${m.altitudeAngle}°, Dir ${toCardinal(m.track)})`;
+        ` (look up ${lookDir}, heading ${headDir})`;
   }).join('<br>')
 }`;
       if (!document.getElementById('muteToggle').checked) document.getElementById('alertSound').play().catch(()=>{});
