@@ -20,6 +20,13 @@ let locationMode   = 'auto';
 let predictSeconds = 0;
 let margin         = 2.5;
 
+// ⏰ Transit-queue state (add these right after line 16)
+const pendingTransits = [];
+const MAX_QUEUE_SIZE  = 20;
+let alertActive      = false;
+let currentTransit   = null;
+
+
 // --- Utility & Storage Helpers ---
 function getAviationstackKey() {
   return sessionStorage.getItem('aviationstackKey');
@@ -480,39 +487,25 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
   .then(({ matches, error }) => {
     const statusEl = document.getElementById('transitStatus');
     if (error) return statusEl.textContent = `❌ ${error}`;
-    if (matches.length) {
-      const label = predictSeconds > 0
-        ? `⚠️ Possible ${selectedBody} transit in ~${predictSeconds} sec:`
-        : `🔭 Possible ${selectedBody} transit:`;
-      statusEl.innerHTML = `${label}<br>${
-  matches.map(m => {
-    const url = `https://www.flightradar24.com/${m.callsign}`;
-    
-    // turn numbers into “look up…, heading …”
-     const lookDir = verbalizeCardinal(toCardinal(m.azimuth));
-     const headDir = verbalizeCardinal(toCardinal(m.track));
-     return `<a href="${url}" target="_blank" class="callsign">${m.callsign}</a>` +
-        `  look up ${lookDir}, ✈️ heading ${headDir}`;
-        }).join('<br>')
-       }`;
-      if (!document.getElementById('muteToggle').checked) document.getElementById('alertSound').play().catch(()=>{});
-      // For each detected flight, record a rich log entry
-matches.forEach(m => {
-  const label = predictSeconds > 0
-    ? `⚠️ Possible ${selectedBody} transit in ~${predictSeconds} sec`
-    : `🔭 Possible ${selectedBody} transit`;
-  logDetectionLocally(label, {
-    callsign:          m.callsign,
-    azimuth:           m.azimuth,
-    altitudeAngle:     m.altitudeAngle,
-    body:              selectedBody,
-    predictionSeconds: predictSeconds,
-    margin:            margin
-  });
-});
-    } else {
-      statusEl.textContent = `No aircraft aligned with the ${selectedBody} right now.`;
-    }
+      if (matches.length) {
+    // for each detected flight, either show it or queue it
+    matches.forEach(m => {
+      if (!alertActive) {
+        showTransitAlert(m);
+      } else {
+        pendingTransits.push(m);
+        if (pendingTransits.length > MAX_QUEUE_SIZE) {
+          pendingTransits.shift();
+        }
+        updateQueueIndicator(pendingTransits.length);
+      }
+    });
+
+  } else if (!alertActive) {
+    // only clear the status if no alert is onscreen
+    statusEl.textContent = `No aircraft aligned with the ${selectedBody} right now.`;
+  }
+
   })
   .catch(err => { console.error(err); document.getElementById('transitStatus').textContent = '🚫 Error checking transit.'; });
 }
@@ -660,6 +653,66 @@ toggleBtn.addEventListener('click', () => {
   document.documentElement.setAttribute('data-theme', next);
   localStorage.setItem('theme', next);
 });
+
+// ───────────────────────────────────────────────────────────────────────────
+// Render a new transit alert
+function showTransitAlert(m) {
+  alertActive = true;
+  currentTransit = m;
+
+  const label = predictSeconds > 0
+    ? `⚠️ Possible ${selectedBody} transit in ~${predictSeconds} sec:`
+    : `🔭 Possible ${selectedBody} transit:`;
+
+  // build your HTML exactly as before
+  const lookDir = verbalizeCardinal(toCardinal(m.azimuth));
+  const headDir = verbalizeCardinal(toCardinal(m.track));
+  document.getElementById('transitStatus').innerHTML =
+    `${label}<br>` +
+    `<a href="https://www.flightradar24.com/${m.callsign}" target="_blank">${m.callsign}</a>` +
+    `  look up ${lookDir}, ✈️ heading ${headDir}`;
+
+  updateQueueIndicator(pendingTransits.length);
+
+  // show the control buttons
+  document.getElementById('nextBtn').style.display    = pendingTransits.length > 0 ? 'inline-block' : 'none';
+  document.getElementById('dismissBtn').style.display = 'inline-block';
+}
+
+// Update the little “+N more” badge
+function updateQueueIndicator(n) {
+  const badge = document.getElementById('queueIndicator');
+  badge.textContent = n > 0 ? `+${n} more` : '';
+  badge.style.display = n > 0 ? 'inline-block' : 'none';
+}
+
+// Clear everything and resume normal polling
+function clearTransitAlert() {
+  alertActive    = false;
+  currentTransit = null;
+  pendingTransits.length = 0;
+
+  document.getElementById('transitStatus').textContent = '';
+  updateQueueIndicator(0);
+
+  // reset to your “no aircraft…” message
+  document.getElementById('transitStatus').textContent =
+    `No aircraft aligned with the ${selectedBody} right now.`;
+}
+
+// Wire up the Next/Dismiss buttons
+document.getElementById('nextBtn').addEventListener('click', () => {
+  const next = pendingTransits.shift();
+  if (next) {
+    showTransitAlert(next);
+  } else {
+    clearTransitAlert();
+  }
+});
+document.getElementById('dismissBtn').addEventListener('click', () => {
+  clearTransitAlert();
+});
+
 
 
 // Expose RadarBox handlers globally
