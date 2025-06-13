@@ -498,7 +498,6 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
   if (!alertActive) alertActive = true;
   updateTransitList();
 }
-  }
 
   // re-render the full list each time
   updateTransitList();
