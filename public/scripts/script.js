@@ -488,16 +488,16 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
     const statusEl = document.getElementById('transitStatus');
     if (error) return statusEl.textContent = `❌ ${error}`;
       if (matches.length) {
-  // for every found match, enqueue it
-  matches.forEach(m => pendingTransits.push(m));
+  // play sound on every hit (unless muted)
+  if (!document.getElementById('muteToggle').checked) {
+    document.getElementById('alertSound').play().catch(()=>{});
+  }
 
-  // ensure we show the container at least once
-  if (!alertActive) {
-    alertActive = true;
-    // (optional) play your alert sound here, once:
-    if (!document.getElementById('muteToggle').checked) {
-      document.getElementById('alertSound').play().catch(()=>{});
-    }
+  // then enqueue & render as before
+  matches.forEach(m => pendingTransits.push(m));
+  if (!alertActive) alertActive = true;
+  updateTransitList();
+}
   }
 
   // re-render the full list each time
@@ -728,14 +728,22 @@ function updateTransitList() {
   listEl.innerHTML = '';  // clear out old items
 
   pendingTransits.forEach(m => {
-    // build each line: "SWA2899 look up West, ✈️ heading North"
-    const lookDir = verbalizeCardinal(toCardinal(m.azimuth));
-    const headDir = verbalizeCardinal(toCardinal(m.track));
+  const lookDir = verbalizeCardinal(toCardinal(m.azimuth));
+  const headDir = verbalizeCardinal(toCardinal(m.track));
 
-    const li = document.createElement('li');
-    li.textContent = `${m.callsign} look up ${lookDir}, ✈️ heading ${headDir}`;
-    listEl.appendChild(li);
-  });
+  const li = document.createElement('li');
+
+  // create the clickable callsign
+  const a = document.createElement('a');
+  a.href   = `https://www.flightradar24.com/${m.callsign}`;
+  a.target = '_blank';
+  a.textContent = m.callsign;
+  li.appendChild(a);
+
+  // append the rest of the text
+  li.append(` look up ${lookDir}, ✈️ heading ${headDir}`);
+  listEl.appendChild(li);
+});
 }
 
 document.getElementById('dismissBtn').addEventListener('click', () => {
