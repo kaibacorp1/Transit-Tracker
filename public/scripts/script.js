@@ -484,32 +484,34 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
     body: JSON.stringify({ flights: flightObjs, userLat: uLat, userLon: uLon, userElev: uElev, bodyAz, bodyAlt, margin, predictSeconds, selectedBody })
   })
   .then(res => { if (!res.ok) throw new Error(res.status); return res.json(); })
-  .then(({ matches, error }) => {
+    .then(({ matches, error }) => {
     const statusEl = document.getElementById('transitStatus');
-    if (error) return statusEl.textContent = `❌ ${error}`;
-      if (matches.length) {
-  // play sound on every hit (unless muted)
-  if (!document.getElementById('muteToggle').checked) {
-    document.getElementById('alertSound').play().catch(()=>{});
-  }
 
-  // then enqueue & render as before
-  matches.forEach(m => pendingTransits.push(m));
-  if (!alertActive) alertActive = true;
-  updateTransitList();
-}
+    if (error) {
+      statusEl.textContent = `❌ ${error}`;
+      return;
+    }
 
-  // re-render the full list each time
-  updateTransitList();
+    if (matches.length) {
+      // play sound on every hit (unless muted)
+      if (!document.getElementById('muteToggle').checked) {
+        document.getElementById('alertSound').play().catch(() => {});
+      }
 
-} else if (!alertActive) {
-  // only clear the status if no alert is up
-  statusEl.textContent = `No aircraft aligned with the ${selectedBody} right now.`;
-}
+      // enqueue & render
+      matches.forEach(m => pendingTransits.push(m));
+      if (!alertActive) alertActive = true;
+      updateTransitList();
 
+    } else if (!alertActive) {
+      // only clear the status if no alert is up
+      statusEl.textContent = `No aircraft aligned with the ${selectedBody} right now.`;
+    }
   })
-  .catch(err => { console.error(err); document.getElementById('transitStatus').textContent = '🚫 Error checking transit.'; });
-}
+  .catch(err => {
+    console.error(err);
+    document.getElementById('transitStatus').textContent = '🚫 Error checking transit.';
+  });
 
 // --- UI Helpers for APIs & Tabs ---
 function saveCredentials() {
