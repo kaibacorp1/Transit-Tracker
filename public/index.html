@@ -92,9 +92,13 @@
   www.lifebeyondstars.com
 </a>
 
-  <div class="highlight" id="transitStatus" style="margin: 1rem 0; font-size: 1.5rem; font-weight: bold;">
-      Checking flights near the Moon...
-    </div>
+  <!-- Line 1: overall status (checking, “no flights”, errors) -->
+ <div class="highlight" id="statusCheck" style="margin: 1rem 0; font-size: 1.4rem; font-weight: bold;">
+   Checking flights near the Moon...
+ </div>
+
+ <!-- Line 2: individual transit reports (auto-expire after 30 s) -->
+ <div id="transitReports" style="margin-bottom: 1rem;"></div>
 
     <details id="dataSourceToggle" open>
     <summary>Data Source</summary>
