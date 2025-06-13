@@ -21,8 +21,10 @@ let predictSeconds = 0;
 let margin         = 2.5;
 
 // ↓ add these immediately after your other state-vars
-const alertContainer = document.getElementById('alertContainer');
+// Alert stack state (we’ll wire up the container after the DOM is ready)
+let alertContainer;
 const alerts = [];
+
 
 // --- Utility & Storage Helpers ---
 function getAviationstackKey() {
@@ -177,7 +179,11 @@ document.addEventListener('DOMContentLoaded', () => {
   navigator.geolocation.getCurrentPosition(success, error);
   // Initialize first tab
   showTab('adsboneTab');
+
+  // NOW that the DOM is parsed, grab our alert container
+  alertContainer = document.getElementById('alertContainer');
 });
+
 
 // --- UI Event Listeners ---
 document.getElementById('bodyToggle').addEventListener('change', e => {
@@ -545,37 +551,6 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
     document.getElementById('transitStatus')
             .textContent = '🚫 Error checking transit.';
   });
-
-
-    
-    // turn numbers into “look up…, heading …”
-     const lookDir = verbalizeCardinal(toCardinal(m.azimuth));
-     const headDir = verbalizeCardinal(toCardinal(m.track));
-     return `<a href="${url}" target="_blank" class="callsign">${m.callsign}</a>` +
-        ` (look up ${lookDir}, heading ${headDir})`;
-        }).join('<br>')
-       }`;
-      if (!document.getElementById('muteToggle').checked) document.getElementById('alertSound').play().catch(()=>{});
-      // For each detected flight, record a rich log entry
-matches.forEach(m => {
-  const label = predictSeconds > 0
-    ? `⚠️ Possible ${selectedBody} transit in ~${predictSeconds} sec`
-    : `🔭 Possible ${selectedBody} transit`;
-  logDetectionLocally(label, {
-    callsign:          m.callsign,
-    azimuth:           m.azimuth,
-    altitudeAngle:     m.altitudeAngle,
-    body:              selectedBody,
-    predictionSeconds: predictSeconds,
-    margin:            margin
-  });
-});
-    } else {
-      statusEl.textContent = `No aircraft aligned with the ${selectedBody} right now.`;
-    }
-  })
-  .catch(err => { console.error(err); document.getElementById('transitStatus').textContent = '🚫 Error checking transit.'; });
-}
 
 // --- UI Helpers for APIs & Tabs ---
 function saveCredentials() {
