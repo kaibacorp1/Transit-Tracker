@@ -69,21 +69,6 @@ function toCardinal(deg) {
   return dirs[Math.round(deg / 45) % 8];
 }
 
-// expand "N"/"NE"/… into full words
-function verbalizeCardinal(abbr) {
-  const map = {
-    N:  "North",
-    NE: "North East",
-    E:  "East",
-    SE: "South East",
-    S:  "South",
-    SW: "South West",
-    W:  "West",
-    NW: "North West"
-  };
-  return map[abbr] || abbr;
-}
-
 // Pick the right “welcome” message
 function setInitialStatus() {
   const statusEl = document.getElementById('transitStatus');
@@ -487,11 +472,8 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
       statusEl.innerHTML = `${label}<br>${
   matches.map(m => {
     const url = `https://www.flightradar24.com/${m.callsign}`;
-  // turn numbers into “look up…, heading …”
-    const lookDir = verbalizeCardinal(toCardinal(m.azimuth));
-    const headDir = verbalizeCardinal(toCardinal(m.track));
     return `<a href="${url}" target="_blank" class="callsign">${m.callsign}</a>` +
-        ` - look up ${lookDir},  ✈️ heading ${headDir} `;
+           ` (Az ${m.azimuth}°, Alt ${m.altitudeAngle}°, Dir ${toCardinal(m.track)})`;
   }).join('<br>')
 }`;
       if (!document.getElementById('muteToggle').checked) document.getElementById('alertSound').play().catch(()=>{});
