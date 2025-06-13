@@ -20,9 +20,6 @@ let locationMode   = 'auto';
 let predictSeconds = 0;
 let margin         = 2.5;
 
-const pendingTransits = [];
-let alertActive = false;
-
 // ⏰ Transit-queue state (add these right after line 16)
 const pendingTransits = [];
 const MAX_QUEUE_SIZE  = 20;
