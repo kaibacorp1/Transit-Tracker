@@ -20,6 +20,10 @@ let locationMode   = 'auto';
 let predictSeconds = 0;
 let margin         = 2.5;
 
+// ↓ add these immediately after your other state-vars
+const alertContainer = document.getElementById('alertContainer');
+const alerts = [];
+
 // --- Utility & Storage Helpers ---
 function getAviationstackKey() {
   return sessionStorage.getItem('aviationstackKey');
@@ -472,21 +476,57 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
 
   // ── Send the normalized array instead of the raw one ──
   fetch('/api/detect-transit', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ flights: flightObjs, userLat: uLat, userLon: uLon, userElev: uElev, bodyAz, bodyAlt, margin, predictSeconds, selectedBody })
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    flights: flightObjs,
+    userLat: uLat,
+    userLon: uLon,
+    userElev: uElev,
+    bodyAz,
+    bodyAlt,
+    margin,
+    predictSeconds,
+    selectedBody
   })
-  .then(res => { if (!res.ok) throw new Error(res.status); return res.json(); })
-  .then(({ matches, error }) => {
-    const statusEl = document.getElementById('transitStatus');
-    if (error) return statusEl.textContent = `❌ ${error}`;
-    if (matches.length) {
-      const label = predictSeconds > 0
-        ? `⚠️ Possible ${selectedBody} transit in ~${predictSeconds} sec:`
-        : `🔭 Possible ${selectedBody} transit:`;
-      statusEl.innerHTML = `${label}<br>${
-  matches.map(m => {
-    const url = `https://www.flightradar24.com/${m.callsign}`;
+})
+.then(res => {
+  if (!res.ok) throw new Error(res.status);
+  return res.json();
+})
+.then(({ matches, error }) => {
+  const statusEl = document.getElementById('transitStatus');
+  if (error) {
+    statusEl.textContent = `❌ ${error}`;
+    return;
+  }
+
+  if (matches.length) {
+    const label = predictSeconds > 0
+      ? `⚠️ Possible ${selectedBody} transit in ~${predictSeconds} sec:`
+      : `🔭 Possible ${selectedBody} transit:`;
+
+    matches.forEach(m => {
+      const lookDir = verbalizeCardinal(toCardinal(m.azimuth));
+      const headDir = verbalizeCardinal(toCardinal(m.track));
+      const url     = `https://www.flightradar24.com/${m.callsign}`;
+
+      addAlert(
+        `${label} ${m.callsign} — ` +
+        `<a href="${url}" target="_blank">Track on FR24</a> ` +
+        `(look up ${lookDir}, heading ${headDir})`
+      );
+    });
+
+  } else {
+    statusEl.textContent = `No aircraft aligned with the ${selectedBody} right now.`;
+  }
+})
+.catch(err => {
+  const statusEl = document.getElementById('transitStatus');
+  statusEl.textContent = `❌ ${err.message}`;
+});
+
     
     // turn numbers into “look up…, heading …”
      const lookDir = verbalizeCardinal(toCardinal(m.azimuth));
@@ -668,3 +708,30 @@ window.useRadarboxAPI  = useRadarboxAPI;
 
 // Expose ADSB-One handler globally
 window.useAdsbOneAPI    = useAdsbOneAPI;
+
+// Add a new alert, render immediately
+function addAlert(text) {
+  alerts.push({ text, ts: Date.now() });
+  renderAlerts();
+}
+
+// Re-draw only the alerts still younger than 30 s
+function renderAlerts() {
+  const cutoff = Date.now() - 30_000;
+  alertContainer.innerHTML = alerts
+    .filter(a => a.ts > cutoff)
+    .map(a => `<div class="alert">${a.text}</div>`)
+    .join('');
+}
+
+// Sweep away alerts older than 30 s every 5 s
+setInterval(() => {
+  const cutoff = Date.now() - 30_000;
+  let dirty = false;
+  while (alerts.length && alerts[0].ts <= cutoff) {
+    alerts.shift();
+    dirty = true;
+  }
+  if (dirty) renderAlerts();
+}, 5_000);
+
