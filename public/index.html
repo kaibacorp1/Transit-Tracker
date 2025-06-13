@@ -92,25 +92,18 @@
   www.lifebeyondstars.com
 </a>
 
-    <!-- around line 95, swap out your old transitAlertContainer -->
-  <div id="transitAlertContainer"
-       class="highlight"
-       style="margin:1rem 0; font-size:1.4rem; font-weight:bold; display:none;">
+ <!-- always-visible status -->
+<div id="transitStatus"
+     style="margin:1rem 0; font-size:1.4rem; font-weight:bold;">
+  <!-- JS will write “Checking ADSB-One flights…” here -->
+</div>
 
-    <!-- the normal status line stays here -->
-    <div id="transitStatus"></div>
-
-    <!-- our new list of all picked-up transits -->
-    <ul id="transitList" style="list-style:none; padding-left:0; margin:0.5rem 0;">
-      <!-- JS will inject <li>…</li> items here -->
-    </ul>
-
-    <!-- only need a Dismiss button now -->
-    <button id="dismissBtn"
-            style="margin-top:0.5rem; padding:0.4rem 0.8rem;">
-      Dismiss
-    </button>
-  </div>
+<!-- only hide the alert list + dismiss -->
+<div id="transitAlertContainer"
+     style="display:none; margin-bottom:1rem;">
+  <ul id="transitList" style="list-style:none; padding:0; margin:0.5rem 0;"></ul>
+  <button id="dismissBtn" style="padding:0.4rem 0.8rem;">Dismiss</button>
+</div>
 
 
     <details id="dataSourceToggle" open>
