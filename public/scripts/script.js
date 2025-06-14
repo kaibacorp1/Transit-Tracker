@@ -497,28 +497,28 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
     if (matches.length) {
   // 1) Update line 1 exactly as before, but pick the first match
   const m = matches[0];
-      const azCard  = verbalizeCardinal(toCardinal(m.azimuth));
-      const hdgCard = verbalizeCardinal(toCardinal(m.heading));
-      
-  const statusMsg = `🔭 Possible sun transit: `
-                  + `<a href="https://www.flightradar24.com/${m.callsign}"`
-                  + ` target="_blank" rel="noopener noreferrer">`
-                  + `${m.callsign}</a> `
-                  + `look up ${m.az}, ✈️ heading ${m.dir}`;
-      statusEl.innerHTML = statusMsg;
+const azCard  = verbalizeCardinal(toCardinal(m.azimuth));
+const hdgCard = verbalizeCardinal(toCardinal(m.heading));
+
+const statusMsg = `🔭 Possible ${selectedBody} transit: `
+                + `<a href="https://www.flightradar24.com/${m.callsign}"`
+                + ` target="_blank" rel="noopener noreferrer">`
+                + `${m.callsign}</a> `
+                + `look up ${azCard}, ✈️ heading ${hdgCard}`;
+statusEl.innerHTML = statusMsg;
 
   // 2) Append _all_ new hits to the log
   matches.forEach(m => {
-       const azCard  = verbalizeCardinal(toCardinal(m.azimuth));
-       const hdgCard = verbalizeCardinal(toCardinal(m.heading));
-    
-    const li = document.createElement('li');
-    li.innerHTML = `<a href="https://www.flightradar24.com/${m.callsign}"`
-                 + ` target="_blank" rel="noopener noreferrer">`
-                 + `${m.callsign}</a> look up ${m.az}, ✈️ heading ${m.dir}`;
-    logListEl.appendChild(li);
-    transitLog.push(m.callsign);  // optional, for de-dupe or inspection
-  });
+  const azCard  = verbalizeCardinal(toCardinal(m.azimuth));
+  const hdgCard = verbalizeCardinal(toCardinal(m.heading));
+
+  const li = document.createElement('li');
+  li.innerHTML = `<a href="https://www.flightradar24.com/${m.callsign}"`
+               + ` target="_blank" rel="noopener noreferrer">`
+               + `${m.callsign}</a> look up ${azCard}, ✈️ heading ${hdgCard}`;
+  logListEl.appendChild(li);
+  transitLog.push(m.callsign);
+});
 
   // 3) Make sure the log panel is visible
   logContainer.style.display = 'block';
