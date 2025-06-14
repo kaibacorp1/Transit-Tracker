@@ -498,7 +498,7 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
   // 1) Update line 1 exactly as before, but pick the first match
   const m = matches[0];
   const azCard  = verbalizeCardinal(toCardinal(m.azimuth));
-  const hdgCard = verbalizeCardinal(toCardinal(m.heading));
+  const hdgCard = verbalizeCardinal(toCardinal(m.track));
  
   const statusMsg = `🔭 Possible ${selectedBody} transit: `
                  + `<a href="https://www.flightradar24.com/${m.callsign}"`
@@ -510,7 +510,7 @@ statusEl.innerHTML = statusMsg;
   // 2) Append _all_ new hits to the log
   matches.forEach(m => {
    const azCard2  = verbalizeCardinal(toCardinal(m.azimuth));
-   const hdgCard2 = verbalizeCardinal(toCardinal(m.heading));
+   const hdgCard2 = verbalizeCardinal(toCardinal(m.track));
    const li = document.createElement('li');
    li.innerHTML = `<a href="https://www.flightradar24.com/${m.callsign}"`
                 + ` target="_blank" rel="noopener noreferrer">`
