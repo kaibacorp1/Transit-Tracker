@@ -502,7 +502,7 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
                   + ` target="_blank" rel="noopener noreferrer">`
                   + `${m.callsign}</a> `
                   + `look up ${m.az}, ✈️ heading ${m.dir}`;
-  transitStatusEl.innerHTML = statusMsg;
+      statusEl.innerHTML = statusMsg;
 
   // 2) Append _all_ new hits to the log
   matches.forEach(m => {
@@ -519,9 +519,9 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
 
   // … keep your existing alert sound & localStorage logging …
 }
-else {
-  transitStatusEl.textContent = 'No aircraft aligned with the sun right now.';
-}
+ else {
+    statusEl.textContent = 'No aircraft aligned with the sun right now.';
+  }
 
   })
   .catch(err => { console.error(err); document.getElementById('transitStatus').textContent = '🚫 Error checking transit.'; });
