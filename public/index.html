@@ -92,9 +92,16 @@
   www.lifebeyondstars.com
 </a>
 
-  <div class="highlight" id="transitStatus" style="margin: 1rem 0; font-size: 1.4rem; font-weight: bold;">
-      Checking flights near the Moon...
+    <div class="highlight" id="transitStatus" style="margin: 1rem 0; font-size: 1.4rem; font-weight: bold;">
+    Checking flights near the Moon...
     </div>
+    <!-- Line 2: persistent transit log -->
+    <div id="transitLogContainer" style="display:none; margin-top:1em;">
+    <strong>🔭 Possible sun transit:</strong>
+    <ul id="transitLogList" style="padding-left:1.2em;"></ul>
+    <button id="dismissLogBtn" style="margin-top:0.5em;">Dismiss</button>
+    </div>
+
 
     <details id="dataSourceToggle" open>
     <summary>Data Source</summary>
