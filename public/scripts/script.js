@@ -497,6 +497,9 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
     if (matches.length) {
   // 1) Update line 1 exactly as before, but pick the first match
   const m = matches[0];
+      const azCard  = verbalizeCardinal(toCardinal(m.azimuth));
+      const hdgCard = verbalizeCardinal(toCardinal(m.heading));
+      
   const statusMsg = `🔭 Possible sun transit: `
                   + `<a href="https://www.flightradar24.com/${m.callsign}"`
                   + ` target="_blank" rel="noopener noreferrer">`
@@ -506,6 +509,9 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
 
   // 2) Append _all_ new hits to the log
   matches.forEach(m => {
+       const azCard  = verbalizeCardinal(toCardinal(m.azimuth));
+       const hdgCard = verbalizeCardinal(toCardinal(m.heading));
+    
     const li = document.createElement('li');
     li.innerHTML = `<a href="https://www.flightradar24.com/${m.callsign}"`
                  + ` target="_blank" rel="noopener noreferrer">`
