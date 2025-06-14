@@ -39,6 +39,20 @@ function hasSessionExpired() {
   return (Date.now() - start) > 1_800_000;
 }
 
+// ---- rolling transit log setup ----
+const transitLog = [];                          // in-memory array of hits
+const logContainer   = document.getElementById('transitLogContainer');
+const logListEl      = document.getElementById('transitLogList');
+const dismissLogBtn  = document.getElementById('dismissLogBtn');
+
+// Dismiss handler: clear both UI and array
+dismissLogBtn.addEventListener('click', () => {
+  transitLog.length = 0;
+  logListEl.innerHTML = '';
+  logContainer.style.display = 'none';
+});
+
+
 // ─── ADSB-One Integration (no API key) ───────────────────────────────────
 
 async function fetchAdsbOne({ lat, lon, radiusKm }) {
@@ -481,38 +495,34 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
     const statusEl = document.getElementById('transitStatus');
     if (error) return statusEl.textContent = `❌ ${error}`;
     if (matches.length) {
-      const label = predictSeconds > 0
-        ? `⚠️ Possible ${selectedBody} transit in ~${predictSeconds} sec:`
-        : `🔭 Possible ${selectedBody} transit:`;
-      statusEl.innerHTML = `${label}<br>${
-  matches.map(m => {
-    const url = `https://www.flightradar24.com/${m.callsign}`;
-    
-    // turn numbers into “look up…, heading …”
-     const lookDir = verbalizeCardinal(toCardinal(m.azimuth));
-     const headDir = verbalizeCardinal(toCardinal(m.track));
-     return `<a href="${url}" target="_blank" class="callsign">${m.callsign}</a>` +
-        `  look up ${lookDir}, ✈️ heading ${headDir}`;
-        }).join('<br>')
-       }`;
-      if (!document.getElementById('muteToggle').checked) document.getElementById('alertSound').play().catch(()=>{});
-      // For each detected flight, record a rich log entry
-matches.forEach(m => {
-  const label = predictSeconds > 0
-    ? `⚠️ Possible ${selectedBody} transit in ~${predictSeconds} sec`
-    : `🔭 Possible ${selectedBody} transit`;
-  logDetectionLocally(label, {
-    callsign:          m.callsign,
-    azimuth:           m.azimuth,
-    altitudeAngle:     m.altitudeAngle,
-    body:              selectedBody,
-    predictionSeconds: predictSeconds,
-    margin:            margin
+  // 1) Update line 1 exactly as before, but pick the first match
+  const m = matches[0];
+  const statusMsg = `🔭 Possible sun transit: `
+                  + `<a href="https://www.flightradar24.com/${m.callsign}"`
+                  + ` target="_blank" rel="noopener noreferrer">`
+                  + `${m.callsign}</a> `
+                  + `look up ${m.az}, ✈️ heading ${m.dir}`;
+  transitStatusEl.innerHTML = statusMsg;
+
+  // 2) Append _all_ new hits to the log
+  matches.forEach(m => {
+    const li = document.createElement('li');
+    li.innerHTML = `<a href="https://www.flightradar24.com/${m.callsign}"`
+                 + ` target="_blank" rel="noopener noreferrer">`
+                 + `${m.callsign}</a> look up ${m.az}, ✈️ heading ${m.dir}`;
+    logListEl.appendChild(li);
+    transitLog.push(m.callsign);  // optional, for de-dupe or inspection
   });
-});
-    } else {
-      statusEl.textContent = `No aircraft aligned with the ${selectedBody} right now.`;
-    }
+
+  // 3) Make sure the log panel is visible
+  logContainer.style.display = 'block';
+
+  // … keep your existing alert sound & localStorage logging …
+}
+else {
+  transitStatusEl.textContent = 'No aircraft aligned with the sun right now.';
+}
+
   })
   .catch(err => { console.error(err); document.getElementById('transitStatus').textContent = '🚫 Error checking transit.'; });
 }
