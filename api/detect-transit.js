@@ -9,18 +9,17 @@ export default async function handler(req, res) {
   const { detectTransits } = await import('../utils/transitUtils.js');
 
   try {
-       const {
-       flights,
-       userLat,
-       userLon,
-       userElev = 0,
-       bodyAz,
-       bodyAlt,
-       margin = 2.5,
-       predictSeconds = 0,
-       useKalman   = false,       // <-- new flag
+    const {
+      flights,
+      userLat,
+      userLon,
+      userElev = 0,
+      bodyAz,
+      bodyAlt,
+      margin = 2.5,
+      predictSeconds = 0,
       selectedBody = 'moon'
-     } = req.body;
+    } = req.body;
 
     // validate required inputs
     if (
@@ -43,7 +42,6 @@ export default async function handler(req, res) {
       bodyAlt,
       margin,
       predictSeconds,
-      useKalman,                // <-- forward the flag
       selectedBody
     });
 
