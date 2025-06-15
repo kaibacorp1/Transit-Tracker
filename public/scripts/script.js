@@ -508,8 +508,8 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
      >
             ${m.callsign}
      </a> `
-     `<span style="font-size:0.85em;">`
-    +  `look up ${azCard}, ✈️ heading ${hdgCard}`
+    + `<span style="font-size:0.85em;">`
+    + `look up ${azCard}, ✈️ heading ${hdgCard}`
     + `</span>`
 }).join('<br>');
 
