@@ -197,6 +197,12 @@ document.getElementById('bodyToggle').addEventListener('change', e => {
   document.getElementById('bodyLabel').textContent =
     selectedBody === 'moon' ? 'Moon' : 'Sun';
   getCurrentLocationAndRun();
+  if (selectedBody === 'both') {
+  document.getElementById('trackerTitle').textContent = '☀️ + 🌙';
+  document.getElementById('bodyLabel').textContent   = 'Sun & Moon';
+} else {
+  // your existing two-branch logic
+}
 });
 
 document.getElementById('radiusSelect').addEventListener('change', getCurrentLocationAndRun);
@@ -329,6 +335,14 @@ function updateLocationUI(lat, lon, elev) {
   document.getElementById('lon').textContent       = lon.toFixed(6);
   document.getElementById('elevation').textContent = elev.toFixed(1);
 }
+//---- get bodies for both sun and moon 
+
+function getBodies() {
+  return selectedBody === 'both'
+    ? ['sun','moon']
+    : [selectedBody];
+}
+
 
 // --- Celestial & Flight Logic ---
 function getCurrentLocationAndRun() {
@@ -386,7 +400,7 @@ function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt, body) {
     fetchRadarBox({ minLat, maxLat, minLon, maxLon })
       .then(data => callTransitAPI(data, uLat, uLon, uElev, bodyAz, bodyAlt, body);
       .catch(err => {
-        statusEl.textContent = `🚫 RadarBox error: ${err.message}`;
+        statusEl.textContent = `🚫 RadarBox error: ${err.message}`;)
       });
     return;
   }
@@ -460,7 +474,7 @@ function checkAdsbExchangeFlights(userLat, userLon, userElev, bodyAz, bodyAlt) {
       const flights = Array.isArray(data.ac)
         ? data.ac.map(ac => [ ac.hex||'', ac.flight||'', null, null, null, ac.lon, ac.lat, null, null, ac.gs, ac.track, null, null, ac.alt_geom||0 ])
         : [];
-      callTransitAPI(flights, userLat, userLon, userElev, bodyAz, bodyAlt);
+      callTransitAPI(flights, userLat, userLon, userElev, bodyAz, bodyAlt, body);
     })
     .catch(() => { document.getElementById('transitStatus').textContent = '🚫 Error fetching ADS-B Exchange data.'; });
 }
@@ -523,6 +537,7 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
     + `</span>`
 }).join('<br>');
 
+const label = body.charAt(0).toUpperCase() + body.slice(1);     
 const statusMsg = `🔭 Possible ${selectedBody} transit:<br>${statusLines}`;
 statusEl.innerHTML = statusMsg;
 
