@@ -525,12 +525,7 @@ statusEl.innerHTML = statusMsg;
    const timeStr = new Date().toLocaleTimeString('en-GB', { hour12: false });
 
    const li = document.createElement('li');
-   li.innerHTML = `<a
-                   href="https://www.flightradar24.com/${m.callsign}"
-                   target="_blank"
-                   rel="noopener noreferrer"
-                   style="color:orange;font-weight:bold;text-decoration:none;"
-                 >
+   li.innerHTML = `<a href="https://www.flightradar24.com/${m.callsign}"…>`
               + `${m.callsign}</a> look up ${azCard2}, ✈️ heading ${hdgCard2} `
               + timeStr;
   logListEl.appendChild(li);
