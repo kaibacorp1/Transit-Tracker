@@ -55,6 +55,7 @@ export function detectTransits({
   userLon,
   userElev = 0,
   predictSeconds = 0,
+  useKalman    = false,   // ← new flag
   selectedBody
 }) {
   const matches = [];
