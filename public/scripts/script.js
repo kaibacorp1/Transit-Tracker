@@ -350,18 +350,28 @@ function getCurrentLocationAndRun() {
 
 function getCelestialPosition(lat, lon, elev) {
   const now = new Date();
-  const pos = selectedBody === 'moon'
-    ? SunCalc.getMoonPosition(now, lat, lon)
-    : SunCalc.getPosition(now, lat, lon);
-  const az  = (pos.azimuth * 180) / Math.PI + 180;
-  const alt = (pos.altitude * 180) / Math.PI;
-  document.getElementById('moonAz').textContent = az.toFixed(2);
-  document.getElementById('moonAlt').textContent= alt.toFixed(2);
-  checkNearbyFlights(lat, lon, elev, az, alt);
+  getBodies().forEach(body => {
+    // 1) compute pos/az/alt for this body
+    const pos = (body === 'moon')
+      ? SunCalc.getMoonPosition(now, lat, lon)
+      : SunCalc.getPosition   (now, lat, lon);
+    const az  = (pos.azimuth  * 180) / Math.PI + 180;
+    const alt = (pos.altitude * 180) / Math.PI;
+
+    // 2) update the UI (you can reuse the same elements,
+    //    or switch on `body` to fill different spots)
+    document.getElementById(`${body}Az`).textContent  = az.toFixed(2);
+    document.getElementById(`${body}Alt`).textContent = alt.toFixed(2);
+
+    // 3) run your usual flight check, passing `body` so
+    //    your downstream code can label alerts correctly
+    checkNearbyFlights(lat, lon, elev, az, alt, body);
+  });
 }
 
+
 // --- Flight Fetching & Backend Detection ---
-function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
+function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt, body) {
   const statusEl = document.getElementById('transitStatus');
   statusEl.textContent = `Checking flights near the ${selectedBody}...`;
   const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
@@ -374,7 +384,7 @@ function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
 
     statusEl.textContent = 'Checking RadarBox flights…';
     fetchRadarBox({ minLat, maxLat, minLon, maxLon })
-      .then(data => callTransitAPI(data, uLat, uLon, uElev, bodyAz, bodyAlt))
+      .then(data => callTransitAPI(data, uLat, uLon, uElev, bodyAz, bodyAlt, body);
       .catch(err => {
         statusEl.textContent = `🚫 RadarBox error: ${err.message}`;
       });
