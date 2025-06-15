@@ -2,6 +2,11 @@
 
 import SunCalc from 'suncalc';
 
+// utils/transitUtils.js
+import Kalman4 from './kalman4';
+const kalmanFilters = new Map();   // icao24 → Kalman4 instance
+
+
 /**
  * Projects a moving objectâ€™s future position given speed and heading.
  */
@@ -69,13 +74,25 @@ export function detectTransits({
   for (const plane of flights) {
      let { latitude, longitude, altitude: geoAlt, heading, speed, callsign, track } = plane;
 
-    // Project plane if predictive mode enabled and data available
-    if (predictSeconds > 0 && heading != null && speed != null) {
-      const proj = projectPosition(latitude, longitude, heading, speed, predictSeconds);
-      latitude = proj.lat;
-      longitude = proj.lon;
-      // geoAlt unchanged; adjust if you have climb/descent rate
-    }
+    // ⚙️ Kalman‐guarded prediction
+if (useKalman && predictSeconds > 0 && heading != null && speed != null) {
+  let kf = kalmanFilters.get(icao24);
+  if (!kf) {
+    kf = new Kalman4(latitude, longitude);
+    kalmanFilters.set(icao24, kf);
+  }
+  // feed the raw ping
+  kf.correct({ lat: latitude, lon: longitude, speed, track });
+  // get the Kalman‐predicted lat/lon
+  ({ lat: latitude, lon: longitude } = kf.predict(predictSeconds));
+}
+else if (predictSeconds > 0 && heading != null && speed != null) {
+  // fallback to your existing straight‐line extrapolation
+  const proj = projectPosition(latitude, longitude, heading, speed, predictSeconds);
+  latitude  = proj.lat;
+  longitude = proj.lon;
+}
+
 
     // Quick box pre-filter
     const azimuth = calculateAzimuth(userLat, userLon, latitude, longitude);
