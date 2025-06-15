@@ -76,25 +76,7 @@ async function fetchAdsbOne({ lat, lon, radiusKm }) {
  }));
 }
 
-// ── Kalman toggle setup ────────────────────────────
-// Persisted between reloads
-let kalmanEnabled = JSON.parse(localStorage.getItem('kalmanEnabled') || 'false');
-
-// Grab the checkbox (make sure your HTML has <input id="kalmanToggle" type="checkbox">)
-const kalmanToggle = document.getElementById('kalmanToggle');
-if (kalmanToggle) {
-  // Initialize its checked state
-  kalmanToggle.checked = kalmanEnabled;
-
-  // Update flag & localStorage on change
-  kalmanToggle.addEventListener('change', e => {
-    kalmanEnabled = e.target.checked;
-    localStorage.setItem('kalmanEnabled', JSON.stringify(kalmanEnabled));
-  });
-}
-
-
-//______________
+// ——————————————————————————
 
 function toCardinal(deg) {
   const dirs = ['N','NE','E','SE','S','SW','W','NW','N'];
@@ -506,7 +488,7 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
   fetch('/api/detect-transit', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ flights: flightObjs, userLat: uLat, userLon: uLon, userElev: uElev, bodyAz, bodyAlt, margin, predictSeconds, useKalman: kalmanEnabled,selectedBody })
+    body: JSON.stringify({ flights: flightObjs, userLat: uLat, userLon: uLon, userElev: uElev, bodyAz, bodyAlt, margin, predictSeconds, selectedBody })
   })
   .then(res => { if (!res.ok) throw new Error(res.status); return res.json(); })
   .then(({ matches, error }) => {
@@ -527,7 +509,7 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
             ${m.callsign}
      </a> `
     + `<span style="font-size:0.85em;">`
-    + `look up ${azCard}, ✈️ heading ${hdgCard}`
+    +   `look up ${azCard}, ✈️ heading ${hdgCard}`
     + `</span>`
 }).join('<br>');
 
