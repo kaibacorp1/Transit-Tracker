@@ -496,21 +496,23 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
     if (error) return statusEl.textContent = `❌ ${error}`;
     if (matches.length) {
   // 1) Update line 1 exactly as before, but pick the first match
-  const m = matches[0];
+  // BUILD a status line showing *every* match
+ const statusLines = matches.map(m => {
   const azCard  = verbalizeCardinal(toCardinal(m.azimuth));
   const hdgCard = verbalizeCardinal(toCardinal(m.track));
- 
-  const statusMsg = 
-  `🔭 Possible ${selectedBody} transit:<br>` +
-  `<a 
-     href="https://www.flightradar24.com/${m.callsign}" 
-     target="_blank" 
-     rel="noopener noreferrer" 
-     style="color:orange;font-weight:bold;"
-   >
-     ${m.callsign}
-   </a> look up ${azCard}, ✈️ heading ${hdgCard}`;
+  return `<a
+            href="https://www.flightradar24.com/${m.callsign}"
+            target="_blank"
+            rel="noopener noreferrer"
+            style="color:orange;font-weight:bold;"
+          >
+            ${m.callsign}
+          </a> look up ${azCard}, ✈️ heading ${hdgCard}`;
+}).join('<br>');
+
+const statusMsg = `🔭 Possible ${selectedBody} transit:<br>${statusLines}`;
 statusEl.innerHTML = statusMsg;
+
 
 
   // 2) Append _all_ new hits to the log
