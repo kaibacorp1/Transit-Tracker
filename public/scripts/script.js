@@ -488,7 +488,7 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
   fetch('/api/detect-transit', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ flights: flightObjs, userLat: uLat, userLon: uLon, userElev: uElev, bodyAz, bodyAlt, margin, predictSeconds, selectedBody })
+    body: JSON.stringify({ flights: flightObjs, userLat: uLat, userLon: uLon, userElev: uElev, bodyAz, bodyAlt, margin, predictSeconds, useKalman: settings.kalmanEnabled,selectedBody })
   })
   .then(res => { if (!res.ok) throw new Error(res.status); return res.json(); })
   .then(({ matches, error }) => {
