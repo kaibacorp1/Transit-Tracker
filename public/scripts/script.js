@@ -519,10 +519,12 @@ statusEl.innerHTML = statusMsg;
   matches.forEach(m => {
    const azCard2  = verbalizeCardinal(toCardinal(m.azimuth));
    const hdgCard2 = verbalizeCardinal(toCardinal(m.track));
+   const timeStr = new Date().toLocaleTimeString('en-GB', { hour12: false });
+
    const li = document.createElement('li');
-   li.innerHTML = `<a href="https://www.flightradar24.com/${m.callsign}"`
-                + ` target="_blank" rel="noopener noreferrer">`
-                + `${m.callsign}</a> look up ${azCard2}, ✈️ heading ${hdgCard2}`;
+   li.innerHTML = `<a href="https://www.flightradar24.com/${m.callsign}"…>`
+              + `${m.callsign}</a> look up ${azCard2}, ✈️ heading ${hdgCard2} `
+              + timeStr;
   logListEl.appendChild(li);
   transitLog.push(m.callsign);
 });
