@@ -89,6 +89,22 @@ if (kalmanToggle) {
   });
 }
 
+// ── Kalman toggle setup ────────────────────────────
+// Persisted between reloads
+let kalmanEnabled = JSON.parse(localStorage.getItem('kalmanEnabled') || 'false');
+
+// Grab the checkbox (make sure your HTML has <input id="kalmanToggle" type="checkbox">)
+const kalmanToggle = document.getElementById('kalmanToggle');
+if (kalmanToggle) {
+  // Initialize its checked state
+  kalmanToggle.checked = kalmanEnabled;
+
+  // Update flag & localStorage on change
+  kalmanToggle.addEventListener('change', e => {
+    kalmanEnabled = e.target.checked;
+    localStorage.setItem('kalmanEnabled', JSON.stringify(kalmanEnabled));
+  });
+}
 
 
 //______________
@@ -503,7 +519,7 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
   fetch('/api/detect-transit', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ flights: flightObjs, userLat: uLat, userLon: uLon, userElev: uElev, bodyAz, bodyAlt, margin, predictSeconds, useKalman: settings.kalmanEnabled,selectedBody })
+    body: JSON.stringify({ flights: flightObjs, userLat: uLat, userLon: uLon, userElev: uElev, bodyAz, bodyAlt, margin, predictSeconds, useKalman: kalmanEnabled,selectedBody })
   })
   .then(res => { if (!res.ok) throw new Error(res.status); return res.json(); })
   .then(({ matches, error }) => {
