@@ -78,6 +78,16 @@ async function fetchAdsbOne({ lat, lon, radiusKm }) {
 
 // ——————————————————————————
 
+const kalmanCheckbox = document.getElementById('kalmanToggle');
+// Initialize from any saved setting
+kalmanCheckbox.checked = JSON.parse(localStorage.getItem('kalmanEnabled') || 'false');
+kalmanCheckbox.addEventListener('change', e => {
+  localStorage.setItem('kalmanEnabled', JSON.stringify(e.target.checked));
+});
+
+
+//______________
+
 function toCardinal(deg) {
   const dirs = ['N','NE','E','SE','S','SW','W','NW','N'];
   return dirs[Math.round(deg / 45) % 8];
