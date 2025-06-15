@@ -526,8 +526,8 @@ statusEl.innerHTML = statusMsg;
 
    const li = document.createElement('li');
    li.innerHTML = `<a href="https://www.flightradar24.com/${m.callsign}"…>`
-              + `${m.callsign}</a> look up ${azCard2}, ✈️ heading ${hdgCard2} `
-              + timeStr;
+              `${m.callsign}</a> look up ${azCard2}, ✈️ heading ${hdgCard2} `
+               timeStr;
   logListEl.appendChild(li);
   transitLog.push(m.callsign);
 });
