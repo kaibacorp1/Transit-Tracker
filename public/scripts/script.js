@@ -507,8 +507,10 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
             style="color:orange;font-weight:bold;"
           >
             ${m.callsign}
-            + `<span style="font-size:0.85em;">`
-          </a> look up ${azCard}, ✈️ heading ${hdgCard}`;
+     </a> `
+    + `<span style="font-size:0.85em;">`
+    +   `look up ${azCard}, ✈️ heading ${hdgCard}`
+    + `</span>`
 }).join('<br>');
 
 const statusMsg = `🔭 Possible ${selectedBody} transit:<br>${statusLines}`;
