@@ -505,6 +505,8 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
             target="_blank"
             rel="noopener noreferrer"
             style="color:orange;font-weight:bold;"
+            style="color:orange;font-weight:bold;text-decoration:none;"
+          
           >
             ${m.callsign}
      </a> `
