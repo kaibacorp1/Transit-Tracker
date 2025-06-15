@@ -78,12 +78,17 @@ async function fetchAdsbOne({ lat, lon, radiusKm }) {
 
 // ——————————————————————————
 
-const kalmanCheckbox = document.getElementById('kalmanToggle');
-// Initialize from any saved setting
-kalmanCheckbox.checked = JSON.parse(localStorage.getItem('kalmanEnabled') || 'false');
-kalmanCheckbox.addEventListener('change', e => {
-  localStorage.setItem('kalmanEnabled', JSON.stringify(e.target.checked));
-});
+// Initialise Kalman toggle from localStorage (so it “sticks” between reloads)
+let kalmanEnabled = JSON.parse(localStorage.getItem('kalmanEnabled') || 'false');
+const kalmanToggle = document.getElementById('kalmanToggle');
+if (kalmanToggle) {
+  kalmanToggle.checked = kalmanEnabled;
+  kalmanToggle.addEventListener('change', e => {
+    kalmanEnabled = e.target.checked;
+    localStorage.setItem('kalmanEnabled', JSON.stringify(kalmanEnabled));
+  });
+}
+
 
 
 //______________
