@@ -500,7 +500,7 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
  const statusLines = matches.map(m => {
   const azCard  = verbalizeCardinal(toCardinal(m.azimuth));
   const hdgCard = verbalizeCardinal(toCardinal(m.track));
-  return `+ <a
+  return ` <a
      href="https://www.flightradar24.com/${m.callsign}"
      target="_blank"
      rel="noopener noreferrer"
