@@ -500,14 +500,12 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
  const statusLines = matches.map(m => {
   const azCard  = verbalizeCardinal(toCardinal(m.azimuth));
   const hdgCard = verbalizeCardinal(toCardinal(m.track));
-  return `<a
-            href="https://www.flightradar24.com/${m.callsign}"
-            target="_blank"
-            rel="noopener noreferrer"
-            style="color:orange;font-weight:bold;"
-            style="color:orange;font-weight:bold;text-decoration:none;"
-          
-          >
+  return `+ <a
+     href="https://www.flightradar24.com/${m.callsign}"
+     target="_blank"
+     rel="noopener noreferrer"
+     style="color:orange;font-weight:bold;text-decoration:none;"
+     >
             ${m.callsign}
      </a> `
     + `<span style="font-size:0.85em;">`
@@ -527,7 +525,12 @@ statusEl.innerHTML = statusMsg;
    const timeStr = new Date().toLocaleTimeString('en-GB', { hour12: false });
 
    const li = document.createElement('li');
-   li.innerHTML = `<a href="https://www.flightradar24.com/${m.callsign}"…>`
+   li.innerHTML = `<a
+                   href="https://www.flightradar24.com/${m.callsign}"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   style="color:orange;font-weight:bold;text-decoration:none;"
+                 >
               + `${m.callsign}</a> look up ${azCard2}, ✈️ heading ${hdgCard2} `
               + timeStr;
   logListEl.appendChild(li);
