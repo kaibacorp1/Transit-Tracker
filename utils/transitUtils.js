@@ -89,6 +89,11 @@ export function detectTransits({
       // Precise spherical check
       const sep = sphericalSeparation(azimuth, elevationAngle, futureBodyAz, futureBodyAlt);
       if (sep < margin) {
+  // Also check if aircraft is heading toward the body
+const headingToBody = Math.abs(((heading - futureBodyAz + 540) % 360) - 180);
+
+// If it's either close in spherical separation OR flying toward the body
+if (sep < margin || headingToBody < 12) {
   matches.push({
     callsign,
     azimuth: azimuth.toFixed(1),
@@ -96,9 +101,10 @@ export function detectTransits({
     distance: distance.toFixed(1),
     selectedBody,
     predictionSeconds: predictSeconds,
-    track: heading || 0  // <-- Add this line to fix "undefined heading"
+    track: heading || 0
   });
 }
+
 
     }
   }
