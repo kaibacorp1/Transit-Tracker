@@ -228,9 +228,13 @@ document.getElementById('locationMode').addEventListener('change', e => {
 document.getElementById('refreshBtn')
         .addEventListener('click', () => {
           if (hasSessionExpired()) {
-            alert("⏳ Time expired. Let the pass cool for a bit now.");
-            return;
-          }
+          const lockSound = new Audio('/public/lock.MP3');
+         lockSound.play().catch(() => {});
+
+         alert("⏳ Time expired. Let the pass cool for a bit now.");
+         stopAutoRefresh();  // 🛑 stop the countdown loop
+        return;
+        }
           getCurrentLocationAndRun();
         });
 
