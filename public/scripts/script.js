@@ -515,6 +515,10 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
 
 const statusMsg = `🔭 Possible ${selectedBody} transit:<br>${statusLines}`;
 statusEl.innerHTML = statusMsg;
+    // 🔔 play alert sound
+    if (!document.getElementById('muteToggle').checked) {
+      document.getElementById('alertSound').play().catch(()=>{});
+    }
 
 
 
