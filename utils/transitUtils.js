@@ -89,15 +89,17 @@ export function detectTransits({
       // Precise spherical check
       const sep = sphericalSeparation(azimuth, elevationAngle, futureBodyAz, futureBodyAlt);
       if (sep < margin) {
-        matches.push({
-          callsign,
-          azimuth: azimuth.toFixed(1),
-          altitudeAngle: elevationAngle.toFixed(1),
-          distance: distance.toFixed(1),
-          selectedBody,
-          predictionSeconds: predictSeconds
-        });
-      }
+  matches.push({
+    callsign,
+    azimuth: azimuth.toFixed(1),
+    altitudeAngle: elevationAngle.toFixed(1),
+    distance: distance.toFixed(1),
+    selectedBody,
+    predictionSeconds: predictSeconds,
+    track: heading || 0  // <-- Add this line to fix "undefined heading"
+  });
+}
+
     }
   }
 
