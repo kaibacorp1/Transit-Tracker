@@ -684,11 +684,17 @@ function startAutoRefresh() {
     countdown--;
     updateCountdownDisplay();
     if (countdown <= 0) {
+     
+      
       // ←► HERE: session timeout check
       if (hasSessionExpired()) {
-        alert("⏳ Time expired. Let the pass cool for a bit now.");
-        return;
-      }
+  const lockSound = new Audio('lock.MP3');
+  lockSound.play().catch(() => {});
+  alert("⏳ Time expired. Let the pass cool for a bit now.");
+  stopAutoRefresh(); // stop the countdown as well
+  return;
+}
+
       getCurrentLocationAndRun();
       updateCountdown();
     }
