@@ -464,10 +464,10 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
       return {
         latitude:  f[6],
         longitude: f[5],
-        altitude:  (f[7] != null ? f[7] : f[13]) || 0,
+        altitude:  ((f[7] != null ? f[7] : f[13]) || 0) * 0.3048,  // feet ➝ meters
         heading:   f[10] || 0,
         track:     f[10] || 0,    // ← duplicate here
-        speed:     f[9]  || 0,
+        speed:     (f[9] || 0) * 0.5144,                          // knots ➝ m/s
         callsign:  f[1]  || ''
       };
     } else {
