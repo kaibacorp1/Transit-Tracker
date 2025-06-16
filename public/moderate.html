@@ -160,8 +160,8 @@
           </div>
           <div class="buttons">
             ${isApproved
-              ? '<button class="btn edit" data-id="${id}">✏️ Edit</button><button class="btn delete" data-id="${id}">🗑️ Delete</button>'
-              : '<button class="btn approve" data-id="${id}">Approve</button><button class="btn reject" data-id="${id}">Reject</button>'}
+              ? `<button class="btn edit" data-id="${id}">✏️ Edit</button><button class="btn delete" data-id="${id}">🗑️ Delete</button>`
+              : `<button class="btn approve" data-id="${id}">Approve</button><button class="btn reject" data-id="${id}">Reject</button>`}
           </div>
         `;
         container.appendChild(el);
