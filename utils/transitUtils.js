@@ -1,9 +1,8 @@
 // utils/transitUtils.js
-
 import SunCalc from 'suncalc';
 
 /**
- * Projects a moving objectâ€™s future position given speed and heading.
+ * Projects a moving object’s future position given speed and heading.
  */
 export function projectPosition(lat, lon, heading, speed, seconds) {
   const R = 6371000;
@@ -39,7 +38,6 @@ export function sphericalSeparation(az1, el1, az2, el2) {
 
 /**
  * Detects flights transiting (or near) a celestial body, now or in the future.
- * Uses box pre-filter and spherical-separation for precision.
  */
 export function detectTransits({
   flights,
@@ -67,17 +65,23 @@ export function detectTransits({
   }
 
   for (const plane of flights) {
-    let { latitude, longitude, altitude: geoAlt, heading, speed, callsign } = plane;
+    let {
+      latitude,
+      longitude,
+      altitude: geoAlt,
+      heading = 0, // default if undefined
+      speed,
+      callsign
+    } = plane;
 
-    // Project plane if predictive mode enabled and data available
+    // Project plane if predictive mode enabled
     if (predictSeconds > 0 && heading != null && speed != null) {
       const proj = projectPosition(latitude, longitude, heading, speed, predictSeconds);
       latitude = proj.lat;
       longitude = proj.lon;
-      // geoAlt unchanged; adjust if you have climb/descent rate
     }
 
-    // Quick box pre-filter
+    // Rough filtering
     const azimuth = calculateAzimuth(userLat, userLon, latitude, longitude);
     const distance = haversine(userLat, userLon, latitude, longitude);
     const elevationAngle = Math.atan2(geoAlt - userElev, distance) * 180 / Math.PI;
@@ -86,26 +90,20 @@ export function detectTransits({
     const altDiff = Math.abs(elevationAngle - futureBodyAlt);
 
     if (azDiff < margin && altDiff < margin) {
-      // Precise spherical check
       const sep = sphericalSeparation(azimuth, elevationAngle, futureBodyAz, futureBodyAlt);
-      if (sep < margin) {
-  // Also check if aircraft is heading toward the body
-const headingToBody = Math.abs(((heading - futureBodyAz + 540) % 360) - 180);
+      const headingToBody = Math.abs(((heading - futureBodyAz + 540) % 360) - 180);
 
-// If it's either close in spherical separation OR flying toward the body
-if (sep < margin || headingToBody < 12) {
-  matches.push({
-    callsign,
-    azimuth: azimuth.toFixed(1),
-    altitudeAngle: elevationAngle.toFixed(1),
-    distance: distance.toFixed(1),
-    selectedBody,
-    predictionSeconds: predictSeconds,
-    track: heading || 0
-  });
-}
-
-
+      if (sep < margin || headingToBody < 12) {
+        matches.push({
+          callsign,
+          azimuth: azimuth.toFixed(1),
+          altitudeAngle: elevationAngle.toFixed(1),
+          distance: distance.toFixed(1),
+          selectedBody,
+          predictionSeconds: predictSeconds,
+          track: heading
+        });
+      }
     }
   }
 
