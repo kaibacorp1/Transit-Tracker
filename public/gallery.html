@@ -217,10 +217,40 @@
           if (data.equipment) {
             const d = document.createElement('div'); d.textContent = `Equipment: ${data.equipment}`; info.appendChild(d);
           }
+          
           if (data.description) {
-            const d = document.createElement('div'); d.textContent = data.description; info.appendChild(d);
+            const d = document.createElement('div');
+            let desc = data.description || '';
+            if (desc.length > 200) {
+              const shortText = desc.slice(0, 200) + '...';
+              const fullText = desc;
+
+              const textSpan = document.createElement('span');
+              textSpan.textContent = shortText;
+
+              const toggleLink = document.createElement('a');
+              toggleLink.href = '#';
+              toggleLink.textContent = ' [read more]';
+
+              toggleLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (textSpan.textContent === shortText) {
+                  textSpan.textContent = fullText;
+                  toggleLink.textContent = ' [read less]';
+                } else {
+                  textSpan.textContent = shortText;
+                  toggleLink.textContent = ' [read more]';
+                }
+              });
+
+              d.appendChild(textSpan);
+              d.appendChild(toggleLink);
+            } else {
+              d.textContent = desc;
+            }
+            info.appendChild(d);
           }
-          card.appendChild(info);
+card.appendChild(info);
           gallery.appendChild(card);
         });
       } catch (e) {
