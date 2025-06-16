@@ -249,9 +249,15 @@ document.getElementById('refreshBtn')
         .addEventListener('click', () => {
           if (hasSessionExpired()) {
   const lockSound = new Audio('lock.MP3');
+  // Play immediately and do NOT wait for alert
   lockSound.play().catch(() => {});
-  alert("⏳ Time expired. Let the pass cool for a bit now.");
-  stopAutoRefresh();
+
+  // Small delay before alert so the sound has time to start
+  setTimeout(() => {
+    alert("⏳ Time expired. Let the pass cool for a bit now.");
+  }, 250);  // 1/4 second delay for smoother experience
+
+  stopAutoRefresh(); // stop the countdown
   return;
 }
           getCurrentLocationAndRun();
