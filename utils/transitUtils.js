@@ -4,7 +4,7 @@ import SunCalc from 'suncalc';
 /**
  * Projects a moving object’s future position given speed and heading.
  */
-export function projectPosition(lat, lon, heading, speed, seconds) {
+export function projectPosition(lat, lon, heading, speed, seconds, altitude = 0, verticalSpeed = 0) {
   const R = 6371000;
   const d = speed * seconds;
   const theta = heading * Math.PI / 180;
@@ -20,7 +20,10 @@ export function projectPosition(lat, lon, heading, speed, seconds) {
     Math.cos(d / R) - Math.sin(phi1) * Math.sin(phi2)
   );
 
-  return { lat: phi2 * 180 / Math.PI, lon: lambda2 * 180 / Math.PI };
+  // ⬆️ Adjust altitude using vertical speed if available
+  const futureAlt = altitude + verticalSpeed * seconds;
+
+  return { lat: phi2 * 180 / Math.PI, lon: lambda2 * 180 / Math.PI, alt: futureAlt };
 }
 
 /**
@@ -76,9 +79,10 @@ export function detectTransits({
 
     // Project plane if predictive mode enabled
     if (predictSeconds > 0 && heading != null && speed != null) {
-      const proj = projectPosition(latitude, longitude, heading, speed, predictSeconds);
+      const proj = projectPosition(latitude, longitude, heading, speed, predictSeconds, geoAlt, plane.verticalSpeed || 0);
       latitude = proj.lat;
       longitude = proj.lon;
+        geoAlt = proj.alt; // ⬅️ Updated future altitude
     }
 
     // Rough filtering
