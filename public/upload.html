@@ -158,7 +158,7 @@
         <input type="text" id="equipment" placeholder="Camera / lens">
       </label>
       <label for="description">Description
-        <textarea id="description" placeholder="Tell us more about your photo…"></textarea>
+        <textarea id="description" placeholder="Tell us more about your photo…" maxlength="300"></textarea>
       </label>
     </form>
 
@@ -266,5 +266,28 @@
     // Launch widget on click
     uploadBtn.addEventListener('click', () => widget.open());
   </script>
+
+    <script>
+      (function() {
+        const desc = document.getElementById('description');
+        const counter = document.createElement('div');
+        counter.id = 'descCounter';
+        counter.style.fontSize = '0.9rem';
+        counter.style.color = 'var(--text-secondary)';
+        counter.style.marginTop = '0.25rem';
+        counter.textContent = `0/300 characters`;
+        desc.parentNode.insertBefore(counter, desc.nextSibling);
+
+        desc.addEventListener('input', function() {
+          let len = desc.value.length;
+          if (len > 300) {
+            desc.value = desc.value.slice(0, 300);
+            len = 300;
+          }
+          counter.textContent = `${len}/300 characters`;
+        });
+      })();
+    </script>
+
 </body>
 </html>
