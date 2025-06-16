@@ -486,14 +486,17 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
   const isOpenSky = !window.useAdsbexchange;
   const rawAlt = (f[7] != null ? f[7] : f[13]) || 0;
   return {
-    latitude:  f[6],
-    longitude: f[5],
-    altitude:  isOpenSky ? rawAlt : rawAlt * 0.3048,  // ✅ fix here
-    heading:   f[10] || 0,
-    track:     f[10] || 0,
-    speed:     (f[9] || 0) * 0.5144,
-    callsign:  f[1] || ''
-  };
+  latitude:  f[6],
+  longitude: f[5],
+  altitude:  isOpenSky ? rawAlt : rawAlt * 0.3048,
+  heading:   f[10] || 0,
+  track:     f[10] || 0,
+  speed:     (f[9] || 0) * 0.5144,
+  verticalSpeed: isOpenSky
+    ? (f[11] || 0) // OpenSky vertical rate is in m/s
+    : ((f[12] || 0) * 0.00508), // ADS-B Exchange feet/min ➝ m/s
+  callsign:  f[1] || ''
+};
 }
 
     else {
@@ -688,7 +691,7 @@ function startAutoRefresh() {
       
       // ←► HERE: session timeout check
       if (hasSessionExpired()) {
-  const lockSound = new Audio('lock.MP3');
+  const lockSound = new Audio('/lock.MP3');
   lockSound.play().catch(() => {});
   alert("⏳ Time expired. Let the pass cool for a bit now.");
   stopAutoRefresh(); // stop the countdown as well
