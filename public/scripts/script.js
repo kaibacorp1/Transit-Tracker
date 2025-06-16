@@ -248,7 +248,7 @@ document.getElementById('locationMode').addEventListener('change', e => {
 document.getElementById('refreshBtn')
         .addEventListener('click', () => {
           if (hasSessionExpired()) {
-          const lockSound = new Audio('/public/lock.MP3');
+          const lockSound = new Audio('lock.MP3');
          lockSound.play().catch(() => {});
 
          alert("⏳ Time expired. Let the pass cool for a bit now.");
