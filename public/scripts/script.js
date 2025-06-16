@@ -248,13 +248,12 @@ document.getElementById('locationMode').addEventListener('change', e => {
 document.getElementById('refreshBtn')
         .addEventListener('click', () => {
           if (hasSessionExpired()) {
-          const lockSound = new Audio('lock.MP3');
-         lockSound.play().catch(() => {});
-
-         alert("⏳ Time expired. Let the pass cool for a bit now.");
-         stopAutoRefresh();  // 🛑 stop the countdown loop
-        return;
-        }
+  const lockSound = new Audio('lock.MP3');
+  lockSound.play().catch(() => {});
+  alert("⏳ Time expired. Let the pass cool for a bit now.");
+  stopAutoRefresh();
+  return;
+}
           getCurrentLocationAndRun();
         });
 
@@ -484,17 +483,20 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
     // ── Normalize every flight record into the object shape detect-transit needs ──
   const flightObjs = flights.map(f => {
     if (Array.isArray(f)) {
-      // raw array from OpenSky or ADS-B Exchange
-      return {
-        latitude:  f[6],
-        longitude: f[5],
-        altitude:  ((f[7] != null ? f[7] : f[13]) || 0) * 0.3048,  // feet ➝ meters
-        heading:   f[10] || 0,
-        track:     f[10] || 0,    // ← duplicate here
-        speed:     (f[9] || 0) * 0.5144,                          // knots ➝ m/s
-        callsign:  f[1]  || ''
-      };
-    } else {
+  const isOpenSky = !window.useAdsbexchange;
+  const rawAlt = (f[7] != null ? f[7] : f[13]) || 0;
+  return {
+    latitude:  f[6],
+    longitude: f[5],
+    altitude:  isOpenSky ? rawAlt : rawAlt * 0.3048,  // ✅ fix here
+    heading:   f[10] || 0,
+    track:     f[10] || 0,
+    speed:     (f[9] || 0) * 0.5144,
+    callsign:  f[1] || ''
+  };
+}
+
+    else {
       // already an object (e.g. Aviationstack)
       return {
         latitude:  f.latitude  || f.lat  || 0,
