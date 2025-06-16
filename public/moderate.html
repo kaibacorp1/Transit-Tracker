@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -26,7 +27,7 @@
     #loginBtn:hover {
       background: #0056b3;
     }
-    #pending {
+    #moderationQueue {
       display: flex;
       flex-direction: column;
       gap: 1rem;
@@ -70,15 +71,21 @@
     .btn.reject {
       background: #dc3545;
     }
+    .btn.edit {
+      background: #ffc107;
+      color: #000;
+    }
+    .btn.delete {
+      background: #6c757d;
+    }
   </style>
 </head>
 <body>
   <h1>Moderation Queue (Admin Only)</h1>
   <button id="loginBtn">🔑 Sign in as Admin</button>
-  <div id="pending">Loading…</div>
+  <div id="moderationQueue">Loading…</div>
 
   <script type="module">
-    // 1) Firebase SDKs
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
     import {
       getFirestore,
@@ -88,7 +95,8 @@
       orderBy,
       getDocs,
       doc,
-      updateDoc
+      updateDoc,
+      deleteDoc
     } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
     import {
       getAuth,
@@ -97,7 +105,6 @@
       GoogleAuthProvider
     } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
 
-    // 2) Your Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBnPNWITBW92erbxYKLxJaj-s85c1xoiGU",
       authDomain: "transits-9c696.firebaseapp.com",
@@ -108,133 +115,85 @@
       measurementId: "G-88JRQSFZG5"
     };
 
-    // 3) Initialize Firebase services
-    const app      = initializeApp(firebaseConfig);
-    const db       = getFirestore(app);
-    const auth     = getAuth(app);
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
 
-    // 4) Sign-in button handler
     const loginBtn = document.getElementById('loginBtn');
     loginBtn.addEventListener('click', () => {
-      signInWithPopup(auth, provider)
-        .catch(err => console.error('Auth failed:', err));
+      signInWithPopup(auth, provider).catch(err => console.error('Auth failed:', err));
     });
 
-    // 5) Load pending items (only after auth)
-    async function loadPending() {
-      const container = document.getElementById('pending');
-      container.textContent = ''; 
-
-      const q = query(
-        collection(db, 'gallery'),
-        where('status', '==', 'pending'),
-        orderBy('uploadedAt', 'asc')
-      );
-
-      try {
-        const snap = await getDocs(q);
-        if (snap.empty) {
-          container.textContent = 'No pending uploads.';
-          return;
-        }
-
-        snap.forEach(docSnap => {
-          const d = docSnap.data();
-          const el = document.createElement('div');
-          el.className = 'item';
-          el.innerHTML = `
-            <img src="${d.url}" alt="Pending photo">
-            <div class="meta">
-              ${d.title ? `<strong>${d.title}</strong><br>` : ''}
-              ${d.dateTaken || ''}<br>
-              ${d.location  || ''}<br>
-              ${d.equipment || ''}
-            </div>
-            <div class="buttons">
-              <button class="btn approve" data-id="${docSnap.id}">Approve</button>
-              <button class="btn reject"  data-id="${docSnap.id}">Reject</button>
-            </div>
-          `;
-          container.appendChild(el);
-        });
-
-        container.addEventListener('click', async e => {
-          if (!e.target.matches('button')) return;
-          const newStatus = e.target.classList.contains('approve')
-            ? 'approved'
-            : 'rejected';
-          await updateDoc(
-            doc(db, 'gallery', e.target.dataset.id),
-            { status: newStatus }
-          );
-          e.target.closest('.item').remove();
-        });
-
-      } catch (err) {
-        console.error('Error loading pending items:', err);
-        document.getElementById('pending')
-          .textContent = '🚫 Failed to load moderation queue.';
-      }
-    }
-
-    // 6) Auth gating: show login button or load queue
     onAuthStateChanged(auth, user => {
-      const pendingDiv = document.getElementById('pending');
+      const container = document.getElementById('moderationQueue');
       if (!user) {
         loginBtn.style.display = 'inline-block';
-        pendingDiv.textContent = '⚠️ Admin login required.';
+        container.textContent = '⚠️ Admin login required.';
       } else {
         loginBtn.style.display = 'none';
-        loadPending();
+        loadModeration();
       }
     });
 
-    function createCard(data, id, isApproved) {
-  const card = document.createElement('div');
-  card.className = 'card';
-  // … your thumbnail, title, etc …
-  const info = document.createElement('div');
-  info.className = 'info';
+    async function loadModeration() {
+      const container = document.getElementById('moderationQueue');
+      container.textContent = '';
 
-  // existing fields...
-  if (data.description) {
-    const d = document.createElement('div');
-    d.textContent = data.description;
-    info.appendChild(d);
-  }
+      const qPending = query(collection(db, 'gallery'), where('status', '==', 'pending'), orderBy('uploadedAt', 'asc'));
+      const qApproved = query(collection(db, 'gallery'), where('status', '==', 'approved'), orderBy('uploadedAt', 'desc'));
 
-  // Add controls for approved posts
-  if (isApproved) {
-    const editBtn = document.createElement('button');
-    editBtn.textContent = '✏️ Edit';
-    editBtn.addEventListener('click', () => editPost(id, data));
-    info.appendChild(editBtn);
+      const [pendingSnap, approvedSnap] = await Promise.all([getDocs(qPending), getDocs(qApproved)]);
 
-    const delBtn = document.createElement('button');
-    delBtn.textContent = '🗑️ Delete';
-    delBtn.addEventListener('click', async () => {
-      await deleteDoc(doc(db, 'gallery', id));
-      card.remove();
-    });
-    info.appendChild(delBtn);
-  } else {
-    // existing Approve / Reject buttons
-    // ...
-  }
+      const addItem = (data, id, isApproved) => {
+        const el = document.createElement('div');
+        el.className = 'item';
+        el.id = `item-${id}`;
+        el.innerHTML = `
+          <img src="${data.url}" alt="Photo">
+          <div class="meta">
+            ${data.title ? `<strong>${data.title}</strong><br>` : ''}
+            ${data.dateTaken || ''}<br>
+            ${data.location || ''}<br>
+            ${data.equipment || ''}<br>
+            <div class="desc" style="margin-top:0.5rem;">${data.description || ''}</div>
+          </div>
+          <div class="buttons">
+            ${isApproved
+              ? '<button class="btn edit" data-id="${id}">✏️ Edit</button><button class="btn delete" data-id="${id}">🗑️ Delete</button>'
+              : '<button class="btn approve" data-id="${id}">Approve</button><button class="btn reject" data-id="${id}">Reject</button>'}
+          </div>
+        `;
+        container.appendChild(el);
+      };
 
-  card.appendChild(info);
-  return card;
-}
-async function editPost(id, data) {
-  const newDesc = prompt('Edit description:', data.description);
-  if (newDesc !== null) {
-    await updateDoc(doc(db, 'gallery', id), { description: newDesc });
-    // Optionally refresh the card’s text on the page:
-    document.querySelector(`#card-${id} .info div.description`).textContent = newDesc;
-  }
-}
+      pendingSnap.forEach(doc => addItem(doc.data(), doc.id, false));
+      approvedSnap.forEach(doc => addItem(doc.data(), doc.id, true));
 
+      container.addEventListener('click', async e => {
+        if (!e.target.matches('button')) return;
+        const id = e.target.dataset.id;
+        const el = document.getElementById('item-' + id);
+
+        if (e.target.classList.contains('approve')) {
+          await updateDoc(doc(db, 'gallery', id), { status: 'approved' });
+          el.remove();
+        } else if (e.target.classList.contains('reject')) {
+          await updateDoc(doc(db, 'gallery', id), { status: 'rejected' });
+          el.remove();
+        } else if (e.target.classList.contains('delete')) {
+          await deleteDoc(doc(db, 'gallery', id));
+          el.remove();
+        } else if (e.target.classList.contains('edit')) {
+          const descDiv = el.querySelector('.desc');
+          const newDesc = prompt('Edit description:', descDiv.textContent);
+          if (newDesc !== null && newDesc.trim() !== descDiv.textContent.trim()) {
+            await updateDoc(doc(db, 'gallery', id), { description: newDesc });
+            descDiv.textContent = newDesc;
+          }
+        }
+      });
+    }
   </script>
 </body>
 </html>
