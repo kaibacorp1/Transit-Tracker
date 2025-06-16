@@ -67,13 +67,13 @@ async function fetchAdsbOne({ lat, lon, radiusKm }) {
   const acList = Array.isArray(json.ac) ? json.ac : [];
 
  return acList.map(f => ({
-   latitude:  f.lat       || 0,
-   longitude: f.lon       || 0,
-   altitude:  f.alt_geom  || 0,
-   heading:   f.track     || 0,
-   speed:     f.gs        || 0,
-   callsign:  (f.flight || '').trim()
- }));
+  latitude:  f.lat       || 0,
+  longitude: f.lon       || 0,
+  altitude:  (f.alt_geom || 0) * 0.3048,     // feet ➝ meters
+  heading:   f.track     || 0,
+  speed:     (f.gs       || 0) * 0.5144,     // knots ➝ m/s
+  callsign:  (f.flight || '').trim()
+}));
 }
 
 // ——————————————————————————
