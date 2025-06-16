@@ -39,20 +39,6 @@ function hasSessionExpired() {
   return (Date.now() - start) > 1_800_000;
 }
 
-// ---- rolling transit log setup ----
-const transitLog = [];                          // in-memory array of hits
-const logContainer   = document.getElementById('transitLogContainer');
-const logListEl      = document.getElementById('transitLogList');
-const dismissLogBtn  = document.getElementById('dismissLogBtn');
-
-// Dismiss handler: clear both UI and array
-dismissLogBtn.addEventListener('click', () => {
-  transitLog.length = 0;
-  logListEl.innerHTML = '';
-  logContainer.style.display = 'none';
-});
-
-
 // ─── ADSB-One Integration (no API key) ───────────────────────────────────
 
 async function fetchAdsbOne({ lat, lon, radiusKm }) {
@@ -76,28 +62,8 @@ async function fetchAdsbOne({ lat, lon, radiusKm }) {
  }));
 }
 
+
 // ——————————————————————————
-
-function toCardinal(deg) {
-  const dirs = ['N','NE','E','SE','S','SW','W','NW','N'];
-  return dirs[Math.round(deg / 45) % 8];
-}
-
-// expand "N"/"NE"/… into full words
-function verbalizeCardinal(abbr) {
-  const map = {
-    N:  "North",
-    NE: "North East",
-    E:  "East",
-    SE: "South East",
-    S:  "South",
-    SW: "South West",
-    W:  "West",
-    NW: "North West"
-  };
-  return map[abbr] || abbr;
-}
-
 // Pick the right “welcome” message
 function setInitialStatus() {
   const statusEl = document.getElementById('transitStatus');
@@ -466,7 +432,6 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
         longitude: f[5],
         altitude:  (f[7] != null ? f[7] : f[13]) || 0,
         heading:   f[10] || 0,
-        track:     f[10] || 0,    // ← duplicate here
         speed:     f[9]  || 0,
         callsign:  f[1]  || ''
       };
@@ -477,7 +442,6 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
         longitude: f.longitude || f.lon  || 0,
         altitude:  f.altitude  || f.baro_altitude || 0,
         heading:   f.heading   || f.track || 0,
-        track:     f.heading   || f.track || 0,  // ← and here
         speed:     f.speed     || f.velocity || 0,
         callsign:  f.callsign  || f.flight || ''
       };
@@ -495,52 +459,28 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
     const statusEl = document.getElementById('transitStatus');
     if (error) return statusEl.textContent = `❌ ${error}`;
     if (matches.length) {
-  // 1) Update line 1 exactly as before, but pick the first match
-  // BUILD a status line showing *every* match
- const statusLines = matches.map(m => {
-  const azCard  = verbalizeCardinal(toCardinal(m.azimuth));
-  const hdgCard = verbalizeCardinal(toCardinal(m.track));
-  return `+ <a
-     href="https://www.flightradar24.com/${m.callsign}"
-     target="_blank"
-     rel="noopener noreferrer"
-     style="color:orange;font-weight:bold;text-decoration:none;"
-     >
-            ${m.callsign}
-     </a> `
-    + `<span style="font-size:0.85em;">`
-    +   `look up ${azCard}, ✈️ heading ${hdgCard}`
-    + `</span>`
-}).join('<br>');
-
-const statusMsg = `🔭 Possible ${selectedBody} transit:<br>${statusLines}`;
-statusEl.innerHTML = statusMsg;
-
-
-
-  // 2) Append _all_ new hits to the log
-  matches.forEach(m => {
-   const azCard2  = verbalizeCardinal(toCardinal(m.azimuth));
-   const hdgCard2 = verbalizeCardinal(toCardinal(m.track));
-   const timeStr = new Date().toLocaleTimeString('en-GB', { hour12: false });
-
-   const li = document.createElement('li');
-   li.innerHTML = `<a href="https://www.flightradar24.com/${m.callsign}"…>`
-             + `${m.callsign}</a> look up ${azCard2}, ✈️ heading ${hdgCard2} `
-             + timeStr;
-  logListEl.appendChild(li);
-  transitLog.push(m.callsign);
+      const label = predictSeconds > 0
+        ? `⚠️ Possible ${selectedBody} transit in ~${predictSeconds} sec:`
+        : `🔭 Possible ${selectedBody} transit:`;
+      statusEl.innerHTML = `${label}<br>${matches.map(m => `${m.callsign} (Az ${m.azimuth}°, Alt ${m.altitudeAngle}°)`).join('<br>')}`;
+      if (!document.getElementById('muteToggle').checked) document.getElementById('alertSound').play().catch(()=>{});
+      // For each detected flight, record a rich log entry
+matches.forEach(m => {
+  const label = predictSeconds > 0
+    ? `⚠️ Possible ${selectedBody} transit in ~${predictSeconds} sec`
+    : `🔭 Possible ${selectedBody} transit`;
+  logDetectionLocally(label, {
+    callsign:          m.callsign,
+    azimuth:           m.azimuth,
+    altitudeAngle:     m.altitudeAngle,
+    body:              selectedBody,
+    predictionSeconds: predictSeconds,
+    margin:            margin
+  });
 });
-
-  // 3) Make sure the log panel is visible
-  logContainer.style.display = 'block';
-
-  // … keep your existing alert sound & localStorage logging …
-}
- else {
-    statusEl.textContent = 'No aircraft aligned with the sun right now.';
-  }
-
+    } else {
+      statusEl.textContent = `No aircraft aligned with the ${selectedBody} right now.`;
+    }
   })
   .catch(err => { console.error(err); document.getElementById('transitStatus').textContent = '🚫 Error checking transit.'; });
 }
