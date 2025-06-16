@@ -189,6 +189,52 @@
         loadPending();
       }
     });
+
+    function createCard(data, id, isApproved) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  // … your thumbnail, title, etc …
+  const info = document.createElement('div');
+  info.className = 'info';
+
+  // existing fields...
+  if (data.description) {
+    const d = document.createElement('div');
+    d.textContent = data.description;
+    info.appendChild(d);
+  }
+
+  // Add controls for approved posts
+  if (isApproved) {
+    const editBtn = document.createElement('button');
+    editBtn.textContent = '✏️ Edit';
+    editBtn.addEventListener('click', () => editPost(id, data));
+    info.appendChild(editBtn);
+
+    const delBtn = document.createElement('button');
+    delBtn.textContent = '🗑️ Delete';
+    delBtn.addEventListener('click', async () => {
+      await deleteDoc(doc(db, 'gallery', id));
+      card.remove();
+    });
+    info.appendChild(delBtn);
+  } else {
+    // existing Approve / Reject buttons
+    // ...
+  }
+
+  card.appendChild(info);
+  return card;
+}
+async function editPost(id, data) {
+  const newDesc = prompt('Edit description:', data.description);
+  if (newDesc !== null) {
+    await updateDoc(doc(db, 'gallery', id), { description: newDesc });
+    // Optionally refresh the card’s text on the page:
+    document.querySelector(`#card-${id} .info div.description`).textContent = newDesc;
+  }
+}
+
   </script>
 </body>
 </html>
