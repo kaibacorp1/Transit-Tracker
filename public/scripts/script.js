@@ -200,11 +200,11 @@ async function fetchRadarBox({ minLat, maxLat, minLon, maxLon }) {
 document.addEventListener('DOMContentLoaded', () => {
   // Prompt for location
   navigator.geolocation.getCurrentPosition(success, error);
+
   // Initialize first tab
   showTab('adsboneTab');
-});
 
-  // NEW: Start session timer updates
+  // ✅ NEW: Start session timer updates (moved inside the block)
   setInterval(updateSessionTimer, 1000);
   updateSessionTimer();
 });
