@@ -67,7 +67,7 @@ export function detectTransits({
   }
 
   for (const plane of flights) {
-     let { latitude, longitude, altitude: geoAlt, heading, speed, callsign, track } = plane;
+    let { latitude, longitude, altitude: geoAlt, heading, speed, callsign } = plane;
 
     // Project plane if predictive mode enabled and data available
     if (predictSeconds > 0 && heading != null && speed != null) {
@@ -93,7 +93,6 @@ export function detectTransits({
           callsign,
           azimuth: azimuth.toFixed(1),
           altitudeAngle: elevationAngle.toFixed(1),
-          track,          
           distance: distance.toFixed(1),
           selectedBody,
           predictionSeconds: predictSeconds
