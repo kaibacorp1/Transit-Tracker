@@ -1,14 +1,11 @@
 // utils/aircraftProximityUtils.js
 
 /**
- * Detect aircraft flying within a certain angular margin of each other.
- * Includes optional altitude check for visual overlap.
- * 
- * Returns an array of close pairings.
+ * Detect aircraft flying within a certain margin (meters) and altitude difference.
+ * Designed for "plane on plane" mode.
  */
-
-export function detectAircraftOverlap(flights, margin = 2.5) {
-  const results = [];
+window.detectAircraftOverlap = function detectAircraftOverlap(flights, margin = 300) {
+  const pairs = [];
 
   for (let i = 0; i < flights.length; i++) {
     for (let j = i + 1; j < flights.length; j++) {
@@ -17,18 +14,22 @@ export function detectAircraftOverlap(flights, margin = 2.5) {
 
       if (!a || !b || !a.latitude || !b.latitude || !a.longitude || !b.longitude) continue;
 
-      const separation = haversine(a.latitude, a.longitude, b.latitude, b.longitude);
-      const altitudeDiff = Math.abs((a.altitude || 0) - (b.altitude || 0));
+      const dist = haversine(a.latitude, a.longitude, b.latitude, b.longitude);
+      const altDiff = Math.abs((a.altitude || 0) - (b.altitude || 0));
 
-      // Approximate threshold for visual/photo-worthy proximity
-      if (separation < 300 && altitudeDiff < 1000) {
-        results.push([a.callsign || '❓', b.callsign || '❓', Math.round(separation)]);
+      // Photo-worthy proximity: < 300 meters horizontally & < 1000m vertical
+      if (dist < margin && altDiff < 1000) {
+        pairs.push([
+          a.callsign || '✈️A',
+          b.callsign || '✈️B',
+          dist.toFixed(1)
+        ]);
       }
     }
   }
 
-  return results;
-}
+  return pairs;
+};
 
 /**
  * Returns ground distance in meters between two lat/lon points.
