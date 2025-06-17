@@ -519,29 +519,6 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
     }
   });
 
-
-  // ✈️ Plane-on-plane detection comes first — skip the celestial check
-  if (selectedBody === 'plane on plane') {
-  const proximityHits = detectAircraftOverlap(flightObjs, margin);
-
-  if (proximityHits.length) {
-    const lines = proximityHits.map(pair =>
-      `${pair[0]} ✈️ ${pair[1]} — approx ${pair[2]}m apart`
-    );
-    document.getElementById('transitStatus').innerHTML =
-      `✈️ Nearby aircraft:<br>${lines.join('<br>')}`;
-
-    if (!document.getElementById('muteToggle').checked) {
-      document.getElementById('alertSound').play().catch(() => {});
-    }
-  } else {
-    document.getElementById('transitStatus').textContent = 'No close aircraft pairs found.';
-  }
-
-  return; // ✅ THIS ENDS the aircraft-on-aircraft mode here
-}
-  
-
   // ── Send the normalized array instead of the raw one ──
   fetch('/api/detect-transit', {
     method: 'POST',
@@ -552,7 +529,6 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
   .then(({ matches, error }) => {
     const statusEl = document.getElementById('transitStatus');
     if (error) return statusEl.textContent = `❌ ${error}`;
-    
     if (matches.length) {
   // 1) Update line 1 exactly as before, but pick the first match
   // BUILD a status line showing *every* match
@@ -607,7 +583,6 @@ statusEl.innerHTML = statusMsg;
   })
   .catch(err => { console.error(err); document.getElementById('transitStatus').textContent = '🚫 Error checking transit.'; });
 }
-
 
 // --- UI Helpers for APIs & Tabs ---
 function saveCredentials() {
