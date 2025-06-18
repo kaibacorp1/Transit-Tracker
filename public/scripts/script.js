@@ -536,23 +536,27 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
     if (error) return statusEl.textContent = `❌ ${error}`;
     if (matches.length) {
   // 1) Update line 1 exactly as before, but pick the first match
-  // BUILD a status line showing *every* match
- const statusLines = matches.map(m => {
+  
+// BUILD a status line showing *every* match
+const statusLines = matches.map(m => {
   const azCard  = verbalizeCardinal(toCardinal(m.azimuth));
   const hdgCard = verbalizeCardinal(toCardinal(m.track));
-  return ` <a
-     href="https://www.flightradar24.com/${m.callsign}"
-     target="_blank"
-     rel="noopener noreferrer"
-     style="color:orange;font-weight:bold;text-decoration:none;"
-     >
-            ${m.callsign}
-     </a> `
-    + `<span style="font-size:0.85em;">`
-    +   `look up ${azCard}, ✈️ heading ${hdgCard}`
-    + `</span>`
-    + `<span style="font-size:0.85em;">look up ${azCard}, ✈️ heading ${hdgCard}</span> `
-    + `<span onclick="ignoreFlight('${m.callsign}')" style="color:red;cursor:pointer;font-weight:bold;">[Ignore]</span>`;
+  return `
+    <a
+      href="https://www.flightradar24.com/${m.callsign}"
+      target="_blank"
+      rel="noopener noreferrer"
+      style="color:orange;font-weight:bold;text-decoration:none;"
+    >
+      ${m.callsign}
+    </a>
+    <span style="font-size:0.85em;">
+      look up ${azCard}, ✈️ heading ${hdgCard}
+    </span>
+    <span onclick="ignoreFlight('${m.callsign}')" style="color:red;cursor:pointer;font-weight:bold;">
+      [Ignore]
+    </span>
+  `;
 }).join('<br>');
 
 const statusMsg = `🔭 Possible ${selectedBody} transit:<br>${statusLines}`;
