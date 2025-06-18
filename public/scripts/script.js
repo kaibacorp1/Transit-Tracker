@@ -35,6 +35,9 @@ let locationMode   = 'auto';
 let predictSeconds = 0;
 let margin         = 2.5;
 
+// ✅ Add this here:
+const ignoredFlights = new Set();
+
 // --- Utility & Storage Helpers ---
 function getAviationstackKey() {
   return sessionStorage.getItem('aviationstackKey');
@@ -547,6 +550,8 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
     + `<span style="font-size:0.85em;">`
     +   `look up ${azCard}, ✈️ heading ${hdgCard}`
     + `</span>`
+    + `<span style="font-size:0.85em;">look up ${azCard}, ✈️ heading ${hdgCard}</span> `
+    + `<span onclick="ignoreFlight('${m.callsign}')" style="color:red;cursor:pointer;font-weight:bold;">[Ignore]</span>`;
 }).join('<br>');
 
 const statusMsg = `🔭 Possible ${selectedBody} transit:<br>${statusLines}`;
@@ -742,3 +747,10 @@ window.useRadarboxAPI  = useRadarboxAPI;
 
 // Expose ADSB-One handler globally
 window.useAdsbOneAPI    = useAdsbOneAPI;
+
+
+//____ignore__flights 
+function ignoreFlight(callsign) {
+  ignoredFlights.add(callsign);
+  getCurrentLocationAndRun(); // ← triggers a fresh check, and skips ignored
+}
