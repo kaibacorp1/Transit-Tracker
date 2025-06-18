@@ -553,11 +553,12 @@ const statusLines = matches.map(m => {
     <span style="font-size:0.85em;">
       look up ${azCard}, ✈️ heading ${hdgCard}
     </span>
-    <span onclick="ignoreFlight('${m.callsign}')" style="color:red;cursor:pointer;font-weight:bold;">
+    <span onclick="ignoreFlight('${m.callsign}')" style="color:red;cursor:pointer;font-size:0.7em; margin-left:6px;">
       [Ignore]
     </span>
   `;
 }).join('<br>');
+
 
 const statusMsg = `🔭 Possible ${selectedBody} transit:<br>${statusLines}`;
 statusEl.innerHTML = statusMsg;
