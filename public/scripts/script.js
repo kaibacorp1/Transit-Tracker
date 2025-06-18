@@ -20,6 +20,14 @@ function updateSessionTimer() {
   el.style.color = remaining < 60 ? 'red' : '#ccc';
 }
 
+//_____plane on plane____
+
+let detectionMode = 'transit';  // default
+
+document.getElementById('modeToggle').addEventListener('change', e => {
+  detectionMode = e.target.value;
+  // reset status displays if you like
+});
 
 // --- Mode Flags ---
 window.useAdsbexchange = false;
@@ -203,6 +211,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize first tab
   showTab('adsboneTab');
+
+  // ── New: listen for detection mode changes ──
+  document.getElementById('modeToggle').addEventListener('change', e => {
+    detectionMode = e.target.value;
+    // you can clear previous results if you like:
+    const el = document.getElementById('planeProximityResults');
+    if (el) el.innerHTML = '';
+  });
 
   // ✅ NEW: Start session timer updates (moved inside the block)
   setInterval(updateSessionTimer, 1000);
@@ -430,11 +446,35 @@ if (window.useAdsbOne) {
 
   fetchAdsbOne({ lat: uLat, lon: uLon, radiusKm })
     .then(data => {
-      // ← Log here, where `data` actually exists
       console.log('ℹ️ ADSB-One fetched', data.length, 'flights:', data);
 
-      // Then hand them off to your detector
-      callTransitAPI(data, uLat, uLon, uElev, bodyAz, bodyAlt);
+      if (detectionMode === 'transit') {
+        callTransitAPI(data, uLat, uLon, uElev, bodyAz, bodyAlt);
+      } else {
+        fetch('/api/detect-plane-proximity', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            observer: { lat: uLat, lon: uLon, alt: uElev },
+            aircraft: data.map(f => ({
+              lat: f.latitude, lon: f.longitude, alt: f.altitude, callsign: f.callsign
+            }))
+          })
+        })
+        .then(r => r.json())
+        .then(json => {
+          const matches = json.matches || [];
+          const el = document.getElementById('planeProximityResults');
+          el.innerHTML = matches.length
+            ? matches.map(m =>
+                `<p>✈️ ${m.pair[0]} ↔️ ${m.pair[1]} — ` +
+                `angle ${m.visualAngle}°, dist ${m.groundDistance} m, ` +
+                `Δalt ${m.altitudeDifference} m</p>`
+              ).join('')
+            : '<p>No close plane-on-plane events.</p>';
+        })
+        .catch(err => console.error('Plane proximity fetch error:', err));
+      }
     })
     .catch(err => {
       statusEl.textContent = `🚫 ADSB-One error: ${err.message}`;
@@ -443,7 +483,7 @@ if (window.useAdsbOne) {
   return;
 }
 
-  
+
   // Default (OpenSky mode)
   const username = sessionStorage.getItem('osUser');
   const password = sessionStorage.getItem('osPass');
