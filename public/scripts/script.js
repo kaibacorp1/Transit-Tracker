@@ -1,6 +1,7 @@
 /* script.js - Final merged version for Vercel */
 
 // ---- SESSION TIMER SETUP ----
+let detectionMode = 'transit';  // default
 // If this is the first load, stamp the start time
 if (!sessionStorage.getItem('sessionStart')) {
   sessionStorage.setItem('sessionStart', Date.now());
