@@ -217,6 +217,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize first tab
   showTab('adsboneTab');
+  window.useAdsbOne = true;
+  window.useAdsbexchange = false;
+  window.useRadarBox = false;
+  startAutoRefresh();
 
   // ── New: listen for detection mode changes ──
   document.getElementById('modeToggle').addEventListener('change', e => {
