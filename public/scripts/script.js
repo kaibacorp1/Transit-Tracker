@@ -1,7 +1,6 @@
 /* script.js - Final merged version for Vercel */
 
 // ---- SESSION TIMER SETUP ----
-let detectionMode = 'transit';  // default
 // If this is the first load, stamp the start time
 if (!sessionStorage.getItem('sessionStart')) {
   sessionStorage.setItem('sessionStart', Date.now());
@@ -204,14 +203,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize first tab
   showTab('adsboneTab');
-
-  // ✅ Injected: Handle plane-on-plane mode
-  document.getElementById('modeToggle').addEventListener('change', e => {
-    detectionMode = e.target.value;
-    const el = document.getElementById('planeProximityResults');
-    if (el) el.innerHTML = '';
-  });
-
 
   // ✅ NEW: Start session timer updates (moved inside the block)
   setInterval(updateSessionTimer, 1000);
@@ -443,7 +434,7 @@ if (window.useAdsbOne) {
       console.log('ℹ️ ADSB-One fetched', data.length, 'flights:', data);
 
       // Then hand them off to your detector
-      if (detectionMode === 'transit') { callTransitAPI(data, uLat, uLon, uElev, bodyAz, bodyAlt); }
+      callTransitAPI(data, uLat, uLon, uElev, bodyAz, bodyAlt);
     })
     .catch(err => {
       statusEl.textContent = `🚫 ADSB-One error: ${err.message}`;
@@ -469,15 +460,7 @@ if (window.useAdsbOne) {
     body: JSON.stringify({ username, password, lamin, lomin, lamax, lomax })
   })
     .then(res => res.json())
-    .then(data => {
-  if (detectionMode === 'transit') {
-    callTransitAPI(data.states || [], uLat, uLon, uElev, bodyAz, bodyAlt);
-  } else {
-    const el = document.getElementById('planeProximityResults');
-    el.innerHTML = '<p>No plane-on-plane alignments right now.</p>';
-    document.getElementById('transitStatus').textContent = '';
-  }
-})
+    .then(data => callTransitAPI(data.states || [], uLat, uLon, uElev, bodyAz, bodyAlt))
     .catch(() => { statusEl.textContent = '🚫 Error fetching OpenSky flight data.'; });
 }
 
@@ -496,7 +479,7 @@ function checkAdsbExchangeFlights(userLat, userLon, userElev, bodyAz, bodyAlt) {
       const flights = Array.isArray(data.ac)
         ? data.ac.map(ac => [ ac.hex||'', ac.flight||'', null, null, null, ac.lon, ac.lat, null, null, ac.gs, ac.track, null, null, ac.alt_geom||0 ])
         : [];
-      if (detectionMode === 'transit') { callTransitAPI(flights, userLat, userLon, userElev, bodyAz, bodyAlt); }
+      callTransitAPI(flights, userLat, userLon, userElev, bodyAz, bodyAlt);
     })
     .catch(() => { document.getElementById('transitStatus').textContent = '🚫 Error fetching ADS-B Exchange data.'; });
 }
