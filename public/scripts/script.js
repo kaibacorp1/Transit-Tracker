@@ -554,7 +554,7 @@ const statusLines = matches.map(m => {
       look up ${azCard}, ✈️ heading ${hdgCard}
     </span>
     <span onclick="ignoreFlight('${m.callsign}')" style="color:rgb(171, 57, 57);cursor:pointer;font-size:0.45em; margin-left:6px;">
-      [Ignore]
+      Ignore
     </span>
   `;
 }).join('<br>');
