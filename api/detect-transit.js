@@ -18,7 +18,8 @@ export default async function handler(req, res) {
       bodyAlt,
       margin = 2.5,
       predictSeconds = 0,
-      selectedBody = 'moon'
+      selectedBody = 'moon',
+      use3DHeading
     } = req.body;
 
     // validate required inputs
@@ -42,7 +43,8 @@ export default async function handler(req, res) {
       bodyAlt,
       margin,
       predictSeconds,
-      selectedBody
+      selectedBody,
+      use3DHeading
     });
 
     return res.status(200).json({ matches });
