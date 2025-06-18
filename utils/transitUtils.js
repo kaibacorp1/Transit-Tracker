@@ -51,7 +51,8 @@ export function detectTransits({
   userLon,
   userElev = 0,
   predictSeconds = 0,
-  selectedBody
+  selectedBody,
+  use3DHeading = false       // ✅ Add this
 }) {
   const matches = [];
 
@@ -95,9 +96,15 @@ export function detectTransits({
 
     if (azDiff < margin && altDiff < margin) {
       const sep = sphericalSeparation(azimuth, elevationAngle, futureBodyAz, futureBodyAlt);
-      const headingToBody = Math.abs(((heading - futureBodyAz + 540) % 360) - 180);
+      const headingToBody = Math.abs((((heading - futureBodyAz + 540) % 360) - 180));
+const isMatch = (
+  sep < margin ||
+  (use3DHeading
+    ? isHeadingTowardBody3D(plane, futureBodyAz, futureBodyAlt, margin)
+    : headingToBody < 12)
+);
+if (isMatch) {
 
-      if (sep < margin || headingToBody < 12) {
         matches.push({
           callsign,
           azimuth: azimuth.toFixed(1),
