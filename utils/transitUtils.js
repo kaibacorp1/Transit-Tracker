@@ -142,3 +142,52 @@ export function calculateAzimuth(lat1, lon1, lat2, lon2) {
           - Math.sin(phi1) * Math.cos(phi2) * Math.cos(dLambda);
   return (toDeg(Math.atan2(x, y)) + 360) % 360;
 }
+
+function toRad(deg) {
+  return deg * Math.PI / 180;
+}
+function toDeg(rad) {
+  return rad * 180 / Math.PI;
+}
+
+// 3D unit vector from azimuth/altitude (Sun or Moon)
+function celestialToVector(azimuthDeg, altitudeDeg) {
+  const az = toRad(azimuthDeg);
+  const alt = toRad(altitudeDeg);
+  return [
+    Math.cos(alt) * Math.sin(az),
+    Math.cos(alt) * Math.cos(az),
+    Math.sin(alt)
+  ];
+}
+
+// 3D unit vector from heading/climb angle
+function flightDirectionVector(headingDeg, verticalSpeed, speed) {
+  if (!speed || speed === 0) return null;
+  const heading = toRad(headingDeg);
+  const climbAngle = Math.atan2(verticalSpeed || 0, speed); // radians
+  return [
+    Math.cos(climbAngle) * Math.sin(heading),
+    Math.cos(climbAngle) * Math.cos(heading),
+    Math.sin(climbAngle)
+  ];
+}
+
+// Compare angle between flight path and celestial direction
+function isHeadingTowardBody3D(plane, bodyAz, bodyAlt, marginDeg = 12) {
+  const dirVector = flightDirectionVector(
+    plane.heading,
+    plane.verticalSpeed || 0,
+    plane.speed
+  );
+  if (!dirVector) return false;
+
+  const targetVector = celestialToVector(bodyAz, bodyAlt);
+  const dot = dirVector[0] * targetVector[0] +
+              dirVector[1] * targetVector[1] +
+              dirVector[2] * targetVector[2];
+  const angleRad = Math.acos(Math.max(-1, Math.min(1, dot))); // clamp
+  const angleDeg = toDeg(angleRad);
+  return angleDeg < marginDeg;
+}
+
