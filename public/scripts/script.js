@@ -23,6 +23,12 @@ function updateSessionTimer() {
 //_____plane on plane____
 
 let detectionMode = 'transit';  // default
+//____listenr plane on plane
+
+document.getElementById('detectionModeSelect').addEventListener('change', e => {
+  detectionMode = e.target.value;
+});
+
 
 document.getElementById('modeToggle').addEventListener('change', e => {
   detectionMode = e.target.value;
@@ -457,7 +463,10 @@ if (window.useAdsbOne) {
           body: JSON.stringify({
             observer: { lat: uLat, lon: uLon, alt: uElev },
             aircraft: data.map(f => ({
-              lat: f.latitude, lon: f.longitude, alt: f.altitude, callsign: f.callsign
+              lat: f.latitude,
+              lon: f.longitude,
+              alt: f.altitude,
+              callsign: f.callsign
             }))
           })
         })
