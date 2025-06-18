@@ -469,7 +469,15 @@ if (window.useAdsbOne) {
     body: JSON.stringify({ username, password, lamin, lomin, lamax, lomax })
   })
     .then(res => res.json())
-    .then(data => callTransitAPI(data.states || [], uLat, uLon, uElev, bodyAz, bodyAlt))
+    .then(data => {
+  if (detectionMode === 'transit') {
+    callTransitAPI(data.states || [], uLat, uLon, uElev, bodyAz, bodyAlt);
+  } else {
+    const el = document.getElementById('planeProximityResults');
+    el.innerHTML = '<p>No plane-on-plane alignments right now.</p>';
+    document.getElementById('transitStatus').textContent = '';
+  }
+})
     .catch(() => { statusEl.textContent = '🚫 Error fetching OpenSky flight data.'; });
 }
 
