@@ -442,7 +442,7 @@ if (window.useAdsbOne) {
       console.log('ℹ️ ADSB-One fetched', data.length, 'flights:', data);
 
       // Then hand them off to your detector
-      callTransitAPI(data, uLat, uLon, uElev, bodyAz, bodyAlt);
+      if (detectionMode === 'transit') { callTransitAPI(data, uLat, uLon, uElev, bodyAz, bodyAlt); }
     })
     .catch(err => {
       statusEl.textContent = `🚫 ADSB-One error: ${err.message}`;
@@ -487,7 +487,7 @@ function checkAdsbExchangeFlights(userLat, userLon, userElev, bodyAz, bodyAlt) {
       const flights = Array.isArray(data.ac)
         ? data.ac.map(ac => [ ac.hex||'', ac.flight||'', null, null, null, ac.lon, ac.lat, null, null, ac.gs, ac.track, null, null, ac.alt_geom||0 ])
         : [];
-      callTransitAPI(flights, userLat, userLon, userElev, bodyAz, bodyAlt);
+      if (detectionMode === 'transit') { callTransitAPI(flights, userLat, userLon, userElev, bodyAz, bodyAlt); }
     })
     .catch(() => { document.getElementById('transitStatus').textContent = '🚫 Error fetching ADS-B Exchange data.'; });
 }
