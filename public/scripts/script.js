@@ -7,18 +7,18 @@ if (!sessionStorage.getItem('sessionStart')) {
 }
 
 ///________time counntdown 
-//function updateSessionTimer() {
-  //const start = parseInt(sessionStorage.getItem('sessionStart'), 10);
-  //const elapsed = Math.floor((Date.now() - start) / 1000); // seconds
-  //const remaining = Math.max(0, 1800 - elapsed); // 30 minutes total
+function updateSessionTimer() {
+  const start = parseInt(sessionStorage.getItem('sessionStart'), 10);
+  const elapsed = Math.floor((Date.now() - start) / 1000); // seconds
+  const remaining = Math.max(0, 1800 - elapsed); // 30 minutes total
 
-  //const mins = Math.floor(remaining / 60);
-  //const secs = remaining % 60;
-  //const el = document.getElementById('sessionTimer');
+  const mins = Math.floor(remaining / 60);
+  const secs = remaining % 60;
+  const el = document.getElementById('sessionTimer');
 
-  //el.textContent = `Session time left: ${mins}m ${secs.toString().padStart(2, '0')}s`;
-  //el.style.color = remaining < 60 ? 'red' : '#ccc';
-//}
+  el.textContent = `Session time left: ${mins}m ${secs.toString().padStart(2, '0')}s`;
+  el.style.color = remaining < 60 ? 'red' : '#ccc';
+}
 
 
 // --- Mode Flags ---
@@ -708,19 +708,19 @@ function startAutoRefresh() {
      
       
       // ←► HERE: session timeout check
-    //  if (hasSessionExpired()) {
-  ///const lockSound = new Audio('/lock.MP3');
-  //lockSound.play().catch(() => {});
-  //alert("⏳ Time expired. Let the pass cool for a bit now.");
-  //stopAutoRefresh(); // stop the countdown as well
-  //return;
-//}
+      if (hasSessionExpired()) {
+  const lockSound = new Audio('/lock.MP3');
+  lockSound.play().catch(() => {});
+  alert("⏳ Time expired. Let the pass cool for a bit now.");
+  stopAutoRefresh(); // stop the countdown as well
+  return;
+}
 
-    //  getCurrentLocationAndRun();
-    //  updateCountdown();
-    //}
-  //}, 1000);
-//}
+      getCurrentLocationAndRun();
+      updateCountdown();
+    }
+  }, 1000);
+}
 
 
 function stopAutoRefresh() {
