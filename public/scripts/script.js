@@ -36,6 +36,11 @@ let locationMode   = 'auto';
 let predictSeconds = 0;
 let margin         = 5.5;
 
+// CONTRAILS 
+function coneModeOn() {
+  return document.getElementById('bodyToggle')?.value === 'contrail';
+}
+
 // ✅ Add this here:
 const ignoredFlights = new Set();
 
@@ -533,11 +538,24 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
   })
   .then(res => { if (!res.ok) throw new Error(res.status); return res.json(); })
   .then(({ matches, error }) => {
+  
+    // 🆕 Contrail detection: only apply if "Plane Contrail" mode is on
+  if (coneModeOn()) {
+    matches = matches.filter(m => {
+      const angle = getAngleFromOverhead(
+        m.latitude,
+        m.longitude,
+        m.altitude / 0.3048, // convert meters to feet
+        uLat,
+        uLon
+      );
+      return m.altitude >= 9000 && angle <= margin;
+    });
+  }
      matches = matches.filter(m => !ignoredFlights.has(m.callsign));
     const statusEl = document.getElementById('transitStatus');
     if (error) return statusEl.textContent = `❌ ${error}`;
     if (matches.length) {
-  // 1) Update line 1 exactly as before, but pick the first match
   
 // BUILD a status line showing *every* match
 const statusLines = matches.map(m => {
@@ -692,6 +710,22 @@ function haversine(lat1, lon1, lat2, lon2) {
     Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(a));
 }
+
+//_______________plane contrails______
+
+function getAngleFromOverhead(flightLat, flightLon, flightAltFeet, userLat, userLon) {
+  const R = 6371000; // Earth radius in meters
+  const toRad = Math.PI / 180;
+  const dLat = (flightLat - userLat) * toRad;
+  const dLon = (flightLon - userLon) * toRad;
+  const a = Math.sin(dLat / 2) ** 2 +
+            Math.cos(userLat * toRad) * Math.cos(flightLat * toRad) *
+            Math.sin(dLon / 2) ** 2;
+  const groundDist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const alt = flightAltFeet * 0.3048; // Convert feet to meters
+  return Math.atan2(groundDist, alt) * (180 / Math.PI); // Return angle in degrees
+}
+
 
 // --- Auto-refresh Handlers ---
 function updateCountdown() {
