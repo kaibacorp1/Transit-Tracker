@@ -610,7 +610,7 @@ statusEl.innerHTML = statusMsg;
 }
  else {
   if (coneModeOn()) {
-    statusEl.textContent = 'No high-altitude jets with possible contrails detected.';
+    statusEl.textContent = 'No planes with possible contrails detected.';
   } else {
     statusEl.textContent = `No aircraft aligned with the ${selectedBody} right now.`;
   }
