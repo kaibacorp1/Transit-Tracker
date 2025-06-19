@@ -27,13 +27,13 @@ window.useRadarBox      = false;
 window.useAdsbOne = false;
 
 // --- State Variables ---
-let selectedBody   = 'moon';
+let selectedBody   = 'sun';
 let autoRefresh    = true;
 let countdown      = 5;
 let countdownInterval;
 let locationMode   = 'auto';
 let predictSeconds = 0;
-let margin         = 2.5;
+let margin         = 5.5;
 
 // ✅ Add this here:
 const ignoredFlights = new Set();
