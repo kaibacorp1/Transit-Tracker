@@ -50,7 +50,8 @@ function logDetectionLocally(message, metadata = {}) {
   localStorage.setItem('transitLog', JSON.stringify(history));
 }
 
-//___________
+
+//------
 
 function hasSessionExpired() {
   const start = parseInt(sessionStorage.getItem('sessionStart'), 10);
