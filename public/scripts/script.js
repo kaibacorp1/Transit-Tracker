@@ -27,7 +27,7 @@ window.useRadarBox      = false;
 window.useAdsbOne = false;
 
 // --- State Variables ---
-let selectedBody   = 'sun';
+let selectedBody   = 'moon';
 let autoRefresh    = true;
 let countdown      = 5;
 let countdownInterval;
