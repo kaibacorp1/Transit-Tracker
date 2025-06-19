@@ -609,8 +609,12 @@ statusEl.innerHTML = statusMsg;
   // … keep your existing alert sound & localStorage logging …
 }
  else {
-    statusEl.textContent = 'No aircraft aligned with the sun right now.';
+  if (coneModeOn()) {
+    statusEl.textContent = 'No high-altitude jets with possible contrails detected.';
+  } else {
+    statusEl.textContent = `No aircraft aligned with the ${selectedBody} right now.`;
   }
+}
 
   })
   .catch(err => { console.error(err); document.getElementById('transitStatus').textContent = '🚫 Error checking transit.'; });
