@@ -1,7 +1,6 @@
 /* script.js - Final merged version for Vercel */
 
 // ---- SESSION TIMER SETUP ----
-
 // If this is the first load, stamp the start time
 if (!sessionStorage.getItem('sessionStart')) {
   sessionStorage.setItem('sessionStart', Date.now());
@@ -28,18 +27,13 @@ window.useRadarBox      = false;
 window.useAdsbOne = false;
 
 // --- State Variables ---
-let selectedBody   = 'sun';
+let selectedBody   = 'moon';
 let autoRefresh    = true;
 let countdown      = 5;
 let countdownInterval;
 let locationMode   = 'auto';
 let predictSeconds = 0;
-let margin         = 5.5;
-
-// CONTRAILS 
-function coneModeOn() {
-  return document.getElementById('bodyToggle')?.value === 'contrail';
-}
+let margin         = 2.5;
 
 // ✅ Add this here:
 const ignoredFlights = new Set();
@@ -55,8 +49,7 @@ function logDetectionLocally(message, metadata = {}) {
   localStorage.setItem('transitLog', JSON.stringify(history));
 }
 
-
-//------
+//___________
 
 function hasSessionExpired() {
   const start = parseInt(sessionStorage.getItem('sessionStart'), 10);
@@ -400,68 +393,10 @@ function getCelestialPosition(lat, lon, elev) {
 }
 
 // --- Flight Fetching & Backend Detection ---
-async function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
+function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
   const statusEl = document.getElementById('transitStatus');
   statusEl.textContent = `Checking flights near the ${selectedBody}...`;
   const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
-
-  // ←── Contrail‐only short‐circuit ──→
-  if (coneModeOn()) {
-    const statusEl = document.getElementById('transitStatus');
-    statusEl.textContent = 'Checking for contrails…';
-
-    // 1) Fetch flights directly (OpenSky example)
-    const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
-    const range = radiusKm / 111;
-    const lamin = uLat - range, lamax = uLat + range;
-    const lomin = uLon - range, lomax = uLon + range;
-    const res = await fetch('https://opensky-proxy.onrender.com/api/flights', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        username: sessionStorage.getItem('osUser'),
-        password: sessionStorage.getItem('osPass'),
-        lamin, lomin, lamax, lomax
-      })
-    });
-    if (!res.ok) {
-      statusEl.textContent = '🚫 Error fetching flights';
-      return;
-    }
-    const data = await res.json();
-    const raw = data.states || [];
-
-    // 2) Normalize
-    const flights = raw.map(f => ({
-      latitude:  f[6],
-      longitude: f[5],
-      altitude:  f[7] || 0,      // meters
-      callsign:  f[1] || ''
-    }));
-
-    // 3) Filter by jet altitude & cone
-    const matches = flights.filter(f => {
-      if (f.altitude < 9144) return false;      // <30 000 ft
-      const angle = getAngleFromOverhead(
-        f.latitude, f.longitude,
-        f.altitude / 0.3048,   // feet
-        uLat, uLon
-      );
-      return angle <= margin;
-    });
-
-    // 4) Render
-    if (matches.length) {
-      statusEl.textContent = `📸 Contrails: ${matches.map(m => m.callsign).join(', ')}`;
-    } else {
-      statusEl.textContent = 'No high-altitude jets with contrails detected.';
-    }
-
-    // 5) Do not continue into Sun/Moon or transit API
-    return;
-  }
-  // ←── end short‐circuit ──→
-
 
   // ─── RadarBox mode ─────────────────────────────────────────────────
   if (window.useRadarBox) {
@@ -596,24 +531,11 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
   })
   .then(res => { if (!res.ok) throw new Error(res.status); return res.json(); })
   .then(({ matches, error }) => {
-  
-    // 🆕 Contrail detection: only apply if "Plane Contrail" mode is on
-  if (coneModeOn()) {
-    matches = matches.filter(m => {
-      const angle = getAngleFromOverhead(
-        m.latitude,
-        m.longitude,
-        m.altitude / 0.3048, // convert meters to feet
-        uLat,
-        uLon
-      );
-      return m.altitude >= 9000 && angle <= margin;
-    });
-  }
      matches = matches.filter(m => !ignoredFlights.has(m.callsign));
     const statusEl = document.getElementById('transitStatus');
     if (error) return statusEl.textContent = `❌ ${error}`;
     if (matches.length) {
+  // 1) Update line 1 exactly as before, but pick the first match
   
 // BUILD a status line showing *every* match
 const statusLines = matches.map(m => {
@@ -667,12 +589,8 @@ statusEl.innerHTML = statusMsg;
   // … keep your existing alert sound & localStorage logging …
 }
  else {
-  if (coneModeOn()) {
-    statusEl.textContent = 'No planes with possible contrails detected.';
-  } else {
-    statusEl.textContent = `No aircraft aligned with the ${selectedBody} right now.`;
+    statusEl.textContent = 'No aircraft aligned with the sun right now.';
   }
-}
 
   })
   .catch(err => { console.error(err); document.getElementById('transitStatus').textContent = '🚫 Error checking transit.'; });
@@ -773,22 +691,6 @@ function haversine(lat1, lon1, lat2, lon2) {
   return 2 * R * Math.asin(Math.sqrt(a));
 }
 
-//_______________plane contrails______
-
-function getAngleFromOverhead(flightLat, flightLon, flightAltFeet, userLat, userLon) {
-  const R = 6371000; // Earth radius in meters
-  const toRad = Math.PI / 180;
-  const dLat = (flightLat - userLat) * toRad;
-  const dLon = (flightLon - userLon) * toRad;
-  const a = Math.sin(dLat / 2) ** 2 +
-            Math.cos(userLat * toRad) * Math.cos(flightLat * toRad) *
-            Math.sin(dLon / 2) ** 2;
-  const groundDist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  const alt = flightAltFeet * 0.3048; // Convert feet to meters
-  return Math.atan2(groundDist, alt) * (180 / Math.PI); // Return angle in degrees
-}
-
-
 // --- Auto-refresh Handlers ---
 function updateCountdown() {
   const ui = parseInt(document.getElementById('refreshIntervalInput').value, 10);
@@ -806,19 +708,19 @@ function startAutoRefresh() {
      
       
       // ←► HERE: session timeout check
-     // if (hasSessionExpired()) {
-  //const lockSound = new Audio('/lock.MP3');
- // lockSound.play().catch(() => {});
- // alert("⏳ Time expired. Let the pass cool for a bit now.");
- // stopAutoRefresh(); // stop the countdown as well
- // return;
+    //  if (hasSessionExpired()) {
+  ///const lockSound = new Audio('/lock.MP3');
+  //lockSound.play().catch(() => {});
+  //alert("⏳ Time expired. Let the pass cool for a bit now.");
+  //stopAutoRefresh(); // stop the countdown as well
+  //return;
 //}
 
-      getCurrentLocationAndRun();
-      updateCountdown();
-    }
-  }, 1000);
-}
+    //  getCurrentLocationAndRun();
+    //  updateCountdown();
+    //}
+  //}, 1000);
+//}
 
 
 function stopAutoRefresh() {
