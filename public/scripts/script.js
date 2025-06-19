@@ -400,10 +400,68 @@ function getCelestialPosition(lat, lon, elev) {
 }
 
 // --- Flight Fetching & Backend Detection ---
-function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
+async function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
   const statusEl = document.getElementById('transitStatus');
   statusEl.textContent = `Checking flights near the ${selectedBody}...`;
   const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
+
+  // ←── Contrail‐only short‐circuit ──→
+  if (coneModeOn()) {
+    const statusEl = document.getElementById('transitStatus');
+    statusEl.textContent = 'Checking for contrails…';
+
+    // 1) Fetch flights directly (OpenSky example)
+    const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
+    const range = radiusKm / 111;
+    const lamin = uLat - range, lamax = uLat + range;
+    const lomin = uLon - range, lomax = uLon + range;
+    const res = await fetch('https://opensky-proxy.onrender.com/api/flights', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: sessionStorage.getItem('osUser'),
+        password: sessionStorage.getItem('osPass'),
+        lamin, lomin, lamax, lomax
+      })
+    });
+    if (!res.ok) {
+      statusEl.textContent = '🚫 Error fetching flights';
+      return;
+    }
+    const data = await res.json();
+    const raw = data.states || [];
+
+    // 2) Normalize
+    const flights = raw.map(f => ({
+      latitude:  f[6],
+      longitude: f[5],
+      altitude:  f[7] || 0,      // meters
+      callsign:  f[1] || ''
+    }));
+
+    // 3) Filter by jet altitude & cone
+    const matches = flights.filter(f => {
+      if (f.altitude < 9144) return false;      // <30 000 ft
+      const angle = getAngleFromOverhead(
+        f.latitude, f.longitude,
+        f.altitude / 0.3048,   // feet
+        uLat, uLon
+      );
+      return angle <= margin;
+    });
+
+    // 4) Render
+    if (matches.length) {
+      statusEl.textContent = `📸 Contrails: ${matches.map(m => m.callsign).join(', ')}`;
+    } else {
+      statusEl.textContent = 'No high-altitude jets with contrails detected.';
+    }
+
+    // 5) Do not continue into Sun/Moon or transit API
+    return;
+  }
+  // ←── end short‐circuit ──→
+
 
   // ─── RadarBox mode ─────────────────────────────────────────────────
   if (window.useRadarBox) {
