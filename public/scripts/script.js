@@ -708,13 +708,13 @@ function startAutoRefresh() {
      
       
       // ←► HERE: session timeout check
-      if (hasSessionExpired()) {
-  const lockSound = new Audio('/lock.MP3');
-  lockSound.play().catch(() => {});
-  alert("⏳ Time expired. Let the pass cool for a bit now.");
-  stopAutoRefresh(); // stop the countdown as well
-  return;
-}
+   //   if (hasSessionExpired()) {
+//  const lockSound = new Audio('/lock.MP3');
+//  lockSound.play().catch(() => {});
+ // alert("⏳ Time expired. Let the pass cool for a bit now.");
+//  stopAutoRefresh(); // stop the countdown as well
+//  return;
+//}
 
       getCurrentLocationAndRun();
       updateCountdown();
