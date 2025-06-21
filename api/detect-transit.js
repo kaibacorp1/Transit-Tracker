@@ -7,6 +7,8 @@ export default async function handler(req, res) {
 
   // dynamic import to pick up our updated detectTransits()
   const { detectTransits } = await import('../utils/transitUtils.js');
+  const { detectPlaneCrossovers } = await import('../utils/transitUtils.js');
+
 
   try {
     const {
