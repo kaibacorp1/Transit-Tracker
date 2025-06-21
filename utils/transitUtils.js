@@ -198,3 +198,47 @@ function isHeadingTowardBody3D(plane, bodyAz, bodyAlt, marginDeg = 12) {
   return angleDeg < marginDeg;
 }
 
+//___________________________ for scrit 3D mode 
+
+function toRadians(deg) {
+  return deg * Math.PI / 180;
+}
+
+function toECEF(lat, lon, alt = 0) {
+  const R = 6371000;
+  const phi = toRadians(lat);
+  const lambda = toRadians(lon);
+  const x = (R + alt) * Math.cos(phi) * Math.cos(lambda);
+  const y = (R + alt) * Math.cos(phi) * Math.sin(lambda);
+  const z = (R + alt) * Math.sin(phi);
+  return [x, y, z];
+}
+
+function normalize(vec) {
+  const mag = Math.sqrt(vec[0]**2 + vec[1]**2 + vec[2]**2);
+  return vec.map(c => c / mag);
+}
+
+function dot(a, b) {
+  return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
+}
+
+function angleBetweenVectors(a, b) {
+  return Math.acos(Math.max(-1, Math.min(1, dot(normalize(a), normalize(b))))) * 180 / Math.PI;
+}
+
+export function observerAngularSeparation(observer, aircraft, sunAz, sunAlt) {
+  const obsVec = toECEF(observer.lat, observer.lon, observer.elev);
+  const planeVec = toECEF(aircraft.lat, aircraft.lon, aircraft.alt);
+  const planeDir = [planeVec[0] - obsVec[0], planeVec[1] - obsVec[1], planeVec[2] - obsVec[2]];
+
+  const az = toRadians(sunAz);
+  const alt = toRadians(sunAlt);
+  const sunVec = [
+    Math.cos(alt) * Math.sin(az),
+    Math.cos(alt) * Math.cos(az),
+    Math.sin(alt)
+  ];
+
+  return angleBetweenVectors(planeDir, sunVec);
+}
