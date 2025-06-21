@@ -1,6 +1,9 @@
-
+// utils/transitUtils.js
 import SunCalc from 'suncalc';
 
+/**
+ * Projects a moving object’s future position given speed and heading.
+ */
 export function projectPosition(lat, lon, heading, speed, seconds, altitude = 0, verticalSpeed = 0) {
   const R = 6371000;
   const d = speed * seconds;
@@ -17,10 +20,15 @@ export function projectPosition(lat, lon, heading, speed, seconds, altitude = 0,
     Math.cos(d / R) - Math.sin(phi1) * Math.sin(phi2)
   );
 
+  // ⬆️ Adjust altitude using vertical speed if available
   const futureAlt = altitude + verticalSpeed * seconds;
+
   return { lat: phi2 * 180 / Math.PI, lon: lambda2 * 180 / Math.PI, alt: futureAlt };
 }
 
+/**
+ * Computes true angular separation between two sky directions (degrees).
+ */
 export function sphericalSeparation(az1, el1, az2, el2) {
   const toRad = deg => deg * Math.PI / 180;
   const a1 = toRad(el1);
@@ -31,6 +39,9 @@ export function sphericalSeparation(az1, el1, az2, el2) {
   return Math.acos(Math.max(-1, Math.min(1, cosSep))) * 180 / Math.PI;
 }
 
+/**
+ * Detects flights transiting (or near) a celestial body, now or in the future.
+ */
 export function detectTransits({
   flights,
   bodyAz,
@@ -41,12 +52,11 @@ export function detectTransits({
   userElev = 0,
   predictSeconds = 0,
   selectedBody,
-  use3DHeading = false,
-  strictMode = false
+  use3DHeading = false       // ✅ Add this
 }) {
-  const strictMargin = strictMode ? Math.max(margin, 8) : margin;
   const matches = [];
 
+  // Compute future body position if prediction requested
   let futureBodyAz = bodyAz;
   let futureBodyAlt = bodyAlt;
   if (predictSeconds > 0) {
@@ -63,18 +73,20 @@ export function detectTransits({
       latitude,
       longitude,
       altitude: geoAlt,
-      heading = 0,
+      heading = 0, // default if undefined
       speed,
       callsign
     } = plane;
 
+    // Project plane if predictive mode enabled
     if (predictSeconds > 0 && heading != null && speed != null) {
       const proj = projectPosition(latitude, longitude, heading, speed, predictSeconds, geoAlt, plane.verticalSpeed || 0);
       latitude = proj.lat;
       longitude = proj.lon;
-      geoAlt = proj.alt;
+        geoAlt = proj.alt; // ⬅️ Updated future altitude
     }
 
+    // Rough filtering
     const azimuth = calculateAzimuth(userLat, userLon, latitude, longitude);
     const distance = haversine(userLat, userLon, latitude, longitude);
     const elevationAngle = Math.atan2(geoAlt - userElev, distance) * 180 / Math.PI;
@@ -82,32 +94,17 @@ export function detectTransits({
     const azDiff = Math.abs(((azimuth - futureBodyAz + 540) % 360) - 180);
     const altDiff = Math.abs(elevationAngle - futureBodyAlt);
 
-    if (strictMode) {
-      const observer = { lat: userLat, lon: userLon, elev: userElev };
-      const aircraft = { lat: latitude, lon: longitude, alt: geoAlt };
-      const angle = observerAngularSeparation(observer, aircraft, futureBodyAz, futureBodyAlt);
-      if (angle < strictMargin) {
-        matches.push({
-          callsign,
-          azimuth: azimuth.toFixed(1),
-          altitudeAngle: elevationAngle.toFixed(1),
-          distance: distance.toFixed(1),
-          selectedBody,
-          predictionSeconds: predictSeconds,
-          track: heading
-        });
-      }
-    } else if (azDiff < margin && altDiff < margin) {
+    if (azDiff < margin && altDiff < margin) {
       const sep = sphericalSeparation(azimuth, elevationAngle, futureBodyAz, futureBodyAlt);
       const headingToBody = Math.abs((((heading - futureBodyAz + 540) % 360) - 180));
-      const isMatch = (
-        sep < margin ||
-        (use3DHeading
-          ? isHeadingTowardBody3D(plane, futureBodyAz, futureBodyAlt, margin)
-          : headingToBody < 12)
-      );
+const isMatch = (
+  sep < margin ||
+  (use3DHeading
+    ? isHeadingTowardBody3D(plane, futureBodyAz, futureBodyAlt, margin)
+    : headingToBody < 12)
+);
+if (isMatch) {
 
-      if (isMatch) {
         matches.push({
           callsign,
           azimuth: azimuth.toFixed(1),
@@ -124,6 +121,9 @@ export function detectTransits({
   return matches;
 }
 
+/**
+ * Haversine: ground distance between two coords (meters).
+ */
 export function haversine(lat1, lon1, lat2, lon2) {
   const toRad = deg => deg * Math.PI / 180;
   const phi1 = toRad(lat1);
@@ -135,6 +135,9 @@ export function haversine(lat1, lon1, lat2, lon2) {
   return 2 * 6371000 * Math.asin(Math.sqrt(a));
 }
 
+/**
+ * Calculates bearing (azimuth) from observer to target (degrees).
+ */
 export function calculateAzimuth(lat1, lon1, lat2, lon2) {
   const toRad = deg => deg * Math.PI / 180;
   const toDeg = rad => rad * 180 / Math.PI;
@@ -147,9 +150,14 @@ export function calculateAzimuth(lat1, lon1, lat2, lon2) {
   return (toDeg(Math.atan2(x, y)) + 360) % 360;
 }
 
-function toRad(deg) { return deg * Math.PI / 180; }
-function toDeg(rad) { return rad * 180 / Math.PI; }
+function toRad(deg) {
+  return deg * Math.PI / 180;
+}
+function toDeg(rad) {
+  return rad * 180 / Math.PI;
+}
 
+// 3D unit vector from azimuth/altitude (Sun or Moon)
 function celestialToVector(azimuthDeg, altitudeDeg) {
   const az = toRad(azimuthDeg);
   const alt = toRad(altitudeDeg);
@@ -160,10 +168,11 @@ function celestialToVector(azimuthDeg, altitudeDeg) {
   ];
 }
 
+// 3D unit vector from heading/climb angle
 function flightDirectionVector(headingDeg, verticalSpeed, speed) {
   if (!speed || speed === 0) return null;
   const heading = toRad(headingDeg);
-  const climbAngle = Math.atan2(verticalSpeed || 0, speed);
+  const climbAngle = Math.atan2(verticalSpeed || 0, speed); // radians
   return [
     Math.cos(climbAngle) * Math.sin(heading),
     Math.cos(climbAngle) * Math.cos(heading),
@@ -171,6 +180,7 @@ function flightDirectionVector(headingDeg, verticalSpeed, speed) {
   ];
 }
 
+// Compare angle between flight path and celestial direction
 function isHeadingTowardBody3D(plane, bodyAz, bodyAlt, marginDeg = 12) {
   const dirVector = flightDirectionVector(
     plane.heading,
@@ -183,98 +193,7 @@ function isHeadingTowardBody3D(plane, bodyAz, bodyAlt, marginDeg = 12) {
   const dot = dirVector[0] * targetVector[0] +
               dirVector[1] * targetVector[1] +
               dirVector[2] * targetVector[2];
-  const angleRad = Math.acos(Math.max(-1, Math.min(1, dot)));
+  const angleRad = Math.acos(Math.max(-1, Math.min(1, dot))); // clamp
   const angleDeg = toDeg(angleRad);
   return angleDeg < marginDeg;
-}
-
-// ➕ Strict Mode Support
-function toRadians(deg) {
-  return deg * Math.PI / 180;
-}
-
-function toECEF(lat, lon, alt = 0) {
-  const R = 6371000;
-  const phi = toRadians(lat);
-  const lambda = toRadians(lon);
-  const x = (R + alt) * Math.cos(phi) * Math.cos(lambda);
-  const y = (R + alt) * Math.cos(phi) * Math.sin(lambda);
-  const z = (R + alt) * Math.sin(phi);
-  return [x, y, z];
-}
-
-function normalize(vec) {
-  const mag = Math.sqrt(vec[0]**2 + vec[1]**2 + vec[2]**2);
-  return vec.map(c => c / mag);
-}
-
-function dot(a, b) {
-  return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
-}
-
-function angleBetweenVectors(a, b) {
-  return Math.acos(Math.max(-1, Math.min(1, dot(normalize(a), normalize(b))))) * 180 / Math.PI;
-}
-
-export function observerAngularSeparation(observer, aircraft, sunAz, sunAlt) {
-  const obsVec = toECEF(observer.lat, observer.lon, observer.elev);
-  const planeVec = toECEF(aircraft.lat, aircraft.lon, aircraft.alt);
-  const planeDir = [planeVec[0] - obsVec[0], planeVec[1] - obsVec[1], planeVec[2] - obsVec[2]];
-
-  const az = toRadians(sunAz);
-  const alt = toRadians(sunAlt);
-  const sunVec = [
-    Math.cos(alt) * Math.sin(az),
-    Math.cos(alt) * Math.cos(az),
-    Math.sin(alt)
-  ];
-
-  return angleBetweenVectors(planeDir, sunVec);
-}
-
-// ➕ NEW: Plane-on-plane crossover detection
-export function detectPlaneCrossovers({ flights, userLat, userLon, userElev = 0, predictSeconds = 30, angleThreshold = 2 }) {
-  const R = 6371000;
-  const toRadians = deg => deg * Math.PI / 180;
-  const toCartesian = ({ lat, lon, alt }) => {
-    const phi = toRadians(lat);
-    const lambda = toRadians(lon);
-    const r = R + alt;
-    return {
-      x: r * Math.cos(phi) * Math.cos(lambda),
-      y: r * Math.cos(phi) * Math.sin(lambda),
-      z: r * Math.sin(phi)
-    };
-  };
-
-  const observer = toCartesian({ lat: userLat, lon: userLon, alt: userElev });
-  const matches = [];
-
-  for (let i = 0; i < flights.length; i++) {
-    for (let j = i + 1; j < flights.length; j++) {
-      const f1 = flights[i];
-      const f2 = flights[j];
-
-      const p1 = projectPosition(f1.latitude, f1.longitude, f1.heading, f1.speed, predictSeconds, f1.altitude, f1.verticalSpeed || 0);
-      const p2 = projectPosition(f2.latitude, f2.longitude, f2.heading, f2.speed, predictSeconds, f2.altitude, f2.verticalSpeed || 0);
-
-      const c1 = toCartesian(p1);
-      const c2 = toCartesian(p2);
-
-      const v1 = [c1.x - observer.x, c1.y - observer.y, c1.z - observer.z];
-      const v2 = [c2.x - observer.x, c2.y - observer.y, c2.z - observer.z];
-
-      const dot = v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2];
-      const mag1 = Math.hypot(...v1);
-      const mag2 = Math.hypot(...v2);
-      const cosTheta = Math.max(-1, Math.min(1, dot / (mag1 * mag2)));
-      const angle = Math.acos(cosTheta) * 180 / Math.PI;
-
-      if (angle < angleThreshold) {
-        matches.push({ f1, f2, angle });
-      }
-    }
-  }
-
-  return matches;
 }
