@@ -589,7 +589,7 @@ statusEl.innerHTML = statusMsg;
   // … keep your existing alert sound & localStorage logging …
 }
  else {
-const selectedBody = document.getElementById('celestialBody').value;
+const selectedBody = document.getElementById('bodyToggle').value;
 statusEl.textContent = `No aircraft aligned with the ${selectedBody} right now.`;
  }
 
