@@ -43,7 +43,11 @@ export function detectTransits({
   use3DHeading = false,
   strictMode = false
 }) {
+  // ✅ Correct place to declare strictMargin
+  const strictMargin = strictMode ? Math.max(margin, 8) : margin;
+
   const matches = [];
+
 
   let futureBodyAz = bodyAz;
   let futureBodyAlt = bodyAlt;
@@ -84,7 +88,7 @@ export function detectTransits({
       const observer = { lat: userLat, lon: userLon, elev: userElev };
       const aircraft = { lat: latitude, lon: longitude, alt: geoAlt };
       const angle = observerAngularSeparation(observer, aircraft, futureBodyAz, futureBodyAlt);
-      if (angle < margin) {
+if (angle < strictMargin) {
         matches.push({
           callsign,
           azimuth: azimuth.toFixed(1),
