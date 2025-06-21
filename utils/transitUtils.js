@@ -1,9 +1,5 @@
-// utils/transitUtils.js
 import SunCalc from 'suncalc';
 
-/**
- * Projects a moving object’s future position given speed and heading.
- */
 export function projectPosition(lat, lon, heading, speed, seconds, altitude = 0, verticalSpeed = 0) {
   const R = 6371000;
   const d = speed * seconds;
@@ -84,7 +80,22 @@ export function detectTransits({
     const azDiff = Math.abs(((azimuth - futureBodyAz + 540) % 360) - 180);
     const altDiff = Math.abs(elevationAngle - futureBodyAlt);
 
-    if (azDiff < margin && altDiff < margin) {
+    if (strictMode) {
+      const observer = { lat: userLat, lon: userLon, elev: userElev };
+      const aircraft = { lat: latitude, lon: longitude, alt: geoAlt };
+      const angle = observerAngularSeparation(observer, aircraft, futureBodyAz, futureBodyAlt);
+      if (angle < margin) {
+        matches.push({
+          callsign,
+          azimuth: azimuth.toFixed(1),
+          altitudeAngle: elevationAngle.toFixed(1),
+          distance: distance.toFixed(1),
+          selectedBody,
+          predictionSeconds: predictSeconds,
+          track: heading
+        });
+      }
+    } else if (azDiff < margin && altDiff < margin) {
       const sep = sphericalSeparation(azimuth, elevationAngle, futureBodyAz, futureBodyAlt);
       const headingToBody = Math.abs((((heading - futureBodyAz + 540) % 360) - 180));
       const isMatch = (
@@ -95,14 +106,6 @@ export function detectTransits({
       );
 
       if (isMatch) {
-        // ⬇️ STRICT 3D CHECK ONLY IF ENABLED
-        if (strictMode) {
-          const observer = { lat: userLat, lon: userLon, elev: userElev };
-          const aircraft = { lat: latitude, lon: longitude, alt: geoAlt };
-          const angle = observerAngularSeparation(observer, aircraft, futureBodyAz, futureBodyAlt);
-          if (angle > margin) continue;
-        }
-
         matches.push({
           callsign,
           azimuth: azimuth.toFixed(1),
