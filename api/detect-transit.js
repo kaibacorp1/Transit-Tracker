@@ -20,15 +20,16 @@ export default async function handler(req, res) {
       selectedBody = 'moon',
       use3DHeading,
       strictMode = false,
-      planeCrossoverMode = false,   // ✅ new toggle
-      angleThreshold = 2.0          // ✅ new threshold setting
+      angleThreshold = 2.0
     } = req.body;
 
+    // Validate required inputs
     if (!Array.isArray(flights) || userLat == null || userLon == null) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    if (planeCrossoverMode) {
+    // Plane-on-plane mode
+    if (selectedBody === 'plane') {
       const planeCrossoverMatches = detectPlaneCrossovers({
         flights,
         userLat,
@@ -41,6 +42,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ planeCrossoverMatches });
     }
 
+    // Celestial transit mode
     if (bodyAz == null || bodyAlt == null) {
       return res.status(400).json({ error: 'Missing celestial target info' });
     }
@@ -60,6 +62,7 @@ export default async function handler(req, res) {
     });
 
     return res.status(200).json({ matches });
+
   } catch (err) {
     console.error('detect-transit error:', err);
     return res.status(500).json({ error: 'Internal server error' });
