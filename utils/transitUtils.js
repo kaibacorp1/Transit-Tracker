@@ -79,7 +79,7 @@ export function detectTransits({
     } = plane;
 
     // Project plane if predictive mode enabled
-    if (predictSeconds > 0 && heading != null && speed != null) {
+    if (use3DHeading && predictSeconds > 0 && heading != null && speed != null) {
       const proj = projectPosition(latitude, longitude, heading, speed, predictSeconds, geoAlt, plane.verticalSpeed || 0);
       latitude = proj.lat;
       longitude = proj.lon;
