@@ -1,14 +1,11 @@
-// api/detect‐transit.js
+// api/detect-transit.js
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Only POST allowed' });
   }
 
-  // dynamic import to pick up our updated detectTransits()
-  const { detectTransits } = await import('../utils/transitUtils.js');
-  const { detectPlaneCrossovers } = await import('../utils/transitUtils.js');
-
+  const { detectTransits, detectPlaneCrossovers } = await import('../utils/transitUtils.js');
 
   try {
     const {
@@ -22,21 +19,32 @@ export default async function handler(req, res) {
       predictSeconds = 0,
       selectedBody = 'moon',
       use3DHeading,
-      strictMode = false    
+      strictMode = false,
+      planeCrossoverMode = false,   // ✅ new toggle
+      angleThreshold = 2.0          // ✅ new threshold setting
     } = req.body;
 
-    // validate required inputs
-    if (
-      !Array.isArray(flights) ||
-      userLat == null ||
-      userLon == null ||
-      bodyAz == null ||
-      bodyAlt == null
-    ) {
+    if (!Array.isArray(flights) || userLat == null || userLon == null) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // run the hybrid box + spherical‐separation detector
+    if (planeCrossoverMode) {
+      const planeCrossoverMatches = detectPlaneCrossovers({
+        flights,
+        userLat,
+        userLon,
+        userElev,
+        predictSeconds,
+        angleThreshold
+      });
+
+      return res.status(200).json({ planeCrossoverMatches });
+    }
+
+    if (bodyAz == null || bodyAlt == null) {
+      return res.status(400).json({ error: 'Missing celestial target info' });
+    }
+
     const matches = detectTransits({
       flights,
       userLat,
