@@ -1,11 +1,12 @@
-// api/detect-transit.js
+// api/detect‐transit.js
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Only POST allowed' });
   }
 
-  const { detectTransits, detectPlaneCrossovers } = await import('../utils/transitUtils.js');
+  // dynamic import to pick up our updated detectTransits()
+  const { detectTransits } = await import('../utils/transitUtils.js');
 
   try {
     const {
@@ -18,35 +19,21 @@ export default async function handler(req, res) {
       margin = 2.5,
       predictSeconds = 0,
       selectedBody = 'moon',
-      use3DHeading,
-      strictMode = false,
-      angleThreshold = 2.0
+      use3DHeading
     } = req.body;
 
-    // Validate required inputs
-    if (!Array.isArray(flights) || userLat == null || userLon == null) {
+    // validate required inputs
+    if (
+      !Array.isArray(flights) ||
+      userLat == null ||
+      userLon == null ||
+      bodyAz == null ||
+      bodyAlt == null
+    ) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // Plane-on-plane mode
-    if (selectedBody === 'plane') {
-      const planeCrossoverMatches = detectPlaneCrossovers({
-        flights,
-        userLat,
-        userLon,
-        userElev,
-        predictSeconds,
-        angleThreshold
-      });
-
-      return res.status(200).json({ planeCrossoverMatches });
-    }
-
-    // Celestial transit mode
-    if (bodyAz == null || bodyAlt == null) {
-      return res.status(400).json({ error: 'Missing celestial target info' });
-    }
-
+    // run the hybrid box + spherical‐separation detector
     const matches = detectTransits({
       flights,
       userLat,
@@ -57,12 +44,10 @@ export default async function handler(req, res) {
       margin,
       predictSeconds,
       selectedBody,
-      use3DHeading,
-      strictMode
+      use3DHeading
     });
 
     return res.status(200).json({ matches });
-
   } catch (err) {
     console.error('detect-transit error:', err);
     return res.status(500).json({ error: 'Internal server error' });
