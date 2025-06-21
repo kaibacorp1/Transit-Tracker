@@ -589,8 +589,9 @@ statusEl.innerHTML = statusMsg;
   // … keep your existing alert sound & localStorage logging …
 }
  else {
-    statusEl.textContent = 'No aircraft aligned with the sun right now.';
-  }
+const selectedBody = document.getElementById('celestialBody').value;
+statusEl.textContent = `No aircraft aligned with the ${selectedBody} right now.`;
+ }
 
   })
   .catch(err => { console.error(err); document.getElementById('transitStatus').textContent = '🚫 Error checking transit.'; });
