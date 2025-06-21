@@ -44,7 +44,7 @@ export function detectTransits({
   strictMode = false
 }) {
   // ✅ Correct place to declare strictMargin
-const strictMargin = margin;
+const strictMargin = strictMode ? Math.max(margin, 8) : margin;
 
   const matches = [];
 
