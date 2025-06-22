@@ -24,6 +24,10 @@ if (!sessionStorage.getItem('sessionStart')) {
 
 useZenithLogic: document.getElementById('toggleZenithLogic')?.checked || false,
 
+//________ennaced ________
+
+const enhancedPredictionEnabled = document.getElementById('enhancedPredictionToggle')?.checked || false;
+
 
 // --- Mode Flags ---
 window.useAdsbexchange = false;
