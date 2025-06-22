@@ -790,10 +790,10 @@ function toggleEnhancedPrediction() {
   const btn = document.getElementById('enhancedPredictionBtn');
   if (checkbox.checked) {
     btn.textContent = '🟢 Enhanced Prediction ON';
-    btn.style.backgroundColor = '#28a745'; // green
+    btn.style.backgroundColor = '#285431'; // green
   } else {
     btn.textContent = '🔴 Enhanced Prediction OFF';
-    btn.style.backgroundColor = '#a6192e'; // red
+    btn.style.backgroundColor = '#66252f'; // red
   }
 }
 
