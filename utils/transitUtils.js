@@ -49,7 +49,8 @@ export function detectTransits({
   predictSeconds = 0,
   selectedBody,
   use3DHeading = false,
-  useZenithLogic = false   // ✅ NEW
+  useZenithLogic = false,   // ✅ NEW
+  useDynamicMargin = false  // ✅ NEW
 }) {
   const matches = [];
   const now = Date.now();
@@ -86,6 +87,13 @@ export function detectTransits({
         geoAlt = proj.alt;
       }
 
+let marginToUse = margin;
+if (useDynamicMargin) {
+  const altFt = geoAlt;
+  const spdKts = speed;
+  marginToUse = getDynamicMargin(margin, altFt, spdKts);
+}
+      
       const azimuth = calculateAzimuth(userLat, userLon, latitude, longitude);
       const distance = haversine(userLat, userLon, latitude, longitude);
       const elevationAngle = Math.atan2(geoAlt - userElev, distance) * 180 / Math.PI;
@@ -97,12 +105,12 @@ export function detectTransits({
 const sep = sphericalSeparation(azimuth, elevationAngle, futureBodyAz, futureBodyAlt);
 
 if (
-  (isZenith && sep < margin) ||
-  (!isZenith && azDiff < margin && altDiff < margin)
+  (isZenith && sep < marginToUse) ||
+  (!isZenith && azDiff < marginToUse && altDiff < marginToUse)
 ) {
   const headingToBody = Math.abs((((heading - futureBodyAz + 540) % 360) - 180));
   const isMatch = (
-  sep < margin ||
+  sep < marginToUse ||
   (use3DHeading
     ? isHeadingTowardBody3D({
         heading,
@@ -207,3 +215,12 @@ function isHeadingTowardBody3D(plane, bodyAz, bodyAlt, marginDeg = 12) {
   const angleDeg = toDeg(angleRad);
   return angleDeg < marginDeg;
 }
+
+export function getDynamicMargin(baseMargin, altitudeFt = 10000, speedKts = 300) {
+  const altFactor = Math.max(0, (1000 - altitudeFt) / 1000);  // 0 to 1
+  const spdFactor = Math.max(0, (150 - speedKts) / 150);      // 0 to 1
+  const altWeight = 1.5;
+  const spdWeight = 1.0;
+  return baseMargin + (altFactor * altWeight) + (spdFactor * spdWeight);
+}
+
