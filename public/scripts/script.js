@@ -216,8 +216,8 @@ document.addEventListener('DOMContentLoaded', () => {
   showTab('adsboneTab');
 
   // ✅ NEW: Start session timer updates (moved inside the block)
-  setInterval(updateSessionTimer, 1000);
-  updateSessionTimer();
+//  setInterval(updateSessionTimer, 1000);
+//  updateSessionTimer();
 });
 
 // --- UI Event Listeners ---
