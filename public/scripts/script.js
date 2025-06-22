@@ -535,7 +535,8 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ flights: flightObjs, userLat: uLat, userLon: uLon, userElev: uElev, bodyAz, bodyAlt, margin, predictSeconds, selectedBody, 
-                          use3DHeading: document.getElementById('toggle3DCheck')?.checked || false
+                          use3DHeading: document.getElementById('toggle3DCheck')?.checked || false,
+                          enhancedPrediction: document.getElementById('enhancedPrediction')?.checked
  })
   })
   .then(res => { if (!res.ok) throw new Error(res.status); return res.json(); })
@@ -545,7 +546,17 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
     if (error) return statusEl.textContent = `❌ ${error}`;
     if (matches.length) {
   // 1) Update line 1 exactly as before, but pick the first match
-  
+
+//If you'd like to auto-toggle use3DHeading and useZenithLogic when Enhanced Prediction is checked//
+      
+document.getElementById('enhancedPrediction').addEventListener('change', (e) => {
+  const checked = e.target.checked;
+  document.getElementById('use3DHeading').checked = checked;
+  document.getElementById('useZenithLogic').checked = checked;
+});
+
+
+      
 // BUILD a status line showing *every* match
 const statusLines = matches.map(m => {
   const azCard  = verbalizeCardinal(toCardinal(m.azimuth));
