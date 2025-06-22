@@ -19,6 +19,8 @@ export default async function handler(req, res) {
       margin = 2.5,
       predictSeconds = 0,
       selectedBody = 'moon',
+      useTimeStepping = false,  // 🔥 NEW
+      stepSize = 10,             // 🔥 NEW
       use3DHeading
     } = req.body;
 
@@ -44,7 +46,9 @@ export default async function handler(req, res) {
       margin,
       predictSeconds,
       selectedBody,
-      use3DHeading
+      use3DHeading,
+      useTimeStepping,  // 🔥 NEW
+      stepSize          // 🔥 NEW
     });
 
     return res.status(200).json({ matches });
