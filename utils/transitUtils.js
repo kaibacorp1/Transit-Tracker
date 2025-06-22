@@ -50,7 +50,8 @@ export function detectTransits({
   selectedBody,
   use3DHeading = false,
   useTimeStepping = false,
-  stepSize = 10
+  stepSize = 10,
+  useZenithLogic = false   // ✅ NEW
 }) {
   const matches = [];
   const now = Date.now();
@@ -94,28 +95,33 @@ export function detectTransits({
       const azDiff = Math.abs(((azimuth - futureBodyAz + 540) % 360) - 180);
       const altDiff = Math.abs(elevationAngle - futureBodyAlt);
 
-      if (azDiff < margin && altDiff < margin) {
-        const sep = sphericalSeparation(azimuth, elevationAngle, futureBodyAz, futureBodyAlt);
-        const headingToBody = Math.abs((((heading - futureBodyAz + 540) % 360) - 180));
-        const isMatch = (
-          sep < margin ||
-          (use3DHeading
-            ? isHeadingTowardBody3D(plane, futureBodyAz, futureBodyAlt, margin)
-            : headingToBody < 12)
-        );
+      const isZenith = useZenithLogic && futureBodyAlt > 85;
+const sep = sphericalSeparation(azimuth, elevationAngle, futureBodyAz, futureBodyAlt);
 
-        if (isMatch) {
-          matches.push({
-            callsign,
-            azimuth: azimuth.toFixed(1),
-            altitudeAngle: elevationAngle.toFixed(1),
-            distance: distance.toFixed(1),
-            selectedBody,
-            predictionSeconds: t,
-            track: heading
-          });
-        }
-      }
+if (
+  (isZenith && sep < margin) ||
+  (!isZenith && azDiff < margin && altDiff < margin)
+) {
+  const headingToBody = Math.abs((((heading - futureBodyAz + 540) % 360) - 180));
+  const isMatch = (
+    sep < margin ||
+    (use3DHeading
+      ? isHeadingTowardBody3D(plane, futureBodyAz, futureBodyAlt, margin)
+      : headingToBody < 12)
+  );
+  if (isMatch) {
+    matches.push({
+      callsign,
+      azimuth: azimuth.toFixed(1),
+      altitudeAngle: elevationAngle.toFixed(1),
+      distance: distance.toFixed(1),
+      selectedBody,
+      predictionSeconds: predictSeconds,
+      track: heading
+    });
+  }
+}
+
     }
   };
 
