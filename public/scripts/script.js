@@ -20,6 +20,10 @@ if (!sessionStorage.getItem('sessionStart')) {
   //el.style.color = remaining < 60 ? 'red' : '#ccc';
 //}
 
+/// ZENITH/////
+
+useZenithLogic: document.getElementById('toggleZenithLogic')?.checked || false,
+
 
 // --- Mode Flags ---
 window.useAdsbexchange = false;
