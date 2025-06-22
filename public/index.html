@@ -214,15 +214,25 @@
 </div>
     </div>
 
-    <div class="data">
-      <label><strong>Detection Margin</strong></label>
-      <a href="public/detection_visuals.html" class="small-link">Visuals</a><be><br>
-      <input id="marginSlider" type="range" min="1" max="45" step="0.5" value="5.5" />
-      <span id="marginValue">5.5°</span>
-      <div id="marginFeedback">🌟 Very strict (photography)</div>
-        <div>
-</div>
+<div class="data">
+  <label style="display: flex; justify-content: space-between; align-items: center;">
+    <strong>Detection Margin</strong>
+    <button
+      id="enhancedPredictionBtn"
+      onclick="toggleEnhancedPrediction()"
+      style="background-color: #a6192e; color: white; border: none; padding: 0.4rem 1rem; font-weight: bold; font-size: 0.95rem; border-radius: 8px; cursor: pointer;"
+    >
+      🔴 Enhanced Prediction
+    </button>
+  </label>
+  <a href="public/detection_visuals.html" class="small-link">Visuals</a><br>
+  <input id="marginSlider" type="range" min="1" max="45" step="0.5" value="5.5" />
+  <span id="marginValue">5.5°</span>
+  <div id="marginFeedback">🌟 Very strict (photography)</div>
 
+  <!-- Hidden checkbox it controls -->
+  <input type="checkbox" id="enhancedPrediction" style="display:none;" />
+</div>
     </div>
 
     <div class="data" id="locationInfo">
@@ -257,12 +267,6 @@
           <input id="refreshIntervalInput" type="number" min="3" style="width:60px" value="5" />
         </label>
 <br />
-<!-- NEW: Enhanced Prediction Toggle -->
-<div style="margin-top: 1em;">
-  <label>
-    <input type="checkbox" id="enhancedPrediction">
-    Enable Enhanced Prediction
-  </label>
     </details>
     </div>
 
