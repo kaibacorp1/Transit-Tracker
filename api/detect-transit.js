@@ -50,7 +50,7 @@ export default async function handler(req, res) {
       use3DHeading,
       useTimeStepping,  // 🔥 NEW
       stepSize,          // 🔥 NEW
-      useZenithLogic = false
+      useZenithLogic
     });
 
     return res.status(200).json({ matches });
