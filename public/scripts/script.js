@@ -550,9 +550,6 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
 //If you'd like to auto-toggle use3DHeading and useZenithLogic when Enhanced Prediction is checked//
       
 document.getElementById('enhancedPrediction').addEventListener('change', (e) => {
-  const checked = e.target.checked;
-  document.getElementById('use3DHeading').checked = checked;
-  document.getElementById('useZenithLogic').checked = checked;
 });
 
 
