@@ -26,7 +26,7 @@ useZenithLogic: document.getElementById('toggleZenithLogic')?.checked || false,
 
 //________ennaced ________
 
-const enhancedPredictionEnabled = document.getElementById('enhancedPredictionToggle')?.checked || false;
+const enhancedPredictionEnabled = document.getElementById('enhancedPrediction')?.checked || false;
 
 
 // --- Mode Flags ---
