@@ -104,11 +104,16 @@ if (
 ) {
   const headingToBody = Math.abs((((heading - futureBodyAz + 540) % 360) - 180));
   const isMatch = (
-    sep < margin ||
-    (use3DHeading
-      ? isHeadingTowardBody3D(plane, futureBodyAz, futureBodyAlt, margin)
-      : headingToBody < 12)
-  );
+  sep < margin ||
+  (use3DHeading
+    ? isHeadingTowardBody3D({
+        heading,
+        verticalSpeed,
+        speed
+      }, futureBodyAz, futureBodyAlt, margin)
+    : headingToBody < 12)
+);
+
   if (isMatch) {
     matches.push({
       callsign,
