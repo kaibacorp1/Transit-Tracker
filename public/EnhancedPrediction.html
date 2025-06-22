@@ -4,65 +4,117 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Enhanced Prediction – What It Does</title>
+  <title>Enhanced Prediction – Technical Overview</title>
   <link rel="stylesheet" href="../style.css" />
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      background-color: #f9f9fb;
+      color: #333;
+      line-height: 1.6;
+      padding: 2rem;
+    }
+
+    h1, h2 {
+      color: #222;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 0.3rem;
+    }
+
+    section {
+      margin-bottom: 2rem;
+    }
+
+    ul {
+      padding-left: 1.2rem;
+    }
+
+    li {
+      margin-bottom: 0.5rem;
+    }
+
+    .note {
+      background-color: #f3f4f6;
+      border-left: 4px solid #c53030;
+      padding: 1rem;
+      margin-top: 1rem;
+      border-radius: 4px;
+    }
+
+    a {
+      color: #0056b3;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 
 <body>
   <main class="container">
-    <h1>🔴 Enhanced Prediction – What It Does</h1>
-    <p><strong>Enhanced Prediction</strong> is an optional but powerful feature that makes transit detection smarter and more accurate by factoring in how aircraft are moving, not just where they are.</p>
+    <h1>Enhanced Prediction – Technical Overview</h1>
+    <p><strong>Enhanced Prediction</strong> is an advanced option that improves the accuracy of aircraft transit detection by forecasting flight paths instead of checking only current positions.</p>
 
-    <section class="step">
-      <h2>✨ What It Improves</h2>
+    <section>
+      <h2>How It Works</h2>
       <ul>
-        <li>✅ Predicts where an aircraft will be in <strong>5–60 seconds</strong> using your Prediction Mode setting.</li>
-        <li>✅ Factors in <strong>heading, ground speed, and climb rate</strong> to forecast actual path.</li>
-        <li>✅ Ignores aircraft that are flying <em>away</em> from the Sun/Moon, even if currently close.</li>
-        <li>✅ Filters out false positives that only skim past the target.</li>
+        <li>Analyzes aircraft heading, ground speed, and vertical speed to project future positions.</li>
+        <li>Integrates with your selected Prediction Mode (5 to 60 seconds) to simulate forward motion.</li>
+        <li>Ignores aircraft that are not on a vector intersecting the Sun or Moon.</li>
+        <li>Minimizes false positives from nearby, but off-path, aircraft.</li>
       </ul>
     </section>
 
-    <section class="step">
-      <h2>🧠 Default vs Enhanced – Key Difference</h2>
-      <p><strong>Default Mode</strong> checks position only, like a snapshot.</p>
-      <p><strong>Enhanced Prediction</strong> thinks ahead — it checks where a plane is <em>going</em>, not just where it is now.</p>
+    <section>
+      <h2>Default vs Enhanced Prediction</h2>
+      <p><strong>Default Mode</strong> checks whether an aircraft’s <em>current</em> position falls within the detection zone around the Sun or Moon — like freezing time and taking a snapshot.</p>
+      <p><strong>Enhanced Prediction</strong> estimates where the aircraft <em>will be</em> in the next few seconds, based on its velocity and heading — like previewing the next few frames in a video.</p>
+
+      <h3>Example 1 – Default Mode (Position-Based)</h3>
+      <p>An aircraft is flying <strong>toward</strong> the Sun, but hasn’t entered the detection circle yet. Default mode will <strong>ignore it</strong> because it only checks the current position.</p>
+
+      <h3>Example 2 – Enhanced Prediction (Trajectory-Based)</h3>
+      <p>That same aircraft is still outside the circle now, but its speed and angle show that it will <strong>cross the Sun in 10 seconds</strong>. Enhanced Prediction catches this early and flags it as a likely transit.</p>
+
+      <div class="note">
+        <strong>Tip:</strong> Default mode is typically effective for horizontal passes. Enhanced Prediction is strongly recommended for vertical or overhead passes where position alone doesn't indicate future alignment.
+      </div>
+    </section>
+
+    <section>
+      <h2>When to Use Enhanced Prediction</h2>
       <ul>
-        <li>🟢 Default works fine for <strong>horizontal transits</strong> (aircraft coming in from the side).</li>
-        <li>🔴 But Enhanced Prediction is <strong>critical</strong> for <strong>vertical transits</strong> or helicopters that pass <em>straight down</em> near the Sun/Moon.</li>
+        <li><strong>Use it when:</strong>
+          <ul>
+            <li>You want to detect only relevant and high-likelihood transit events.</li>
+            <li>You're trying to avoid false positives from near-misses.</li>
+            <li>You care about photographic precision.</li>
+          </ul>
+        </li>
+        <li><strong>Consider turning it off if:</strong>
+          <ul>
+            <li>You're debugging, testing, or trying to capture all possible close encounters.</li>
+            <li>You are tracking very low, slow, or hovering craft (e.g., helicopters) where heading data may be inconsistent.</li>
+            <li>You're interested in broad coverage, including near misses and grazing paths.</li>
+          </ul>
+        </li>
       </ul>
     </section>
 
-    <section class="step">
-      <h2>📌 When to Use Enhanced Prediction</h2>
+    <section>
+      <h2>What Else Gets Enabled</h2>
+      <p>When Enhanced Prediction is enabled, the following features are also activated automatically to support better accuracy:</p>
       <ul>
-        <li><strong>Enable it</strong> if you want:</li>
-        <ul>
-          <li>🎯 Better filtering for real transits.</li>
-          <li>🚫 Fewer false alarms.</li>
-          <li>📷 Cleaner, more relevant alerts for photography.</li>
-          <li>🛫 To track fast or medium-altitude jets.</li>
-        </ul>
-        <li><strong>Disable it</strong> only when:</li>
-        <ul>
-          <li>🔍 Debugging or testing all possible close passes.</li>
-          <li>🚁 Tracking helicopters or hovering craft.</li>
-          <li>🧪 Observing edge-cases or exploring rare geometry.</li>
-        </ul>
-      </ul>
-    </section>
-
-    <section class="step">
-      <h2>📎 Related Settings</h2>
-      <ul>
-        <li>🧭 <strong>Use 3D Heading</strong> – Optional setting that works well with Enhanced Prediction. It verifies the aircraft's exact direction of travel in 3D.</li>
-        <li>🔝 <strong>Use Zenith Logic</strong> – Helps improve filtering when the Sun/Moon is nearly overhead.</li>
-        <li>📏 <strong>Detection Margin</strong> – A tighter margin (e.g., 4–6°) works well when Enhanced Prediction is on.</li>
+        <li><strong>Use 3D Heading:</strong> Projects aircraft movement using full heading and climb/descent angle to get a true trajectory vector.</li>
+        <li><strong>Use Zenith Logic:</strong> Helps when the Sun or Moon is directly overhead, where azimuth becomes less meaningful. This avoids misclassifying vertical or spiraling passes.</li>
+        <li><strong>Use Dynamic Detection Margin:</strong> Adjusts detection width slightly based on aircraft altitude to better match visual footprint and transit likelihood.</li>
       </ul>
     </section>
 
     <footer>
-      <p><a href="how_to_use.html">← Back to How to Use</a></p>
+      <p><a href="how_to_use.html">← Back to User Guide</a></p>
     </footer>
   </main>
 </body>
