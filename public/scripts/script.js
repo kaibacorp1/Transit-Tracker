@@ -792,7 +792,7 @@ function toggleEnhancedPrediction() {
     btn.textContent = '🟢 Enhanced Prediction ON';
     btn.style.backgroundColor = '#28a745'; // green
   } else {
-    btn.textContent = '🔴 Enhanced Prediction';
+    btn.textContent = '🔴 Enhanced Prediction OFF';
     btn.style.backgroundColor = '#a6192e'; // red
   }
 }
