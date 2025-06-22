@@ -778,3 +778,29 @@ function ignoreFlight(callsign) {
   ignoredFlights.add(callsign);
   getCurrentLocationAndRun(); // ← triggers a fresh check, and skips ignored
 }
+
+
+//___________enable toggleEnhancedPrediction
+
+
+function toggleEnhancedPrediction() {
+  const checkbox = document.getElementById('enhancedPrediction');
+  checkbox.checked = !checkbox.checked;
+
+  const btn = document.getElementById('enhancedPredictionBtn');
+  if (checkbox.checked) {
+    btn.textContent = '🟢 Enhanced Prediction ON';
+    btn.style.backgroundColor = '#28a745'; // green
+  } else {
+    btn.textContent = '🔴 Enhanced Prediction';
+    btn.style.backgroundColor = '#a6192e'; // red
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById('enhancedPredictionBtn');
+  if (btn) {
+    toggleEnhancedPrediction();
+    toggleEnhancedPrediction(); // sync UI to off state
+  }
+});
