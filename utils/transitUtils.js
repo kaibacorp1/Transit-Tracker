@@ -49,8 +49,6 @@ export function detectTransits({
   predictSeconds = 0,
   selectedBody,
   use3DHeading = false,
-  useTimeStepping = false,
-  stepSize = 10,
   useZenithLogic = false   // ✅ NEW
 }) {
   const matches = [];
@@ -130,13 +128,8 @@ if (
     }
   };
 
-  if (useTimeStepping && predictSeconds > 0) {
-    for (let t = 0; t <= predictSeconds; t += stepSize) {
-      checkTransitsAt(t);
-    }
-  } else {
-    checkTransitsAt(predictSeconds);
-  }
+  // always just check once, exactly as in the old app
+  checkTransitsAt(predictSeconds);
 
   return matches;
 }
