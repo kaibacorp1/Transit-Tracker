@@ -21,7 +21,8 @@ export default async function handler(req, res) {
       selectedBody = 'moon',
       useTimeStepping = false,  // 🔥 NEW
       stepSize = 10,             // 🔥 NEW
-      use3DHeading
+      use3DHeading,
+      useZenithLogic = false
     } = req.body;
 
     // validate required inputs
@@ -48,7 +49,8 @@ export default async function handler(req, res) {
       selectedBody,
       use3DHeading,
       useTimeStepping,  // 🔥 NEW
-      stepSize          // 🔥 NEW
+      stepSize,          // 🔥 NEW
+      useZenithLogic = false
     });
 
     return res.status(200).json({ matches });
