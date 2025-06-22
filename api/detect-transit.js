@@ -20,7 +20,8 @@ export default async function handler(req, res) {
       predictSeconds = 0,
       selectedBody = 'moon',
       use3DHeading,
-      useZenithLogic = false
+      useZenithLogic = false,
+      enhancedPrediction = false,
     } = req.body;
 
     // validate required inputs
@@ -45,8 +46,9 @@ export default async function handler(req, res) {
       margin,
       predictSeconds,
       selectedBody,
-      use3DHeading,
-      useZenithLogic
+      use3DHeading: enhancedPrediction || use3DHeading,
+      useZenithLogic: enhancedPrediction || useZenithLogic,
+      useDynamicMargin: enhancedPrediction
     });
 
     return res.status(200).json({ matches });
