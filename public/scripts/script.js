@@ -22,7 +22,7 @@ if (!sessionStorage.getItem('sessionStart')) {
 
 /// ZENITH/////
 
-useZenithLogic: document.getElementById('toggleZenithLogic')?.checked || false,
+//useZenithLogic: document.getElementById('toggleZenithLogic')?.checked || false,
 
 //________ennaced ________
 
