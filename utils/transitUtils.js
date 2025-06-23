@@ -224,3 +224,34 @@ export function getDynamicMargin(baseMargin, altitudeFt = 10000, speedKts = 300)
   return baseMargin + (altFactor * altWeight) + (spdFactor * spdWeight);
 }
 
+
+//____________________ detect contrails______________________////
+
+export function detectContrailPlanes({ flights, userLat, userLon, userElev = 0 }) {
+  const matches = [];
+
+  for (const flight of flights) {
+    const { latitude, longitude, altitude, speed, callsign } = flight;
+
+    if (!latitude || !longitude || !altitude || !speed) continue;
+    if (altitude < 33000 || speed < 350) continue;
+
+    const distance = haversine(userLat, userLon, latitude, longitude);
+    const elevationAngle = Math.atan2((altitude * 0.3048) - userElev, distance) * (180 / Math.PI);
+
+    if (elevationAngle >= 5) {
+      matches.push({
+        callsign,
+        altitude,
+        speed,
+        elevationAngle: elevationAngle.toFixed(1),
+        distance: distance.toFixed(1),
+        lat: latitude,
+        lon: longitude
+      });
+    }
+  }
+
+  return matches;
+}
+
