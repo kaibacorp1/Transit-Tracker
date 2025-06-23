@@ -104,7 +104,7 @@ if (useDynamicMargin) {
       const azDiff = Math.abs(((azimuth - futureBodyAz + 540) % 360) - 180);
       const altDiff = Math.abs(elevationAngle - futureBodyAlt);
 
-      const isZenith = useZenithLogic && futureBodyAlt > 85;
+      const isZenith = useZenithLogic && futureBodyAlt > 70;
 const sep = sphericalSeparation(azimuth, elevationAngle, futureBodyAz, futureBodyAlt);
 
 if (
