@@ -99,17 +99,19 @@
   www.lifebeyondstars.com
 </a>
 
-
-    <div class="highlight" id="transitStatus" style="margin: 1rem 0; font-size: 1.4rem; font-weight: bold;">
-    Checking flights near the Moon...
-    </div>
-    <!-- Line 2: persistent transit log -->
-    <div id="transitLogContainer" style="display:none; margin-top:1em;">
-    <br>
-    <strong>Log:</strong>
-    <ul id="transitLogList" style="padding-left:1.2em;"></ul>
-    <button id="dismissLogBtn" style="margin-top:0.5em;">Dismiss</button>
-    </div>
+<div id="transitLogContainer" style="display:none; margin-top:1em;">
+  <strong>Log:</strong>
+  <ul id="transitLogList">
+    <!-- New entries go here -->
+  </ul>
+  <div id="extraLogContainer" style="display:none;">
+    <ul id="extraLogList">
+      <!-- Older entries move here -->
+    </ul>
+  </div>
+  <button id="readMoreBtn" style="display:none; margin-top: 0.5em;">🔽 Read More</button>
+  <button id="dismissLogBtn" style="margin-top: 0.5em;">Dismiss</button>
+</div>
 
 
     <details id="dataSourceToggle" open>
