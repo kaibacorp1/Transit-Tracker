@@ -1,7 +1,7 @@
 import SunCalc from 'suncalc';
 
 /**
- * Projects a moving object’s future position given speed and heading.
+ * Projects a moving object’s future position given speed and heading
  */
 export function projectPosition(lat, lon, heading, speed, seconds, altitude = 0, verticalSpeed = 0) {
   const R = 6371000;
