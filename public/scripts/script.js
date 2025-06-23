@@ -495,137 +495,124 @@ function checkAdsbExchangeFlights(userLat, userLon, userElev, bodyAz, bodyAlt) {
     .catch(() => { document.getElementById('transitStatus').textContent = '🚫 Error fetching ADS-B Exchange data.'; });
 }
 
-/* script.js - Final merged version for Vercel with Contrail Mode */
-
-// All your original script code remains unchanged until this block
-
 // --- Backend Transit Detection Call ---
 function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
-  const statusEl = document.getElementById('transitStatus');
-
+    // ── Normalize every flight record into the object shape detect-transit needs ──
   const flightObjs = flights.map(f => {
     if (Array.isArray(f)) {
-      const isOpenSky = !window.useAdsbexchange;
-      const rawAlt = (f[7] != null ? f[7] : f[13]) || 0;
-      return {
-        latitude:  f[6],
-        longitude: f[5],
-        altitude:  isOpenSky ? rawAlt : rawAlt * 0.3048,
-        heading:   f[10] || 0,
-        track:     f[10] || 0,
-        speed:     (f[9] || 0) * 0.5144,
-        verticalSpeed: isOpenSky ? (f[11] || 0) : ((f[12] || 0) * 0.00508),
-        callsign:  f[1] || ''
-      };
-    } else {
+  const isOpenSky = !window.useAdsbexchange;
+  const rawAlt = (f[7] != null ? f[7] : f[13]) || 0;
+  return {
+  latitude:  f[6],
+  longitude: f[5],
+  altitude:  isOpenSky ? rawAlt : rawAlt * 0.3048,
+  heading:   f[10] || 0,
+  track:     f[10] || 0,
+  speed:     (f[9] || 0) * 0.5144,
+  verticalSpeed: isOpenSky
+    ? (f[11] || 0) // OpenSky vertical rate is in m/s
+    : ((f[12] || 0) * 0.00508), // ADS-B Exchange feet/min ➝ m/s
+  callsign:  f[1] || ''
+};
+}
+
+    else {
+      // already an object (e.g. Aviationstack)
       return {
         latitude:  f.latitude  || f.lat  || 0,
         longitude: f.longitude || f.lon  || 0,
         altitude:  f.altitude  || f.baro_altitude || 0,
         heading:   f.heading   || f.track || 0,
-        track:     f.heading   || f.track || 0,
+        track:     f.heading   || f.track || 0,  // ← and here
         speed:     f.speed     || f.velocity || 0,
         callsign:  f.callsign  || f.flight || ''
       };
     }
   });
 
-  const mode = document.getElementById('modeToggle')?.value || 'transit';
-
+  // ── Send the normalized array instead of the raw one ──
   fetch('/api/detect-transit', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      flights: flightObjs,
-      userLat: uLat,
-      userLon: uLon,
-      userElev: uElev,
-      bodyAz,
-      bodyAlt,
-      margin,
-      predictSeconds,
-      selectedBody,
-      use3DHeading: document.getElementById('toggle3DCheck')?.checked || false,
-      enhancedPrediction: document.getElementById('enhancedPrediction')?.checked,
-      mode
-    })
+    body: JSON.stringify({ flights: flightObjs, userLat: uLat, userLon: uLon, userElev: uElev, bodyAz, bodyAlt, margin, predictSeconds, selectedBody, 
+                          use3DHeading: document.getElementById('toggle3DCheck')?.checked || false,
+                          enhancedPrediction: document.getElementById('enhancedPrediction')?.checked
+ })
   })
-  .then(res => {
-    if (!res.ok) throw new Error(res.status);
-    return res.json();
-  })
-  .then((data) => {
-    if (data.error) {
-      statusEl.textContent = `❌ ${data.error}`;
-      return;
-    }
-
-    if (data.contrailMatches) {
-      const contrails = data.contrailMatches;
-      if (contrails.length) {
-        const lines = contrails.map(p => `
-          <a href="https://www.flightradar24.com/${p.callsign}" target="_blank" style="color:orange;font-weight:bold;">
-            ${p.callsign}
-          </a>
-          at ${p.altitude.toFixed(0)} ft, ⬆️ ${p.elevationAngle}°, ✈️ ${p.speed.toFixed(0)} kts
-        `).join('<br>');
-        statusEl.innerHTML = `☁️ Visible contrails:<br>${lines}`;
-        if (!document.getElementById('muteToggle').checked) {
-          document.getElementById('alertSound').play().catch(() => {});
-        }
-      } else {
-        statusEl.textContent = 'No contrail-visible aircraft overhead.';
-      }
-      return;
-    }
-
-    let matches = data.matches || [];
-    matches = matches.filter(m => !ignoredFlights.has(m.callsign));
-
+  .then(res => { if (!res.ok) throw new Error(res.status); return res.json(); })
+  .then(({ matches, error }) => {
+     matches = matches.filter(m => !ignoredFlights.has(m.callsign));
+    const statusEl = document.getElementById('transitStatus');
+    if (error) return statusEl.textContent = `❌ ${error}`;
     if (matches.length) {
-      const statusLines = matches.map(m => {
-        const azCard = verbalizeCardinal(toCardinal(m.azimuth));
-        const hdgCard = verbalizeCardinal(toCardinal(m.track));
-        return `
-          <a href="https://www.flightradar24.com/${m.callsign}" target="_blank" rel="noopener noreferrer" style="color:orange;font-weight:bold;text-decoration:none;">
-            ${m.callsign}
-          </a>
-          <span style="font-size:0.85em;">
-            look up ${azCard}, ✈️ heading ${hdgCard}
-          </span>
-          <span onclick="ignoreFlight('${m.callsign}')" style="color:rgb(171, 57, 57);cursor:pointer;font-size:0.45em; margin-left:6px;">
-            Ignore
-          </span>
-        `;
-      }).join('<br>');
+  // 1) Update line 1 exactly as before, but pick the first match
 
-      statusEl.innerHTML = `🔭 Possible ${selectedBody} transit:<br>${statusLines}`;
-      if (!document.getElementById('muteToggle').checked) {
-        document.getElementById('alertSound').play().catch(()=>{});
-      }
+//If you'd like to auto-toggle use3DHeading and useZenithLogic when Enhanced Prediction is checked//
+      
+document.getElementById('enhancedPrediction').addEventListener('change', (e) => {
+});
 
-      matches.forEach(m => {
-        const azCard2 = verbalizeCardinal(toCardinal(m.azimuth));
-        const hdgCard2 = verbalizeCardinal(toCardinal(m.track));
-        const timeStr = new Date().toLocaleTimeString('en-GB', { hour12: false });
-        const li = document.createElement('li');
-        li.innerHTML = `<a href="https://www.flightradar24.com/${m.callsign}" target="_blank">${m.callsign}</a> look up ${azCard2}, ✈️ heading ${hdgCard2} ${timeStr}`;
-        logListEl.appendChild(li);
-        transitLog.push(m.callsign);
-      });
 
-      logContainer.style.display = 'block';
-    } else {
-      const selectedBody = document.getElementById('bodyToggle').value;
-      statusEl.textContent = `No aircraft aligned with the ${selectedBody} right now.`;
+      
+// BUILD a status line showing *every* match
+const statusLines = matches.map(m => {
+  const azCard  = verbalizeCardinal(toCardinal(m.azimuth));
+  const hdgCard = verbalizeCardinal(toCardinal(m.track));
+  return `
+    <a
+      href="https://www.flightradar24.com/${m.callsign}"
+      target="_blank"
+      rel="noopener noreferrer"
+      style="color:orange;font-weight:bold;text-decoration:none;"
+    >
+      ${m.callsign}
+    </a>
+    <span style="font-size:0.85em;">
+      look up ${azCard}, ✈️ heading ${hdgCard}
+    </span>
+    <span onclick="ignoreFlight('${m.callsign}')" style="color:rgb(171, 57, 57);cursor:pointer;font-size:0.45em; margin-left:6px;">
+      Ignore
+    </span>
+  `;
+}).join('<br>');
+
+
+const statusMsg = `🔭 Possible ${selectedBody} transit:<br>${statusLines}`;
+statusEl.innerHTML = statusMsg;
+    // 🔔 play alert sound
+    if (!document.getElementById('muteToggle').checked) {
+      document.getElementById('alertSound').play().catch(()=>{});
     }
-  })
-  .catch(err => {
-    console.error(err);
-    statusEl.textContent = '🚫 Error checking transit.';
-  });
-}
 
+
+
+  // 2) Append _all_ new hits to the log
+  matches.forEach(m => {
+   const azCard2  = verbalizeCardinal(toCardinal(m.azimuth));
+   const hdgCard2 = verbalizeCardinal(toCardinal(m.track));
+   const timeStr = new Date().toLocaleTimeString('en-GB', { hour12: false });
+
+   const li = document.createElement('li');
+   li.innerHTML = `<a href="https://www.flightradar24.com/${m.callsign}" target="_blank">`
+             + `${m.callsign}</a> look up ${azCard2}, ✈️ heading ${hdgCard2} `
+             + timeStr;
+  logListEl.appendChild(li);
+  transitLog.push(m.callsign);
+});
+
+  // 3) Make sure the log panel is visible
+  logContainer.style.display = 'block';
+
+  // … keep your existing alert sound & localStorage logging …
+}
+ else {
+const selectedBody = document.getElementById('bodyToggle').value;
+statusEl.textContent = `No aircraft aligned with the ${selectedBody} right now.`;
+ }
+
+  })
+  .catch(err => { console.error(err); document.getElementById('transitStatus').textContent = '🚫 Error checking transit.'; });
+}
 
 // --- UI Helpers for APIs & Tabs ---
 function saveCredentials() {
