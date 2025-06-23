@@ -99,17 +99,24 @@
   www.lifebeyondstars.com
 </a>
 
-<div id="transitLogContainer" style="display:none; margin-top:1em;">
+
+    <div class="highlight" id="transitStatus" style="margin: 1rem 0; font-size: 1.4rem; font-weight: bold;">
+    Checking flights near the Moon...
+    </div>
+    <!-- Line 2: persistent transit log -->
+    <div id="transitLogContainer" style="display:none; margin-top:1em;">
   <strong>Log:</strong>
-  <ul id="transitLogList">
-    <!-- New entries go here -->
-  </ul>
+  <ul id="transitLogList" style="padding-left:1.2em;"></ul>
+
+  <!-- Hidden older logs -->
   <div id="extraLogContainer" style="display:none;">
-    <ul id="extraLogList">
-      <!-- Older entries move here -->
-    </ul>
+    <ul id="extraLogList" style="padding-left:1.2em; opacity: 0.7;"></ul>
   </div>
+
+  <!-- "Read More" button appears if there are more than 5 entries -->
   <button id="readMoreBtn" style="display:none; margin-top: 0.5em;">🔽 Read More</button>
+
+  <!-- Existing dismiss button -->
   <button id="dismissLogBtn" style="margin-top: 0.5em;">Dismiss</button>
 </div>
 
