@@ -90,6 +90,11 @@ export function detectTransits({
         geoAlt = proj.alt;
       }
 
+if (useZenithLogic && futureBodyAlt > 70) {
+  margin = margin * 0.8;
+}
+
+      
 let marginToUse = margin;
 if (useDynamicMargin) {
   const altFt = geoAlt;
