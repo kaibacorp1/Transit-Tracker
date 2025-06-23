@@ -53,6 +53,7 @@ export function detectTransits({
   useDynamicMargin = false  // ✅ NEW
 }) {
   const matches = [];
+  const MIN_ALTITUDE_FEET = 50;  // Min altitude
   const now = Date.now();
 
   const getBodyPositionAt = (secondsAhead) => {
@@ -79,6 +80,8 @@ export function detectTransits({
         verticalSpeed = 0,
         callsign
       } = plane;
+
+      if (geoAlt < MIN_ALTITUDE_FEET) continue;
 
       if (use3DHeading && t > 0 && heading != null && speed != null) {
         const proj = projectPosition(latitude, longitude, heading, speed, t, geoAlt, verticalSpeed);
