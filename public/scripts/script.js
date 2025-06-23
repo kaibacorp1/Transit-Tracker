@@ -588,17 +588,24 @@ statusEl.innerHTML = statusMsg;
 
   // 2) Append _all_ new hits to the log
   matches.forEach(m => {
-   const azCard2  = verbalizeCardinal(toCardinal(m.azimuth));
-   const hdgCard2 = verbalizeCardinal(toCardinal(m.track));
-   const timeStr = new Date().toLocaleTimeString('en-GB', { hour12: false });
+  const azCard2  = verbalizeCardinal(toCardinal(m.azimuth));
+  const hdgCard2 = verbalizeCardinal(toCardinal(m.track));
+  const timeStr = new Date().toLocaleTimeString('en-GB', { hour12: false });
 
-   const li = document.createElement('li');
-   li.innerHTML = `<a href="https://www.flightradar24.com/${m.callsign}" target="_blank">`
-             + `${m.callsign}</a> look up ${azCard2}, ✈️ heading ${hdgCard2} `
-             + timeStr;
-  logListEl.appendChild(li);
-  transitLog.push(m.callsign);
+  const li = document.createElement('li');
+  li.innerHTML = `<a href="https://www.flightradar24.com/${m.callsign}" target="_blank">`
+             + `${m.callsign}</a> look up ${azCard2}, ✈️ heading ${hdgCard2} ${timeStr}`;
+
+  transitLog.push(li); // ⬅️ Store full element now
+
+  if (logListEl.children.length < 5) {
+    logListEl.appendChild(li);
+  } else {
+    document.getElementById('extraLogList').appendChild(li);
+    document.getElementById('readMoreBtn').style.display = 'inline-block';
+  }
 });
+
 
   // 3) Make sure the log panel is visible
   logContainer.style.display = 'block';
@@ -854,3 +861,18 @@ function showMap() {
     map.invalidateSize(); // Fixes display bug
   }, 100);
 }
+
+
+// Handle Read More toggle
+document.getElementById('readMoreBtn').addEventListener('click', () => {
+  const container = document.getElementById('extraLogContainer');
+  const btn = document.getElementById('readMoreBtn');
+
+  if (container.style.display === 'none') {
+    container.style.display = 'block';
+    btn.textContent = '🔼 Read Less';
+  } else {
+    container.style.display = 'none';
+    btn.textContent = '🔽 Read More';
+  }
+});
