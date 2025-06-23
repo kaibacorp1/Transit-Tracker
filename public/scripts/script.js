@@ -388,6 +388,7 @@ function getCurrentLocationAndRun() {
   }
 }
 
+function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
   // ✅ Normalize longitude if over 180
   if (uLon > 180) {
     uLon = uLon - 360;
@@ -406,7 +407,7 @@ function getCelestialPosition(lat, lon, elev) {
 }
 
 // --- Flight Fetching & Backend Detection ---
-function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
+
   const statusEl = document.getElementById('transitStatus');
   statusEl.textContent = `Checking flights near the ${selectedBody}...`;
   const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
