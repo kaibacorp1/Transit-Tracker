@@ -24,6 +24,12 @@ export default async function handler(req, res) {
       enhancedPrediction = false,
     } = req.body;
 
+    // Normalize longitude if it's over 180 (convert from 0–360 to -180 to 180)
+let normalizedLon = userLon;
+if (normalizedLon > 180) {
+  normalizedLon = normalizedLon - 360;
+}
+
     // validate required inputs
     if (
       !Array.isArray(flights) ||
@@ -39,7 +45,7 @@ export default async function handler(req, res) {
     const matches = detectTransits({
       flights,
       userLat,
-      userLon,
+      userLon: normalizedLon,
       userElev,
       bodyAz,
       bodyAlt,
