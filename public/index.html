@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flight Transit Tracker</title>
   <link rel="stylesheet" href="style.css" />
+  <!-- Leaflet Map CSS & JS -->
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+></script>
   <style>
     /* Nav button styling */
     .nav-btn {
@@ -171,6 +179,9 @@
       </select>
       <button id="refreshBtn" style="margin-left:1rem;">🔄 Refresh</button>
       <div id="manualLocationFields" style="display:none; margin-top:0.5rem;">
+        <br>
+<button onclick="showMap()" style="margin-top: 0.5rem;">🗺️ Select from Map</button>
+<div id="mapContainer" style="height: 300px; margin-top: 1rem; display: none; border: 1px solid #444;"></div>
         <label>Latitude: <input id="manualLat" type="number" step="0.000001" /></label><br>
         <label>Longitude: <input id="manualLon" type="number" step="0.000001" /></label><br>
         <label>Elevation (m): <input id="manualElev" type="number" value="10" /></label>
