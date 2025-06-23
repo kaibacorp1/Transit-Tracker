@@ -388,6 +388,12 @@ function getCurrentLocationAndRun() {
   }
 }
 
+function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
+  // ✅ Normalize longitude if over 180
+  if (uLon > 180) {
+    uLon = uLon - 360;
+  }
+
 function getCelestialPosition(lat, lon, elev) {
   const now = new Date();
   const pos = selectedBody === 'moon'
@@ -529,11 +535,6 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
       };
     }
   });
-
-// 🔧 Normalize longitude before sending
-if (uLon > 180) {
-  uLon = uLon - 360;
-}
   
   // ── Send the normalized array instead of the raw one ──
   fetch('/api/detect-transit', {
