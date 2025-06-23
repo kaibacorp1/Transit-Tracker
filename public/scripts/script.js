@@ -543,7 +543,7 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
   })
   .then(res => { if (!res.ok) throw new Error(res.status); return res.json(); })
   .then((data) => {
-  const statusEl = document.getElementById('transitStatus');
+  statusEl.textContent = `❌ ${data.error}`;
 
   if (data.error) {
     statusEl.textContent = `❌ ${data.error}`;
