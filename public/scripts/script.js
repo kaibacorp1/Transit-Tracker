@@ -804,3 +804,53 @@ document.addEventListener("DOMContentLoaded", () => {
     toggleEnhancedPrediction(); // sync UI to off state
   }
 });
+
+
+//____________for the world map 
+
+let map;
+let marker;
+
+function showMap() {
+  const container = document.getElementById("mapContainer");
+  container.style.display = "block";
+
+  // Initialize map only once
+  if (!map) {
+    map = L.map("mapContainer").setView([-33.9, 151.2], 10); // Default center
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; OpenStreetMap contributors',
+    }).addTo(map);
+
+    map.on("click", function (e) {
+      const { lat, lng } = e.latlng;
+
+      // Place or move marker
+      if (!marker) {
+        marker = L.marker([lat, lng]).addTo(map);
+      } else {
+        marker.setLatLng([lat, lng]);
+      }
+
+      // Update input fields
+      document.getElementById("manualLat").value = lat.toFixed(6);
+      document.getElementById("manualLon").value = lng.toFixed(6);
+
+      // Use OpenElevation API (free) to auto-fill elevation
+      fetch(
+        `https://api.open-elevation.com/api/v1/lookup?locations=${lat},${lng}`
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          const elevation = data.results[0].elevation;
+          document.getElementById("manualElev").value = elevation;
+        })
+        .catch((err) => console.error("Elevation fetch failed:", err));
+    });
+  }
+
+  setTimeout(() => {
+    map.invalidateSize(); // Fixes display bug
+  }, 100);
+}
