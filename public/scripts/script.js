@@ -596,14 +596,21 @@ statusEl.innerHTML = statusMsg;
   li.innerHTML = `<a href="https://www.flightradar24.com/${m.callsign}" target="_blank">`
              + `${m.callsign}</a> look up ${azCard2}, ✈️ heading ${hdgCard2} ${timeStr}`;
 
-  transitLog.push(li); // ⬅️ Store full element now
+  // Always add new entries to the top of transitLog
+transitLog.unshift(li);
 
-  if (logListEl.children.length < 5) {
-    logListEl.appendChild(li);
-  } else {
-    document.getElementById('extraLogList').appendChild(li);
-    document.getElementById('readMoreBtn').style.display = 'inline-block';
-  }
+// Re-render the visible top 5
+logListEl.innerHTML = '';
+transitLog.slice(0, 5).forEach(el => logListEl.appendChild(el));
+
+// Move the rest to "Read More" section
+const extraItems = transitLog.slice(5);
+document.getElementById('extraLogList').innerHTML = '';
+extraItems.forEach(el => document.getElementById('extraLogList').appendChild(el));
+
+// Show "Read More" if needed
+document.getElementById('readMoreBtn').style.display = extraItems.length > 0 ? 'inline-block' : 'none';
+
 });
 
 
