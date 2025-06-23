@@ -542,8 +542,42 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
  })
   })
   .then(res => { if (!res.ok) throw new Error(res.status); return res.json(); })
-  .then(({ matches, error }) => {
-     matches = matches.filter(m => !ignoredFlights.has(m.callsign));
+  .then((data) => {
+  const statusEl = document.getElementById('transitStatus');
+
+  if (data.error) {
+    statusEl.textContent = `❌ ${data.error}`;
+    return;
+  }
+
+  // ✅ CONTRAIL MODE HANDLING
+  if (data.contrailMatches) {
+    const contrails = data.contrailMatches;
+
+    if (contrails.length) {
+      const lines = contrails.map(p => `
+        <a href="https://www.flightradar24.com/${p.callsign}" target="_blank" style="color:orange;font-weight:bold;">
+          ${p.callsign}
+        </a>
+        at ${p.altitude.toFixed(0)} ft, ⬆️ ${p.elevationAngle}°, ✈️ ${p.speed.toFixed(0)} kts
+      `).join('<br>');
+
+      statusEl.innerHTML = `☁️ Visible contrails:<br>${lines}`;
+
+      if (!document.getElementById('muteToggle').checked) {
+        document.getElementById('alertSound').play().catch(() => {});
+      }
+    } else {
+      statusEl.textContent = 'No contrail-visible aircraft overhead.';
+    }
+
+    return; // ✅ Exit before transit logic
+  }
+
+  // ✅ TRANSIT MODE CONTINUES AS BEFORE
+  let matches = data.matches || [];
+  matches = matches.filter(m => !ignoredFlights.has(m.callsign));
+
     const statusEl = document.getElementById('transitStatus');
     if (error) return statusEl.textContent = `❌ ${error}`;
     if (matches.length) {
