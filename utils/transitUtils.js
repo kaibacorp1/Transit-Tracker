@@ -234,7 +234,7 @@ export function detectContrailPlanes({ flights, userLat, userLon, userElev = 0 }
     const { latitude, longitude, altitude, speed, callsign } = flight;
 
     if (!latitude || !longitude || !altitude || !speed) continue;
-    if (altitude < 1000 || speed < 350) continue;
+    if (altitude < 1000 || speed < 50) continue;
 
     const distance = haversine(userLat, userLon, latitude, longitude);
     const elevationAngle = Math.atan2((altitude * 0.3048) - userElev, distance) * (180 / Math.PI);
