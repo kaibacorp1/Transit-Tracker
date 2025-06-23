@@ -388,7 +388,6 @@ function getCurrentLocationAndRun() {
   }
 }
 
-function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
   // ✅ Normalize longitude if over 180
   if (uLon > 180) {
     uLon = uLon - 360;
