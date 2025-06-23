@@ -530,6 +530,11 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
     }
   });
 
+// 🔧 Normalize longitude before sending
+if (uLon > 180) {
+  uLon = uLon - 360;
+}
+  
   // ── Send the normalized array instead of the raw one ──
   fetch('/api/detect-transit', {
     method: 'POST',
