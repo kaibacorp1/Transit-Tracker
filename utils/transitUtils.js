@@ -90,7 +90,7 @@ export function detectTransits({
         geoAlt = proj.alt;
       }
 
-if (useZenithLogic && futureBodyAlt > 70) {
+if (useZenithLogic && futureBodyAlt > 80) {
   margin = margin * 0.8;
 }
 
@@ -109,7 +109,7 @@ if (useDynamicMargin) {
       const azDiff = Math.abs(((azimuth - futureBodyAz + 540) % 360) - 180);
       const altDiff = Math.abs(elevationAngle - futureBodyAlt);
 
-      const isZenith = useZenithLogic && futureBodyAlt > 70;
+      const isZenith = useZenithLogic && futureBodyAlt > 80;
 const sep = sphericalSeparation(azimuth, elevationAngle, futureBodyAz, futureBodyAlt);
 
 if (
