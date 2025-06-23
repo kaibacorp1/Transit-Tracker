@@ -536,7 +536,9 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ flights: flightObjs, userLat: uLat, userLon: uLon, userElev: uElev, bodyAz, bodyAlt, margin, predictSeconds, selectedBody, 
                           use3DHeading: document.getElementById('toggle3DCheck')?.checked || false,
-                          enhancedPrediction: document.getElementById('enhancedPrediction')?.checked
+                          enhancedPrediction: document.getElementById('enhancedPrediction')?.checked,
+                          mode: document.getElementById('modeToggle')?.value || 'transit',
+
  })
   })
   .then(res => { if (!res.ok) throw new Error(res.status); return res.json(); })
