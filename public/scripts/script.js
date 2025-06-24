@@ -142,6 +142,67 @@ async function fetchAdsbOne({ lat, lon, radiusKm }) {
 }));
 }
 
+//_________ PLANE ON PLANE to work ____//
+
+async function getFlightsFromCurrentSource(lat, lon, elev, radiusKm) {
+  if (window.useAdsbOne) {
+    return await fetchAdsbOne({ lat, lon, radiusKm });
+  }
+
+  if (window.useAdsbexchange) {
+    const key  = sessionStorage.getItem('adsbApiKey');
+    const host = sessionStorage.getItem('adsbApiHost');
+    const url  = `https://${host}/v2/lat/${lat}/lon/${lon}/dist/${radiusKm}/`;
+
+    const res = await fetch(url, {
+      headers: {
+        'x-rapidapi-host': host,
+        'x-rapidapi-key': key
+      }
+    });
+
+    const data = await res.json();
+    return Array.isArray(data.ac)
+      ? data.ac.map(f => ({
+          latitude:  f.lat || 0,
+          longitude: f.lon || 0,
+          altitude:  (f.alt_geom || 0) * 0.3048,
+          heading:   f.track || 0,
+          speed:     (f.gs || 0) * 0.5144,
+          callsign:  (f.flight || '').trim()
+        }))
+      : [];
+  }
+
+  // OpenSky fallback
+  const user = sessionStorage.getItem('osUser');
+  const pass = sessionStorage.getItem('osPass');
+  const range = radiusKm / 111;
+  const lamin = lat - range, lamax = lat + range;
+  const lomin = lon - range, lomax = lon + range;
+
+  const res = await fetch('https://opensky-proxy.onrender.com/api/flights', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: user, password: pass, lamin, lomin, lamax, lomax })
+  });
+
+  const json = await res.json();
+  const states = json.states || [];
+
+  return states.map(f => ({
+    latitude:  f[6],
+    longitude: f[5],
+    altitude:  f[7] || 0,
+    heading:   f[10] || 0,
+    speed:     (f[9] || 0) * 0.5144,
+    callsign:  f[1] || ''
+  }));
+}
+
+
+
+
 //----------------- FOR PLANE ON PLANE______________////
 
 function checkPlaneOnPlanePairs(lat, lon, elev) {
@@ -152,7 +213,7 @@ function checkPlaneOnPlanePairs(lat, lon, elev) {
 
   statusEl.textContent = '✈️ Looking for overlapping planes...';
 
-  fetchAdsbOne({ lat, lon, radiusKm })
+  getFlightsFromCurrentSource(lat, lon, elev, radiusKm)
     .then(flights => {
       const results = [];
 
