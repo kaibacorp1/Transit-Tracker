@@ -1,11 +1,10 @@
-// api/detect‐transit.js
+// api/detect-transit.js
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Only POST allowed' });
   }
 
-  // dynamic import to pick up our updated detectTransits()
   const { detectTransits } = await import('../utils/transitUtils.js');
 
   try {
@@ -24,13 +23,28 @@ export default async function handler(req, res) {
       enhancedPrediction = false,
     } = req.body;
 
-    // Normalize longitude if it's over 180 (convert from 0–360 to -180 to 180)
-let normalizedLon = userLon;
-if (normalizedLon > 180) {
-  normalizedLon = normalizedLon - 360;
-}
+    const mode = req.body.mode || 'celestial';
 
-    // validate required inputs
+    // Normalize longitude if it's over 180 (convert from 0–360 to -180 to 180)
+    let normalizedLon = userLon;
+    if (normalizedLon > 180) {
+      normalizedLon = normalizedLon - 360;
+    }
+
+    if (mode === 'planeOnPlane') {
+      const { detectPlaneOnPlaneTransits } = await import('../utils/transitUtils.js');
+      const matches = detectPlaneOnPlaneTransits({
+        flights,
+        userLat,
+        userLon: normalizedLon,
+        marginDegrees: margin,
+        searchRadiusKm: 100,
+        predictSeconds
+      });
+      return res.status(200).json({ matches });
+    }
+
+    // validate required inputs (only required for celestial mode)
     if (
       !Array.isArray(flights) ||
       userLat == null ||
@@ -41,7 +55,6 @@ if (normalizedLon > 180) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // run the hybrid box + spherical‐separation detector
     const matches = detectTransits({
       flights,
       userLat,
