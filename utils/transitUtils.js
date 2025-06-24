@@ -231,3 +231,57 @@ export function getDynamicMargin(baseMargin, altitudeFt = 10000, speedKts = 300)
   const spdWeight = 1.0;
   return baseMargin + (altFactor * altWeight) + (spdFactor * spdWeight);
 }
+
+
+
+//__________ plane on plane_________________________//
+
+export function detectPlaneOnPlaneTransits({
+  flights = [],
+  userLat,
+  userLon,
+  marginDegrees = 2.5,
+  searchRadiusKm = 100,
+  predictSeconds = 0
+}) {
+  const matches = [];
+  const now = Date.now();
+
+  for (let i = 0; i < flights.length; i++) {
+    for (let j = i + 1; j < flights.length; j++) {
+      let a = flights[i];
+      let b = flights[j];
+
+      if (predictSeconds > 0) {
+        if (a.heading != null && a.speed != null) {
+          a = {
+            ...a,
+            ...projectPosition(a.latitude, a.longitude, a.heading, a.speed, predictSeconds, a.altitude, a.verticalSpeed || 0)
+          };
+        }
+        if (b.heading != null && b.speed != null) {
+          b = {
+            ...b,
+            ...projectPosition(b.latitude, b.longitude, b.heading, b.speed, predictSeconds, b.altitude, b.verticalSpeed || 0)
+          };
+        }
+      }
+
+      const azA = calculateAzimuth(userLat, userLon, a.latitude, a.longitude);
+      const azB = calculateAzimuth(userLat, userLon, b.latitude, b.longitude);
+      const distanceA = haversine(userLat, userLon, a.latitude, a.longitude);
+      const distanceB = haversine(userLat, userLon, b.latitude, b.longitude);
+      const altA = Math.atan2((a.altitude || 0) - 10, distanceA) * 180 / Math.PI;
+      const altB = Math.atan2((b.altitude || 0) - 10, distanceB) * 180 / Math.PI;
+
+      const azDiff = Math.abs(((azA - azB + 540) % 360) - 180);
+      const altDiff = Math.abs(altA - altB);
+
+      if (azDiff < marginDegrees && altDiff < marginDegrees) {
+        matches.push({ flightA: a, flightB: b, azDiff, altDiff });
+      }
+    }
+  }
+
+  return matches;
+}
