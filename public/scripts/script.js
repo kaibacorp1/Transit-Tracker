@@ -26,7 +26,7 @@ if (!sessionStorage.getItem('sessionStart')) {
 
 //________ennaced ________
 
-const enhancedPredictionEnabled = document.getElementById('enhancedPrediction')?.checked || false;
+const enhancedPredictionEnabled = document.getElementById('enhancedPrediction')?.checked || true;
 
 
 // --- Mode Flags ---
