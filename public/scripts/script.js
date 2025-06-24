@@ -102,6 +102,8 @@ async function fetchAdsbOne({ lat, lon, radiusKm }) {
 }));
 }
 
+//_----------- FOR CONTRAILS_______///
+
 
 function checkContrailFlights(lat, lon, elev) {
   const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
@@ -117,17 +119,50 @@ function checkContrailFlights(lat, lon, elev) {
         return;
       }
 
-      const msg = contrailFlights.map(f => `
-        ✈️ <a href="https://www.flightradar24.com/${f.callsign}" target="_blank">${f.callsign}</a> 
-        at ${(f.altitude / 1000).toFixed(1)} km altitude
-      `).join('<br>');
+      // 🎵 Play alert sound
+      if (!document.getElementById('muteToggle')?.checked) {
+        document.getElementById('alertSound')?.play().catch(() => {});
+      }
 
+      // 🧠 Build list of detections
+      const timeStr = new Date().toLocaleTimeString('en-GB', { hour12: false });
+      const msg = contrailFlights.map(f => {
+        const line = `✈️ <a href="https://www.flightradar24.com/${f.callsign}" target="_blank">${f.callsign}</a> at ${(f.altitude / 1000).toFixed(1)} km`;
+        
+        // Append to visible log
+        const li = document.createElement('li');
+        li.innerHTML = `${line} ${timeStr}`;
+        transitLog.unshift(li);
+
+        // Re-render the visible top 5
+        logListEl.innerHTML = '';
+        transitLog.slice(0, 5).forEach(el => logListEl.appendChild(el));
+
+        // Move the rest to "Read More"
+        const extraItems = transitLog.slice(5);
+        document.getElementById('extraLogList').innerHTML = '';
+        extraItems.forEach(el => document.getElementById('extraLogList').appendChild(el));
+        document.getElementById('readMoreBtn').style.display = extraItems.length > 0 ? 'inline-block' : 'none';
+
+        // Save locally
+        logDetectionLocally(`Contrail detected: ${f.callsign}`, {
+          callsign: f.callsign,
+          altitude: f.altitude,
+          body: 'plane contrails'
+        });
+
+        return line;
+      }).join('<br>');
+
+      // ✅ Update status panel
       statusEl.innerHTML = `👀 Contrail flights detected:<br>${msg}`;
+      logContainer.style.display = 'block';
     })
     .catch(err => {
       statusEl.textContent = `🚫 Error finding contrails: ${err.message}`;
     });
 }
+
 
 
 // ——————————————————————————
