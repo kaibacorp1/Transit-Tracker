@@ -278,7 +278,21 @@ export function detectPlaneOnPlaneTransits({
       const altDiff = Math.abs(altA - altB);
 
       if (azDiff < marginDegrees && altDiff < marginDegrees) {
-        matches.push({ flightA: a, flightB: b, azDiff, altDiff });
+        matches.push({
+  flight1: {
+    callsign: a.callsign || '',
+    azimuth: calculateAzimuth(userLat, userLon, a.latitude, a.longitude),
+    track: a.heading || a.track || 0
+  },
+  flight2: {
+    callsign: b.callsign || '',
+    azimuth: calculateAzimuth(userLat, userLon, b.latitude, b.longitude),
+    track: b.heading || b.track || 0
+  },
+  azDiff,
+  altDiff
+});
+
       }
     }
   }
