@@ -15,7 +15,7 @@ export default async function handler(req, res) {
       userElev = 0,
       bodyAz,
       bodyAlt,
-      margin = 2.5,
+      margin = 9.5,
       predictSeconds = 0,
       selectedBody = 'moon',
       use3DHeading,
