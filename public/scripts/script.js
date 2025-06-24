@@ -681,24 +681,29 @@ document.getElementById('enhancedPrediction').addEventListener('change', (e) => 
       
 // BUILD a status line showing *every* match
 const statusLines = matches.map(m => {
-  const azCard  = verbalizeCardinal(toCardinal(m.azimuth));
-  const hdgCard = verbalizeCardinal(toCardinal(m.track));
-  return `
-    <a
-      href="https://www.flightradar24.com/${m.callsign}"
-      target="_blank"
-      rel="noopener noreferrer"
-      style="color:orange;font-weight:bold;text-decoration:none;"
-    >
-      ${m.callsign}
-    </a>
-    <span style="font-size:0.85em;">
-      look up ${azCard}, ✈️ heading ${hdgCard}
-    </span>
-    <span onclick="ignoreFlight('${m.callsign}')" style="color:rgb(171, 57, 57);cursor:pointer;font-size:0.45em; margin-left:6px;">
-      Ignore
-    </span>
-  `;
+  if (selectedBody === 'plane on plane') {
+    const azCard1 = verbalizeCardinal(toCardinal(m.flight1.azimuth));
+    const hdgCard1 = verbalizeCardinal(toCardinal(m.flight1.track));
+    const azCard2 = verbalizeCardinal(toCardinal(m.flight2.azimuth));
+    const hdgCard2 = verbalizeCardinal(toCardinal(m.flight2.track));
+
+    return `
+      ✈️✈️ 
+      <a href="https://www.flightradar24.com/${m.flight1.callsign}" target="_blank" style="color:orange;">${m.flight1.callsign}</a>
+      heading ${hdgCard1}, look ${azCard1} —
+      <a href="https://www.flightradar24.com/${m.flight2.callsign}" target="_blank" style="color:orange;">${m.flight2.callsign}</a>
+      heading ${hdgCard2}, look ${azCard2}
+    `;
+  } else {
+    const azCard  = verbalizeCardinal(toCardinal(m.azimuth));
+    const hdgCard = verbalizeCardinal(toCardinal(m.track));
+    return `
+      <a href="https://www.flightradar24.com/${m.callsign}" target="_blank" style="color:orange;">
+        ${m.callsign}
+      </a>
+      <span>look up ${azCard}, ✈️ heading ${hdgCard}</span>
+    `;
+  }
 }).join('<br>');
 
 
