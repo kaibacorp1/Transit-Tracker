@@ -233,12 +233,13 @@ function checkPlaneOnPlanePairs(lat, lon, elev) {
           const angle2 = calculateAzimuth(lat, lon, proj2.lat, proj2.lon);
           const angularSep = Math.abs(normalizeAngle(angle1 - angle2));
 
-          if (
-            dist < 225000 && // 25 km apart
-            angularSep < margin && // angular closeness
-          //  (altDiff < 600 || altDiff > 8000) && // lateral or vertical stack
-          //  (trackDiff < 30 || trackDiff > 140)
-          ) {
+           if (
+  dist < 100000 &&
+  angularSep < 45
+)
+
+          
+          {
             results.push({ f1, f2, dist, altDiff, angularSep });
           }
         }
