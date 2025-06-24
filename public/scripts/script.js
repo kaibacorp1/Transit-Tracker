@@ -213,6 +213,8 @@ function checkPlaneOnPlanePairs(lat, lon, elev) {
 
   statusEl.textContent = '✈️ Looking for overlapping planes...';
 
+  console.log('✈️ Fetching flights for plane-on-plane...');
+
   getFlightsFromCurrentSource(lat, lon, elev, radiusKm)
     .then(flights => {
       const results = [];
@@ -232,6 +234,9 @@ function checkPlaneOnPlanePairs(lat, lon, elev) {
           const angle1 = calculateAzimuth(lat, lon, proj1.lat, proj1.lon);
           const angle2 = calculateAzimuth(lat, lon, proj2.lat, proj2.lon);
           const angularSep = Math.abs(normalizeAngle(angle1 - angle2));
+
+          console.log('🛰 Flights fetched:', flights.length, flights);
+
 
            if (
   dist < 100000 &&
