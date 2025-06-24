@@ -299,9 +299,6 @@ document.getElementById('bodyToggle').addEventListener('change', e => {
   } else if (selectedBody === 'plane contrails') {
     title.textContent = '✈️ Contrail';
     label.textContent = 'Contrails';
-  } else if (selectedBody === 'plane on plane') {
-    title.textContent = '✈️ Plane on Plane';
-    label.textContent = 'Plane ✈️';
   }
 
   updateContrailModeUI();  // NEW
@@ -631,29 +628,6 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
       };
     }
   });
-
-  //____________________
-
-  const mode = selectedBody === 'plane on plane' ? 'planeOnPlane' : 'celestial';
-
-const payload = {
-  mode,
-  flights: flightObjs,
-  userLat: uLat,
-  userLon: uLon,
-  userElev: uElev,
-  margin,
-  predictSeconds,
-};
-
-if (mode === 'celestial') {
-  payload.bodyAz = bodyAz;
-  payload.bodyAlt = bodyAlt;
-  payload.selectedBody = selectedBody;
-  payload.use3DHeading = document.getElementById('toggle3DCheck')?.checked || false;
-  payload.enhancedPrediction = document.getElementById('enhancedPrediction')?.checked || false;
-}
-  
   
   // ── Send the normalized array instead of the raw one ──
   fetch('/api/detect-transit', {
@@ -681,29 +655,24 @@ document.getElementById('enhancedPrediction').addEventListener('change', (e) => 
       
 // BUILD a status line showing *every* match
 const statusLines = matches.map(m => {
-  if (selectedBody === 'plane on plane') {
-    const azCard1 = verbalizeCardinal(toCardinal(m.flight1.azimuth));
-    const hdgCard1 = verbalizeCardinal(toCardinal(m.flight1.track));
-    const azCard2 = verbalizeCardinal(toCardinal(m.flight2.azimuth));
-    const hdgCard2 = verbalizeCardinal(toCardinal(m.flight2.track));
-
-    return `
-      ✈️✈️ 
-      <a href="https://www.flightradar24.com/${m.flight1.callsign}" target="_blank" style="color:orange;">${m.flight1.callsign}</a>
-      heading ${hdgCard1}, look ${azCard1} —
-      <a href="https://www.flightradar24.com/${m.flight2.callsign}" target="_blank" style="color:orange;">${m.flight2.callsign}</a>
-      heading ${hdgCard2}, look ${azCard2}
-    `;
-  } else {
-    const azCard  = verbalizeCardinal(toCardinal(m.azimuth));
-    const hdgCard = verbalizeCardinal(toCardinal(m.track));
-    return `
-      <a href="https://www.flightradar24.com/${m.callsign}" target="_blank" style="color:orange;">
-        ${m.callsign}
-      </a>
-      <span>look up ${azCard}, ✈️ heading ${hdgCard}</span>
-    `;
-  }
+  const azCard  = verbalizeCardinal(toCardinal(m.azimuth));
+  const hdgCard = verbalizeCardinal(toCardinal(m.track));
+  return `
+    <a
+      href="https://www.flightradar24.com/${m.callsign}"
+      target="_blank"
+      rel="noopener noreferrer"
+      style="color:orange;font-weight:bold;text-decoration:none;"
+    >
+      ${m.callsign}
+    </a>
+    <span style="font-size:0.85em;">
+      look up ${azCard}, ✈️ heading ${hdgCard}
+    </span>
+    <span onclick="ignoreFlight('${m.callsign}')" style="color:rgb(171, 57, 57);cursor:pointer;font-size:0.45em; margin-left:6px;">
+      Ignore
+    </span>
+  `;
 }).join('<br>');
 
 
@@ -960,7 +929,6 @@ function getMarginFeedback(value) {
 
 function updateContrailModeUI() {
   const isContrail = selectedBody === 'plane contrails';
-  const isPlaneOnPlane = selectedBody === 'plane on plane';
 
   document.getElementById('predictToggle').disabled = isContrail;
   document.getElementById('marginSlider').disabled = isContrail;
