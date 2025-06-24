@@ -299,6 +299,9 @@ document.getElementById('bodyToggle').addEventListener('change', e => {
   } else if (selectedBody === 'plane contrails') {
     title.textContent = '✈️ Contrail';
     label.textContent = 'Contrails';
+  } else if (selectedBody === 'plane on plane') {
+    title.textContent = '✈️ Plane on Plane';
+    label.textContent = 'Plane ✈️';
   }
 
   updateContrailModeUI();  // NEW
@@ -628,6 +631,29 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
       };
     }
   });
+
+  //____________________
+
+  const mode = selectedBody === 'plane on plane' ? 'planeOnPlane' : 'celestial';
+
+const payload = {
+  mode,
+  flights: flightObjs,
+  userLat: uLat,
+  userLon: uLon,
+  userElev: uElev,
+  margin,
+  predictSeconds,
+};
+
+if (mode === 'celestial') {
+  payload.bodyAz = bodyAz;
+  payload.bodyAlt = bodyAlt;
+  payload.selectedBody = selectedBody;
+  payload.use3DHeading = document.getElementById('toggle3DCheck')?.checked || false;
+  payload.enhancedPrediction = document.getElementById('enhancedPrediction')?.checked || false;
+}
+  
   
   // ── Send the normalized array instead of the raw one ──
   fetch('/api/detect-transit', {
@@ -929,6 +955,7 @@ function getMarginFeedback(value) {
 
 function updateContrailModeUI() {
   const isContrail = selectedBody === 'plane contrails';
+  const isPlaneOnPlane = selectedBody === 'plane on plane';
 
   document.getElementById('predictToggle').disabled = isContrail;
   document.getElementById('marginSlider').disabled = isContrail;
