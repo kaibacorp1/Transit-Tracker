@@ -262,7 +262,7 @@ document.getElementById('bodyToggle').addEventListener('change', e => {
     title.textContent = '☀️ Sun';
     label.textContent = 'Sun';
   } else if (selectedBody === 'plane contrails') {
-    title.textContent = '✈️ Contrails';
+    title.textContent = '✈️ Contrail';
     label.textContent = 'Contrails';
   }
 
