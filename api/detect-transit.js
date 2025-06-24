@@ -25,12 +25,13 @@ export default async function handler(req, res) {
 
     const mode = req.body.mode || 'celestial';
 
-    // Normalize longitude if it's over 180 (convert from 0–360 to -180 to 180)
+    // ✅ Normalize longitude BEFORE any use
     let normalizedLon = userLon;
     if (normalizedLon > 180) {
       normalizedLon = normalizedLon - 360;
     }
 
+    // ✅ Safe to use normalizedLon now
     if (mode === 'planeOnPlane') {
       const { detectPlaneOnPlaneTransits } = await import('../utils/transitUtils.js');
       const matches = detectPlaneOnPlaneTransits({
@@ -44,7 +45,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ matches });
     }
 
-    // validate required inputs (only required for celestial mode)
+    // validate required inputs (only for celestial mode)
     if (
       !Array.isArray(flights) ||
       userLat == null ||
