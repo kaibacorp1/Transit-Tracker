@@ -919,6 +919,14 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 //___________
 
+function getMarginFeedback(value) {
+  return value <= 2.5 ? "🎯 Very strict (photography)" :
+         value <= 5   ? "📸 Loose silhouette range"   :
+         value <= 10  ? "🔭 General awareness"        :
+         value <= 15  ? "📡 Visual tracking zone"     :
+                        "🛑 Too loose — radar sweep only";
+}
+
 function updateContrailModeUI() {
   const isContrail = selectedBody === 'plane contrails';
 
