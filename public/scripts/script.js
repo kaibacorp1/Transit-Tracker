@@ -232,18 +232,18 @@ document.getElementById('bodyToggle').addEventListener('change', e => {
 
 
 // 👇 This is the safe add-on — handles custom labels for new options
-document.getElementById('bodyToggle').addEventListener('change', e => {
-  const trackerTitle = document.getElementById('trackerTitle');
-  const bodyLabel    = document.getElementById('bodyLabel');
+//document.getElementById('bodyToggle').addEventListener('change', e => {
+//  const trackerTitle = document.getElementById('trackerTitle');
+//  const bodyLabel    = document.getElementById('bodyLabel');
 
-  if (e.target.value === 'plane on plane') {
-    trackerTitle.textContent = 'Plane on Plane coming soon!';
-    bodyLabel.textContent = 'Plane';
-  } else if (e.target.value === 'plane contrails') {
-    trackerTitle.textContent = 'Plane Contrails prediction Coming soon!';
-    bodyLabel.textContent = 'Contrails';
-  }
-});
+//  if (e.target.value === 'plane on plane') {
+//    trackerTitle.textContent = 'Plane on Plane coming soon!';
+//    bodyLabel.textContent = 'Plane';
+//  } else if (e.target.value === 'plane contrails') {
+//    trackerTitle.textContent = 'Plane Contrails prediction Coming soon!';
+//    bodyLabel.textContent = 'Contrails';
+//  }
+//}); 
 
 document.getElementById('radiusSelect').addEventListener('change', getCurrentLocationAndRun);
 document.getElementById('predictToggle').addEventListener('change', e => {
