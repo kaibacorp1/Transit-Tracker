@@ -384,6 +384,10 @@ function updateLocationUI(lat, lon, elev) {
 
 // --- Celestial & Flight Logic ---
 function getCurrentLocationAndRun() {
+    if (selectedBody !== 'moon' && selectedBody !== 'sun') {
+    // Skip detection logic entirely for other modes
+    return;
+  }
   if (locationMode === 'manual') {
     const lat  = parseFloat(document.getElementById('manualLat').value);
     const lon  = parseFloat(document.getElementById('manualLon').value);
