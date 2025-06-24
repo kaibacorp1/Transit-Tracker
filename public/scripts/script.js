@@ -230,6 +230,18 @@ document.getElementById('bodyToggle').addEventListener('change', e => {
   getCurrentLocationAndRun();
 });
 
+// ✈️ Handle extra celestial modes without touching original logic
+document.getElementById('bodyToggle').addEventListener('change', e => {
+  const statusEl = document.getElementById('transitStatus');
+  if (e.target.value === 'plane-on-plane') {
+    statusEl.textContent = 'Plane on Plane predictions coming soon!';
+  }
+  if (e.target.value === 'plane-contrails') {
+    statusEl.textContent = 'Plane contrails coming soon!';
+  }
+});
+
+
 document.getElementById('radiusSelect').addEventListener('change', getCurrentLocationAndRun);
 document.getElementById('predictToggle').addEventListener('change', e => {
   predictSeconds = parseInt(e.target.value) || 0;
