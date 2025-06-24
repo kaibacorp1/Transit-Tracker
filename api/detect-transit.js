@@ -39,7 +39,7 @@ export default async function handler(req, res) {
         userLat,
         userLon: normalizedLon,
         marginDegrees: margin,
-        searchRadiusKm: 100,
+        searchRadiusKm: 1000,
         predictSeconds
       });
       return res.status(200).json({ matches });
