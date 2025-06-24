@@ -102,6 +102,34 @@ async function fetchAdsbOne({ lat, lon, radiusKm }) {
 }));
 }
 
+
+function checkContrailFlights(lat, lon, elev) {
+  const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
+  const statusEl = document.getElementById('transitStatus');
+  statusEl.textContent = '🔍 Looking for high-altitude contrails...';
+
+  fetchAdsbOne({ lat, lon, radiusKm })
+    .then(data => {
+      const contrailFlights = data.filter(f => f.altitude > 8000); // meters (~26,000 ft)
+
+      if (contrailFlights.length === 0) {
+        statusEl.textContent = 'No visible contrail aircraft in your area.';
+        return;
+      }
+
+      const msg = contrailFlights.map(f => `
+        ✈️ <a href="https://www.flightradar24.com/${f.callsign}" target="_blank">${f.callsign}</a> 
+        at ${(f.altitude / 1000).toFixed(1)} km altitude
+      `).join('<br>');
+
+      statusEl.innerHTML = `👀 Contrail flights detected:<br>${msg}`;
+    })
+    .catch(err => {
+      statusEl.textContent = `🚫 Error finding contrails: ${err.message}`;
+    });
+}
+
+
 // ——————————————————————————
 
 function toCardinal(deg) {
@@ -223,12 +251,25 @@ document.addEventListener('DOMContentLoaded', () => {
 // --- UI Event Listeners ---
 document.getElementById('bodyToggle').addEventListener('change', e => {
   selectedBody = e.target.value;
-  document.getElementById('trackerTitle').textContent =
-    selectedBody === 'moon' ? '🌙 Moon' : '☀️ Sun';
-  document.getElementById('bodyLabel').textContent =
-    selectedBody === 'moon' ? 'Moon' : 'Sun';
+
+  const title = document.getElementById('trackerTitle');
+  const label = document.getElementById('bodyLabel');
+
+  if (selectedBody === 'moon') {
+    title.textContent = '🌙 Moon';
+    label.textContent = 'Moon';
+  } else if (selectedBody === 'sun') {
+    title.textContent = '☀️ Sun';
+    label.textContent = 'Sun';
+  } else if (selectedBody === 'plane contrails') {
+    title.textContent = '✈️ Contrails';
+    label.textContent = 'Contrails';
+  }
+
+  updateContrailModeUI();  // NEW
   getCurrentLocationAndRun();
 });
+
 
 
 // 👇 This is the safe add-on — handles custom labels for new options
@@ -404,16 +445,24 @@ function getCurrentLocationAndRun() {
 }
 
 function getCelestialPosition(lat, lon, elev) {
+  if (selectedBody === 'plane contrails') {
+    checkContrailFlights(lat, lon, elev);
+    return;
+  }
+
   const now = new Date();
   const pos = selectedBody === 'moon'
     ? SunCalc.getMoonPosition(now, lat, lon)
     : SunCalc.getPosition(now, lat, lon);
   const az  = (pos.azimuth * 180) / Math.PI + 180;
   const alt = (pos.altitude * 180) / Math.PI;
+
   document.getElementById('moonAz').textContent = az.toFixed(2);
-  document.getElementById('moonAlt').textContent= alt.toFixed(2);
+  document.getElementById('moonAlt').textContent = alt.toFixed(2);
+
   checkNearbyFlights(lat, lon, elev, az, alt);
 }
+
 
 // --- Flight Fetching & Backend Detection ---
   function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
@@ -833,6 +882,24 @@ document.addEventListener("DOMContentLoaded", () => {
     toggleEnhancedPrediction(); // sync UI to off state
   }
 });
+//___________
+
+function updateContrailModeUI() {
+  const isContrail = selectedBody === 'plane contrails';
+
+  document.getElementById('predictToggle').disabled = isContrail;
+  document.getElementById('marginSlider').disabled = isContrail;
+  document.getElementById('enhancedPrediction').disabled = isContrail;
+
+  const btn = document.getElementById('enhancedPredictionBtn');
+  if (btn) {
+    btn.style.opacity = isContrail ? 0.5 : 1;
+  }
+
+  document.getElementById('marginFeedback').textContent = isContrail
+    ? '🛑 Not applicable in contrail mode.'
+    : getMarginFeedback(margin);
+}
 
 
 //____________for the world map 
