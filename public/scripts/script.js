@@ -234,10 +234,10 @@ function checkPlaneOnPlanePairs(lat, lon, elev) {
           const angularSep = Math.abs(normalizeAngle(angle1 - angle2));
 
           if (
-            dist < 25000 && // 25 km apart
+            dist < 225000 && // 25 km apart
             angularSep < margin && // angular closeness
-            (altDiff < 600 || altDiff > 8000) && // lateral or vertical stack
-            (trackDiff < 30 || trackDiff > 140)
+          //  (altDiff < 600 || altDiff > 8000) && // lateral or vertical stack
+          //  (trackDiff < 30 || trackDiff > 140)
           ) {
             results.push({ f1, f2, dist, altDiff, angularSep });
           }
