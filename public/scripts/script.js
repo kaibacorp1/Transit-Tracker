@@ -57,6 +57,46 @@ function logDetectionLocally(message, metadata = {}) {
   localStorage.setItem('transitLog', JSON.stringify(history));
 }
 
+
+//_____________ PLANE ON PLANE HELPERS________///
+
+
+function findClosePlanePairs(flights) {
+  const MAX_DISTANCE_M = 25000;      // 25 km
+  const MAX_ALT_DIFF_M = 183;        // 600 ft
+  const MAX_ANGLE_DIFF = 1.5;        // degrees
+  const MAX_TRACK_DIFF_PARALLEL = 30;
+  const MIN_TRACK_DIFF_CROSSING = 140;
+
+  const pairs = [];
+
+  for (let i = 0; i < flights.length - 1; i++) {
+    for (let j = i + 1; j < flights.length; j++) {
+      const a = flights[i];
+      const b = flights[j];
+
+      const altDiff = Math.abs(a.altitude - b.altitude);
+      const dist    = haversine(a.latitude, a.longitude, b.latitude, b.longitude);
+      const angle   = Math.abs(calculateAzimuth(a.latitude, a.longitude, b.latitude, b.longitude) - a.heading);
+      const trackDiff = Math.abs(normalizeAngle(a.heading - b.heading));
+
+      const isClose = altDiff < MAX_ALT_DIFF_M &&
+                      dist < MAX_DISTANCE_M &&
+                      angle < MAX_ANGLE_DIFF &&
+                      (trackDiff < MAX_TRACK_DIFF_PARALLEL || trackDiff > MIN_TRACK_DIFF_CROSSING);
+
+      if (isClose) {
+        pairs.push({ a, b });
+      }
+    }
+  }
+
+  return pairs;
+}
+
+
+
+
 //___________
 
 function hasSessionExpired() {
@@ -102,8 +142,96 @@ async function fetchAdsbOne({ lat, lon, radiusKm }) {
 }));
 }
 
-//_----------- FOR CONTRAILS_______///
+//----------------- FOR PLANE ON PLANE______________////
 
+function checkPlaneOnPlanePairs(lat, lon, elev) {
+  const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
+  const statusEl = document.getElementById('transitStatus');
+  const predictSeconds = parseInt(document.getElementById('predictToggle')?.value || '0', 10);
+  const margin = parseFloat(document.getElementById('marginSlider')?.value || '2.5');
+
+  statusEl.textContent = '✈️ Looking for overlapping planes...';
+
+  fetchAdsbOne({ lat, lon, radiusKm })
+    .then(flights => {
+      const results = [];
+
+      for (let i = 0; i < flights.length; i++) {
+        for (let j = i + 1; j < flights.length; j++) {
+          const f1 = flights[i];
+          const f2 = flights[j];
+
+          // Project both flights
+          const proj1 = projectPosition(f1.latitude, f1.longitude, f1.track, f1.speed, predictSeconds);
+          const proj2 = projectPosition(f2.latitude, f2.longitude, f2.track, f2.speed, predictSeconds);
+
+          const dist = haversine(proj1.lat, proj1.lon, proj2.lat, proj2.lon);
+          const altDiff = Math.abs(f1.altitude - f2.altitude);
+          const trackDiff = Math.abs(normalizeAngle(f1.track - f2.track));
+          const angle1 = calculateAzimuth(lat, lon, proj1.lat, proj1.lon);
+          const angle2 = calculateAzimuth(lat, lon, proj2.lat, proj2.lon);
+          const angularSep = Math.abs(normalizeAngle(angle1 - angle2));
+
+          if (
+            dist < 25000 && // 25 km apart
+            angularSep < margin && // angular closeness
+            (altDiff < 600 || altDiff > 8000) && // lateral or vertical stack
+            (trackDiff < 30 || trackDiff > 140)
+          ) {
+            results.push({ f1, f2, dist, altDiff, angularSep });
+          }
+        }
+      }
+
+      if (results.length) {
+        const timeStr = new Date().toLocaleTimeString('en-GB', { hour12: false });
+        const lines = results.map(r => {
+          const li = document.createElement('li');
+          li.innerHTML = `✈️✈️ <a href="https://www.flightradar24.com/${r.f1.callsign}" target="_blank">${r.f1.callsign}</a> & 
+                          <a href="https://www.flightradar24.com/${r.f2.callsign}" target="_blank">${r.f2.callsign}</a> 
+                          overlapping (${(r.altDiff).toFixed(0)} m alt diff) — ${timeStr}`;
+          transitLog.unshift(li);
+          return li;
+        });
+
+        // Update top 5
+        logListEl.innerHTML = '';
+        transitLog.slice(0, 5).forEach(el => logListEl.appendChild(el));
+
+        // Move extra
+        const extraItems = transitLog.slice(5);
+        document.getElementById('extraLogList').innerHTML = '';
+        extraItems.forEach(el => document.getElementById('extraLogList').appendChild(el));
+        document.getElementById('readMoreBtn').style.display = extraItems.length > 0 ? 'inline-block' : 'none';
+
+        // Log locally
+        results.forEach(r => {
+          logDetectionLocally(`Plane-on-plane: ${r.f1.callsign} & ${r.f2.callsign}`, {
+            callsign: `${r.f1.callsign},${r.f2.callsign}`,
+            altitude: r.altDiff,
+            body: 'plane on plane'
+          });
+        });
+
+        if (!document.getElementById('muteToggle')?.checked) {
+          document.getElementById('alertSound')?.play().catch(() => {});
+        }
+
+        statusEl.innerHTML = `✈️✈️ Overlapping planes found:<br>${results.length} pair(s)`;
+        logContainer.style.display = 'block';
+      } else {
+        statusEl.textContent = 'No overlapping planes found.';
+      }
+    })
+    .catch(err => {
+      statusEl.textContent = `🚫 Error: ${err.message}`;
+    });
+}
+
+
+
+
+//_----------- FOR CONTRAILS_______///
 
 function checkContrailFlights(lat, lon, elev) {
   const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
@@ -482,6 +610,11 @@ function getCurrentLocationAndRun() {
 function getCelestialPosition(lat, lon, elev) {
   if (selectedBody === 'plane contrails') {
     checkContrailFlights(lat, lon, elev);
+    return;
+  }
+
+  if (selectedBody === 'plane on plane') {
+    checkPlaneOnPlanePairs(lat, lon, elev);
     return;
   }
 
@@ -929,6 +1062,7 @@ function getMarginFeedback(value) {
 
 function updateContrailModeUI() {
   const isContrail = selectedBody === 'plane contrails';
+  const isPlaneOnPlane = selectedBody === 'plane on plane';
 
   document.getElementById('predictToggle').disabled = isContrail;
   document.getElementById('marginSlider').disabled = isContrail;
