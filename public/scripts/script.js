@@ -145,10 +145,10 @@ async function fetchAdsbOne({ lat, lon, radiusKm }) {
 //----------------- FOR PLANE ON PLANE______________////
 
 function checkPlaneOnPlanePairs(lat, lon, elev) {
-  const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
+  const radiusKm = parseInt(document.getElementById('radiusSelect').value, 50);
   const statusEl = document.getElementById('transitStatus');
-  const predictSeconds = parseInt(document.getElementById('predictToggle')?.value || '0', 10);
-  const margin = parseFloat(document.getElementById('marginSlider')?.value || '2.5');
+  const predictSeconds = parseInt(document.getElementById('predictToggle')?.value || '0', 20);
+  const margin = parseFloat(document.getElementById('marginSlider')?.value || '4.5');
 
   statusEl.textContent = '✈️ Looking for overlapping planes...';
 
