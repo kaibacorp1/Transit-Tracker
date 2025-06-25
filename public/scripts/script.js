@@ -84,9 +84,9 @@ dismissLogBtn.addEventListener('click', () => {
 async function fetchAdsbOne({ lat, lon, radiusKm }) {
   const radiusNm = (radiusKm / 1.852).toFixed(1);
   const res = await fetch(
-    https://api.adsb.one/v2/point/${lat}/${lon}/${radiusNm}
+      `https://api.adsb.one/v2/point/${lat}/${lon}/${radiusNm}`
   );
-  if (!res.ok) throw new Error(ADSB-One ${res.status});
+  if (!res.ok) throw new Error(`ADSB-One ${res.status}`);
   const json = await res.json();
 
   // Use json.ac (not json.data.ac)
@@ -127,7 +127,7 @@ function checkContrailFlights(lat, lon, elev) {
       // 🧠 Build list of detections
       const timeStr = new Date().toLocaleTimeString('en-GB', { hour12: false });
       const msg = contrailFlights.map(f => {
-        const line = ✈️ <a href="https://www.flightradar24.com/${f.callsign}" target="_blank">${f.callsign}</a> at ${(f.altitude / 1000).toFixed(1)} km;
+        const line = `✈️ <a href="https://www.flightradar24.com/${f.callsign}" target="_blank">${f.callsign}</a> at ${(f.altitude / 1000).toFixed(1)} km`;
         
         // Append to visible log
         const li = document.createElement('li');
@@ -155,7 +155,7 @@ function checkContrailFlights(lat, lon, elev) {
       }).join('<br>');
 
       // ✅ Update status panel
-      statusEl.innerHTML = 👀 Contrail flights detected:<br>${msg};
+      statusEl.innerHTML = `👀 Contrail flights detected:<br>${msg}`;
       logContainer.style.display = 'block';
     })
     .catch(err => {
