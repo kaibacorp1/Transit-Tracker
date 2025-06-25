@@ -715,39 +715,6 @@ document.getElementById('enhancedPrediction').addEventListener('change', (e) => 
 });
 
 
-      
-// BUILD a status line showing *every* match
-const statusLines = matches.map(m => {
-  const azCard  = verbalizeCardinal(toCardinal(m.azimuth));
-  const hdgCard = verbalizeCardinal(toCardinal(m.track));
-  return `
-    <a
-      href="https://www.flightradar24.com/${m.callsign}"
-      target="_blank"
-      rel="noopener noreferrer"
-      style="color:orange;font-weight:bold;text-decoration:none;"
-    >
-      ${m.callsign}
-    </a>
-    <span style="font-size:0.85em;">
-      look up ${azCard}, ✈️ heading ${hdgCard}
-    </span>
-    <span onclick="ignoreFlight('${m.callsign}')" style="color:rgb(171, 57, 57);cursor:pointer;font-size:0.45em; margin-left:6px;">
-      Ignore
-    </span>
-  `;
-}).join('<br>');
-
-
-const statusMsg = `🔭 Possible ${selectedBody} transit:<br>${statusLines}`;
-statusEl.innerHTML = statusMsg;
-    // 🔔 play alert sound
-    if (!document.getElementById('muteToggle').checked) {
-      document.getElementById('alertSound').play().catch(()=>{});
-    }
-
-
-
   // 2) Append _all_ new hits to the log
   matches.forEach(m => {
   const azCard2  = verbalizeCardinal(toCardinal(m.azimuth));
