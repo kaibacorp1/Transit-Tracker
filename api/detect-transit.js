@@ -63,3 +63,8 @@ if (normalizedLon > 180) {
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+// call for enhnaced prediction//
+
+console.log("enhancedPrediction flag:", document.getElementById('enhancedPrediction').checked);
+
