@@ -16,7 +16,7 @@ if (!sessionStorage.getItem('sessionStart')) {
   //const secs = remaining % 60;
   //const el = document.getElementById('sessionTimer');
 
-  //el.textContent = `Session time left: ${mins}m ${secs.toString().padStart(2, '0')}s`;
+  //el.textContent = Session time left: ${mins}m ${secs.toString().padStart(2, '0')}s;
   //el.style.color = remaining < 60 ? 'red' : '#ccc';
 //}
 
@@ -84,9 +84,9 @@ dismissLogBtn.addEventListener('click', () => {
 async function fetchAdsbOne({ lat, lon, radiusKm }) {
   const radiusNm = (radiusKm / 1.852).toFixed(1);
   const res = await fetch(
-    `https://api.adsb.one/v2/point/${lat}/${lon}/${radiusNm}`
+    https://api.adsb.one/v2/point/${lat}/${lon}/${radiusNm}
   );
-  if (!res.ok) throw new Error(`ADSB-One ${res.status}`);
+  if (!res.ok) throw new Error(ADSB-One ${res.status});
   const json = await res.json();
 
   // Use json.ac (not json.data.ac)
@@ -127,11 +127,11 @@ function checkContrailFlights(lat, lon, elev) {
       // 🧠 Build list of detections
       const timeStr = new Date().toLocaleTimeString('en-GB', { hour12: false });
       const msg = contrailFlights.map(f => {
-        const line = `✈️ <a href="https://www.flightradar24.com/${f.callsign}" target="_blank">${f.callsign}</a> at ${(f.altitude / 1000).toFixed(1)} km`;
+        const line = ✈️ <a href="https://www.flightradar24.com/${f.callsign}" target="_blank">${f.callsign}</a> at ${(f.altitude / 1000).toFixed(1)} km;
         
         // Append to visible log
         const li = document.createElement('li');
-        li.innerHTML = `${line} ${timeStr}`;
+        li.innerHTML = ${line} ${timeStr};
         transitLog.unshift(li);
 
         // Re-render the visible top 5
@@ -145,7 +145,7 @@ function checkContrailFlights(lat, lon, elev) {
         document.getElementById('readMoreBtn').style.display = extraItems.length > 0 ? 'inline-block' : 'none';
 
         // Save locally
-        logDetectionLocally(`Contrail detected: ${f.callsign}`, {
+        logDetectionLocally(Contrail detected: ${f.callsign}, {
           callsign: f.callsign,
           altitude: f.altitude,
           body: 'plane contrails'
@@ -155,11 +155,11 @@ function checkContrailFlights(lat, lon, elev) {
       }).join('<br>');
 
       // ✅ Update status panel
-      statusEl.innerHTML = `👀 Contrail flights detected:<br>${msg}`;
+      statusEl.innerHTML = 👀 Contrail flights detected:<br>${msg};
       logContainer.style.display = 'block';
     })
     .catch(err => {
-      statusEl.textContent = `🚫 Error finding contrails: ${err.message}`;
+      statusEl.textContent = 🚫 Error finding contrails: ${err.message};
     });
 }
 
@@ -257,7 +257,7 @@ async function fetchRadarBox({ minLat, maxLat, minLon, maxLon }) {
     },
     body: JSON.stringify({ minLatitude: minLat, maxLatitude: maxLat, minLongitude: minLon, maxLongitude: maxLon })
   });
-  if (!res.ok) throw new Error(`RadarBox ${res.status}`);
+  if (!res.ok) throw new Error(RadarBox ${res.status});
   const json = await res.json();
   return (json.flights || []).map(f => ({
     latitude:  f.latitude,
@@ -367,7 +367,7 @@ document.getElementById('refreshBtn')
 
 document.getElementById('marginSlider').addEventListener('input', e => {
   margin = parseFloat(e.target.value);
-  document.getElementById('marginValue').textContent = `${margin.toFixed(1)}°`;
+  document.getElementById('marginValue').textContent = ${margin.toFixed(1)}°;
   const feedback =
     margin <= 2.5 ? "🎯 Very strict (photography)" :
     margin <= 5   ? "📸 Loose silhouette range" :
@@ -380,7 +380,7 @@ document.getElementById('marginSlider').addEventListener('input', e => {
 document.getElementById('viewLogBtn').addEventListener('click', () => {
   const log = JSON.parse(localStorage.getItem('transitLog') || '[]');
   alert(log.length
-    ? log.map(e => `${e.time}: ${e.message}`).join('\n')
+    ? log.map(e => ${e.time}: ${e.message}).join('\n')
     : 'No detections logged yet.'
   );
 });
@@ -395,7 +395,7 @@ document.getElementById('downloadLogBtn').addEventListener('click', () => {
   if (!log.length) return alert('No detections to download.');
 
   const fmt = document.getElementById('logFormat').value;
-  const fn  = `transit_log.${fmt}`;
+  const fn  = transit_log.${fmt};
   let content;
 
   if (fmt === 'json') {
@@ -416,14 +416,14 @@ document.getElementById('downloadLogBtn').addEventListener('click', () => {
 
       // 2) Build the record
       return [
-        `time: ${ts}`,
-        `${e.message}`,
-        `callsign: ${e.callsign}`,
-        `azimuth: ${e.azimuth}`,
-        `altitudeAngle: ${e.altitudeAngle}`,
-        `body: ${e.body}`,
-        `predictionSeconds: ${e.predictionSeconds}`,
-        `margin: ${e.margin}`
+        time: ${ts},
+        ${e.message},
+        callsign: ${e.callsign},
+        azimuth: ${e.azimuth},
+        altitudeAngle: ${e.altitudeAngle},
+        body: ${e.body},
+        predictionSeconds: ${e.predictionSeconds},
+        margin: ${e.margin}
       ].join('\n');
     }).join('\n\n');
   }
@@ -452,7 +452,7 @@ function success(position) {
 }
 
 function error(err) {
-  alert(`Could not get your location. Reason: ${err.message}`);
+  alert(Could not get your location. Reason: ${err.message});
 }
 
 function updateLocationUI(lat, lon, elev) {
@@ -502,7 +502,7 @@ function getCelestialPosition(lat, lon, elev) {
 // --- Flight Fetching & Backend Detection ---
   function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
   const statusEl = document.getElementById('transitStatus');
-  statusEl.textContent = `Checking flights near the ${selectedBody}...`;
+  statusEl.textContent = Checking flights near the ${selectedBody}...;
   const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
 
   // ─── RadarBox mode ─────────────────────────────────────────────────
@@ -515,7 +515,7 @@ function getCelestialPosition(lat, lon, elev) {
     fetchRadarBox({ minLat, maxLat, minLon, maxLon })
       .then(data => callTransitAPI(data, uLat, uLon, uElev, bodyAz, bodyAlt))
       .catch(err => {
-        statusEl.textContent = `🚫 RadarBox error: ${err.message}`;
+        statusEl.textContent = 🚫 RadarBox error: ${err.message};
       });
     return;
   }
@@ -540,14 +540,14 @@ if (window.useAdsbOne) {
 
   fetchAdsbOne({ lat: uLat, lon: uLon, radiusKm })
     .then(data => {
-      // ← Log here, where `data` actually exists
+      // ← Log here, where data actually exists
       console.log('ℹ️ ADSB-One fetched', data.length, 'flights:', data);
 
       // Then hand them off to your detector
       callTransitAPI(data, uLat, uLon, uElev, bodyAz, bodyAlt);
     })
     .catch(err => {
-      statusEl.textContent = `🚫 ADSB-One error: ${err.message}`;
+      statusEl.textContent = 🚫 ADSB-One error: ${err.message};
     });
 
   return;
@@ -579,7 +579,7 @@ function checkAdsbExchangeFlights(userLat, userLon, userElev, bodyAz, bodyAlt) {
   const key  = sessionStorage.getItem('adsbApiKey');
   const host = sessionStorage.getItem('adsbApiHost');
   const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
-  const url = `https://${host}/v2/lat/${userLat}/lon/${userLon}/dist/${radiusKm}/`;
+  const url = https://${host}/v2/lat/${userLat}/lon/${userLon}/dist/${radiusKm}/;
   fetch(url, {
     method: 'GET',
     headers: { 'x-rapidapi-host': host, 'x-rapidapi-key': key }
@@ -596,123 +596,95 @@ function checkAdsbExchangeFlights(userLat, userLon, userElev, bodyAz, bodyAlt) {
 
 // --- Backend Transit Detection Call ---
 function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
+    // ── Normalize every flight record into the object shape detect-transit needs ──
   const flightObjs = flights.map(f => {
     if (Array.isArray(f)) {
-      const isOpenSky = !window.useAdsbexchange;
-      const rawAlt = (f[7] != null ? f[7] : f[13]) || 0;
-      return {
-        latitude:  f[6],
-        longitude: f[5],
-        altitude:  isOpenSky ? rawAlt : rawAlt * 0.3048,
-        heading:   f[10] || 0,
-        track:     f[10] || 0,
-        speed:     (f[9] || 0) * 0.5144,
-        verticalSpeed: isOpenSky
-          ? (f[11] || 0)
-          : ((f[12] || 0) * 0.00508),
-        callsign:  f[1] || ''
-      };
-    } else {
+  const isOpenSky = !window.useAdsbexchange;
+  const rawAlt = (f[7] != null ? f[7] : f[13]) || 0;
+  return {
+  latitude:  f[6],
+  longitude: f[5],
+  altitude:  isOpenSky ? rawAlt : rawAlt * 0.3048,
+  heading:   f[10] || 0,
+  track:     f[10] || 0,
+  speed:     (f[9] || 0) * 0.5144,
+  verticalSpeed: isOpenSky
+    ? (f[11] || 0) // OpenSky vertical rate is in m/s
+    : ((f[12] || 0) * 0.00508), // ADS-B Exchange feet/min ➝ m/s
+  callsign:  f[1] || ''
+};
+}
+
+    else {
+      // already an object (e.g. Aviationstack)
       return {
         latitude:  f.latitude  || f.lat  || 0,
         longitude: f.longitude || f.lon  || 0,
         altitude:  f.altitude  || f.baro_altitude || 0,
         heading:   f.heading   || f.track || 0,
-        track:     f.heading   || f.track || 0,
+        track:     f.heading   || f.track || 0,  // ← and here
         speed:     f.speed     || f.velocity || 0,
         callsign:  f.callsign  || f.flight || ''
       };
     }
   });
 
-  console.log("✅ Enhanced Prediction value:", document.getElementById('enhancedPrediction').checked);
-
-  const payload = {
-    flights: flightObjs,
-    userLat: uLat,
-    userLon: uLon,
-    userElev: uElev,
-    margin,
-    predictSeconds,
-    selectedBody,
-    use3DHeading: document.getElementById('toggle3DCheck')?.checked || false,
-    enhancedPrediction: document.getElementById('enhancedPrediction')?.checked
-  };
-
-  if (selectedBody === 'plane on plane') {
-    payload.searchRadius = parseInt(document.getElementById('radiusSelect')?.value, 10) || 100;
-  } else {
-    payload.bodyAz = bodyAz;
-    payload.bodyAlt = bodyAlt;
-  }
-
+ console.log("✅ Enhanced Prediction value:", document.getElementById('enhancedPrediction').checked);
+  
+  // ── Send the normalized array instead of the raw one ──
   fetch('/api/detect-transit', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+    body: JSON.stringify({ flights: flightObjs, userLat: uLat, userLon: uLon, userElev: uElev, bodyAz, bodyAlt, margin, predictSeconds, selectedBody, 
+                          use3DHeading: document.getElementById('toggle3DCheck')?.checked || false,
+                          enhancedPrediction: document.getElementById('enhancedPrediction')?.checked
+ })
   })
-    .then(res => { if (!res.ok) throw new Error(res.status); return res.json(); })
-    .then(({ matches, error }) => {
-      const statusEl = document.getElementById('transitStatus');
-      if (error) return statusEl.textContent = `❌ ${error}`;
-      if (!matches || !matches.length) {
-        statusEl.textContent = `No aircraft aligned with the ${selectedBody} right now.`;
-        return;
-      }
+  .then(res => { if (!res.ok) throw new Error(res.status); return res.json(); })
+  .then(({ matches, error }) => {
+     matches = matches.filter(m => !ignoredFlights.has(m.callsign));
+    const statusEl = document.getElementById('transitStatus');
+    if (error) return statusEl.textContent = ❌ ${error};
+    if (matches.length) {
+  // 1) Update line 1 exactly as before, but pick the first match
 
-      // 🚨 NEW DISPLAY HANDLING FOR plane-on-plane
-      const isPlaneOnPlane = selectedBody === 'plane on plane';
-      let logItems = [];
-
-      if (isPlaneOnPlane) {
-        const statusLines = matches.map((m, i) => {
-          const a = m.callsigns?.[0] || `A${i}`;
-          const b = m.callsigns?.[1] || `B${i}`;
-          return `
-            <a href="https://www.flightradar24.com/${a}" target="_blank">${a}</a>
-            ⬌
-            <a href="https://www.flightradar24.com/${b}" target="_blank">${b}</a>
-            <span style="font-size:0.8em;"> separation: ${(m.separation || 0).toFixed(0)} m </span>`;
-        });
-        statusEl.innerHTML = `🔭 Possible plane on plane transit:<br>${statusLines.join('<br>')}`;
-      } else {
-        const statusLines = matches
-          .filter(m => !ignoredFlights.has(m.callsign))
-          .map(m => {
-            const azCard  = verbalizeCardinal(toCardinal(m.azimuth));
-            const hdgCard = verbalizeCardinal(toCardinal(m.track));
-            return `
-              <a href="https://www.flightradar24.com/${m.callsign}" target="_blank">
-                ${m.callsign}
-              </a>
-              <span style="font-size:0.85em;">
-                look up ${azCard}, ✈️ heading ${hdgCard}
-              </span>
-              <span onclick="ignoreFlight('${m.callsign}')" style="color:rgb(171, 57, 57);cursor:pointer;font-size:0.45em; margin-left:6px;">
-                Ignore
-              </span>
-            `;
-          });
-        statusEl.innerHTML = `🔭 Possible ${selectedBody} transit:<br>${statusLines.join('<br>')}`;
-      }
-
-      if (!document.getElementById('muteToggle')?.checked) {
-        document.getElementById('alertSound')?.play().catch(()=>{});
-      }
-
-      logContainer.style.display = 'block';
-    })
-    .catch(err => {
-      console.error(err);
-      document.getElementById('transitStatus').textContent = '🚫 Error checking transit.';
-    });
-}
-
-// [rest of script.js unchanged below this point...]
-
+//If you'd like to auto-toggle use3DHeading and useZenithLogic when Enhanced Prediction is checked//
       
 document.getElementById('enhancedPrediction').addEventListener('change', (e) => {
 });
+
+
+      
+// BUILD a status line showing *every* match
+const statusLines = matches.map(m => {
+  const azCard  = verbalizeCardinal(toCardinal(m.azimuth));
+  const hdgCard = verbalizeCardinal(toCardinal(m.track));
+  return 
+    <a
+      href="https://www.flightradar24.com/${m.callsign}"
+      target="_blank"
+      rel="noopener noreferrer"
+      style="color:orange;font-weight:bold;text-decoration:none;"
+    >
+      ${m.callsign}
+    </a>
+    <span style="font-size:0.85em;">
+      look up ${azCard}, ✈️ heading ${hdgCard}
+    </span>
+    <span onclick="ignoreFlight('${m.callsign}')" style="color:rgb(171, 57, 57);cursor:pointer;font-size:0.45em; margin-left:6px;">
+      Ignore
+    </span>
+  ;
+}).join('<br>');
+
+
+const statusMsg = 🔭 Possible ${selectedBody} transit:<br>${statusLines};
+statusEl.innerHTML = statusMsg;
+    // 🔔 play alert sound
+    if (!document.getElementById('muteToggle').checked) {
+      document.getElementById('alertSound').play().catch(()=>{});
+    }
+
 
 
   // 2) Append _all_ new hits to the log
@@ -722,8 +694,8 @@ document.getElementById('enhancedPrediction').addEventListener('change', (e) => 
   const timeStr = new Date().toLocaleTimeString('en-GB', { hour12: false });
 
   const li = document.createElement('li');
-  li.innerHTML = `<a href="https://www.flightradar24.com/${m.callsign}" target="_blank">`
-             + `${m.callsign}</a> look up ${azCard2}, ✈️ heading ${hdgCard2} ${timeStr}`;
+  li.innerHTML = <a href="https://www.flightradar24.com/${m.callsign}" target="_blank">
+             + ${m.callsign}</a> look up ${azCard2}, ✈️ heading ${hdgCard2} ${timeStr};
 
   // Always add new entries to the top of transitLog
 transitLog.unshift(li);
@@ -750,7 +722,7 @@ document.getElementById('readMoreBtn').style.display = extraItems.length > 0 ? '
 }
  else {
 const selectedBody = document.getElementById('bodyToggle').value;
-statusEl.textContent = `No aircraft aligned with the ${selectedBody} right now.`;
+statusEl.textContent = No aircraft aligned with the ${selectedBody} right now.;
  }
 
   })
@@ -890,7 +862,7 @@ function stopAutoRefresh() {
 }
 
 function updateCountdownDisplay() {
-  document.getElementById('countdownTimer').textContent = `Next check in: ${countdown}s`;
+  document.getElementById('countdownTimer').textContent = Next check in: ${countdown}s;
 }
 
 // === Theme Toggle ===
@@ -1016,7 +988,7 @@ function showMap() {
 
       // Use OpenElevation API (free) to auto-fill elevation
       fetch(
-        `https://api.open-elevation.com/api/v1/lookup?locations=${lat},${lng}`
+        https://api.open-elevation.com/api/v1/lookup?locations=${lat},${lng}
       )
         .then((res) => res.json())
         .then((data) => {
