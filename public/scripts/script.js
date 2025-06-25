@@ -898,25 +898,33 @@ function ignoreFlight(callsign) {
 
 function toggleEnhancedPrediction() {
   const checkbox = document.getElementById('enhancedPrediction');
-  checkbox.checked = !checkbox.checked;
+  checkbox.checked = !checkbox.checked;  // real toggle
 
   const btn = document.getElementById('enhancedPredictionBtn');
   if (checkbox.checked) {
     btn.textContent = '🟢 Enhanced Prediction ON';
-    btn.style.backgroundColor = '#285431'; // green
+    btn.style.backgroundColor = '#285431';
   } else {
     btn.textContent = '🔴 Enhanced Prediction OFF';
-    btn.style.backgroundColor = '#66252f'; // red
+    btn.style.backgroundColor = '#66252f';
   }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  const checkbox = document.getElementById('enhancedPrediction');
   const btn = document.getElementById('enhancedPredictionBtn');
-  if (btn) {
-    toggleEnhancedPrediction();
-    toggleEnhancedPrediction(); // sync UI to off state
+  if (btn && checkbox) {
+    // sync button to checkbox default state (ON)
+    if (checkbox.checked) {
+      btn.textContent = '🟢 Enhanced Prediction ON';
+      btn.style.backgroundColor = '#285431';
+    } else {
+      btn.textContent = '🔴 Enhanced Prediction OFF';
+      btn.style.backgroundColor = '#66252f';
+    }
   }
 });
+
 //___________
 
 function getMarginFeedback(value) {
