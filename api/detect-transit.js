@@ -52,7 +52,7 @@ if (normalizedLon > 180) {
       margin,
       predictSeconds,
       selectedBody,
-      use3DHeading: enhancedPrediction || use3DHeading,
+      use3DHeading: enhancedPrediction || predictSeconds > 0 || use3DHeading,
       useZenithLogic: enhancedPrediction || useZenithLogic,
       useDynamicMargin: enhancedPrediction
     });
