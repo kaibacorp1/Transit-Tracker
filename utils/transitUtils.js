@@ -231,3 +231,125 @@ export function getDynamicMargin(baseMargin, altitudeFt = 10000, speedKts = 300)
   const spdWeight = 1.0;
   return baseMargin + (altFactor * altWeight) + (spdFactor * spdWeight);
 }
+
+///
+
+// utils/transitUtils.js
+
+// Existing placeholder function — unchanged
+async function analyzeTransitVideo(videoBuffer) {
+    return {
+        status: 'success',
+        message: 'Transit detection not implemented.',
+        length: videoBuffer.length
+    };
+}
+
+// New: Plane-on-plane detection logic
+async function detectPlaneOnPlane(planeList, observer) {
+    const MAX_ANGULAR_SEPARATION = 2.5; // degrees
+    const MAX_VERTICAL_SEPARATION = 4000; // feet
+    const MAX_SLANT_DISTANCE_KM = 40; // ignore planes far from observer
+
+    const results = [];
+
+    for (let i = 0; i < planeList.length; i++) {
+        for (let j = i + 1; j < planeList.length; j++) {
+            const plane1 = planeList[i];
+            const plane2 = planeList[j];
+
+            const a1 = getAzEl(observer, plane1);
+            const a2 = getAzEl(observer, plane2);
+
+            const angularSeparation = getAngularSeparation(a1.az, a1.el, a2.az, a2.el);
+            const verticalSeparation = Math.abs(plane1.alt - plane2.alt);
+
+            const d1 = getSlantDistance(observer, plane1);
+            const d2 = getSlantDistance(observer, plane2);
+
+            const headingDiff = Math.abs(plane1.track - plane2.track);
+
+            if (
+                angularSeparation <= MAX_ANGULAR_SEPARATION &&
+                verticalSeparation <= MAX_VERTICAL_SEPARATION &&
+                d1 <= MAX_SLANT_DISTANCE_KM &&
+                d2 <= MAX_SLANT_DISTANCE_KM
+            ) {
+                results.push({
+                    transitStatus: 'planeOnPlaneTransit',
+                    aircraft: [plane1, plane2],
+                    angularSeparation,
+                    verticalSeparation,
+                    headingDifference: headingDiff
+                });
+            }
+        }
+    }
+
+    return results;
+}
+
+// Utility: Convert degrees to radians
+function toRad(deg) {
+    return deg * Math.PI / 180;
+}
+
+// Calculate azimuth and elevation from observer to aircraft
+function getAzEl(observer, plane) {
+    const dLat = toRad(plane.lat - observer.lat);
+    const dLon = toRad(plane.lon - observer.lon);
+    const observerLatRad = toRad(observer.lat);
+    const planeLatRad = toRad(plane.lat);
+
+    const y = Math.sin(dLon) * Math.cos(planeLatRad);
+    const x = Math.cos(observerLatRad) * Math.sin(planeLatRad) -
+              Math.sin(observerLatRad) * Math.cos(planeLatRad) * Math.cos(dLon);
+
+    const az = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+
+    const earthRadius = 6371; // km
+    const planeAltKm = plane.alt * 0.0003048;
+    const groundDistKm = getGroundDistance(observer, plane);
+
+    const el = Math.atan2(planeAltKm - observer.alt, groundDistKm) * 180 / Math.PI;
+
+    return { az, el };
+}
+
+// Compute angular separation in the sky
+function getAngularSeparation(az1, el1, az2, el2) {
+    const dAz = toRad(az2 - az1);
+    const sinEl1 = Math.sin(toRad(el1));
+    const sinEl2 = Math.sin(toRad(el2));
+    const cosEl1 = Math.cos(toRad(el1));
+    const cosEl2 = Math.cos(toRad(el2));
+
+    return Math.acos(sinEl1 * sinEl2 + cosEl1 * cosEl2 * Math.cos(dAz)) * 180 / Math.PI;
+}
+
+// Compute ground (2D) distance
+function getGroundDistance(p1, p2) {
+    const R = 6371; // Earth radius in km
+    const dLat = toRad(p2.lat - p1.lat);
+    const dLon = toRad(p2.lon - p1.lon);
+    const lat1 = toRad(p1.lat);
+    const lat2 = toRad(p2.lat);
+
+    const a = Math.sin(dLat / 2) ** 2 +
+              Math.cos(lat1) * Math.cos(lat2) *
+              Math.sin(dLon / 2) ** 2;
+
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+// Compute slant (3D) distance from observer to plane
+function getSlantDistance(observer, plane) {
+    const groundDist = getGroundDistance(observer, plane);
+    const verticalDist = Math.abs((plane.alt - observer.alt) * 0.0003048);
+    return Math.sqrt(groundDist ** 2 + verticalDist ** 2);
+}
+
+module.exports = {
+    analyzeTransitVideo,
+    detectPlaneOnPlane
+};
