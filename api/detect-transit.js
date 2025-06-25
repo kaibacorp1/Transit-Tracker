@@ -64,7 +64,3 @@ if (normalizedLon > 180) {
   }
 }
 
-// call for enhnaced prediction//
-
-console.log("enhancedPrediction flag:", document.getElementById('enhancedPrediction').checked);
-
