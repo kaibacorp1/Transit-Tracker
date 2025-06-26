@@ -296,15 +296,14 @@ document.getElementById('bodyToggle').addEventListener('change', e => {
   } else if (selectedBody === 'sun') {
     title.textContent = '☀️ Sun';
     label.textContent = 'Sun';
-  } else if (selectedBody === 'plane contrails') {
+    else if (selectedBody === 'plane contrails') {
     title.textContent = '✈️ Contrail';
     label.textContent = 'Contrails';
-    else if (selectedBody === 'plane on plane') {
+  } else if (selectedBody === 'plane on plane') {
     title.textContent = '✈️ Plane vs Plane';
     label.textContent = 'Plane on Plane';
- }
-
   }
+
 
   updateContrailModeUI();  // NEW
   getCurrentLocationAndRun();
