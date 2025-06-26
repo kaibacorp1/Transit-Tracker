@@ -299,6 +299,11 @@ document.getElementById('bodyToggle').addEventListener('change', e => {
   } else if (selectedBody === 'plane contrails') {
     title.textContent = '✈️ Contrail';
     label.textContent = 'Contrails';
+    else if (selectedBody === 'plane on plane') {
+    title.textContent = '✈️ Plane vs Plane';
+    label.textContent = 'Plane on Plane';
+ }
+
   }
 
   updateContrailModeUI();  // NEW
@@ -484,6 +489,11 @@ function getCelestialPosition(lat, lon, elev) {
     checkContrailFlights(lat, lon, elev);
     return;
   }
+    if (selectedBody === 'plane on plane') {
+    checkNearbyFlights(lat, lon, elev, 0, 0);  // bodyAz, bodyAlt not needed
+    return;
+  }
+
 
   const now = new Date();
   const pos = selectedBody === 'moon'
@@ -656,26 +666,32 @@ document.getElementById('enhancedPrediction').addEventListener('change', (e) => 
 
       
 // BUILD a status line showing *every* match
-const statusLines = matches.map(m => {
-  const azCard  = verbalizeCardinal(toCardinal(m.azimuth));
-  const hdgCard = verbalizeCardinal(toCardinal(m.track));
-  return `
-    <a
-      href="https://www.flightradar24.com/${m.callsign}"
-      target="_blank"
-      rel="noopener noreferrer"
-      style="color:orange;font-weight:bold;text-decoration:none;"
-    >
-      ${m.callsign}
-    </a>
-    <span style="font-size:0.85em;">
-      look up ${azCard}, ✈️ heading ${hdgCard}
-    </span>
-    <span onclick="ignoreFlight('${m.callsign}')" style="color:rgb(171, 57, 57);cursor:pointer;font-size:0.45em; margin-left:6px;">
-      Ignore
-    </span>
-  `;
-}).join('<br>');
+const statusLines = selectedBody === 'plane on plane'
+  ? matches.map(pair => {
+      const [f1, f2] = pair.pair;
+      return `
+        <span style="font-size:0.9em;">
+          ✈️ <a href="https://www.flightradar24.com/${f1.callsign}" target="_blank">${f1.callsign}</a>
+          vs
+          <a href="https://www.flightradar24.com/${f2.callsign}" target="_blank">${f2.callsign}</a>
+          — ${pair.angularSeparation.toFixed(1)}° apart
+        </span>`;
+    }).join('<br>')
+  : matches.map(m => {
+      const azCard  = verbalizeCardinal(toCardinal(m.azimuth));
+      const hdgCard = verbalizeCardinal(toCardinal(m.track));
+      return `
+        <a href="https://www.flightradar24.com/${m.callsign}" target="_blank" style="color:orange;font-weight:bold;text-decoration:none;">
+          ${m.callsign}
+        </a>
+        <span style="font-size:0.85em;">
+          look up ${azCard}, ✈️ heading ${hdgCard}
+        </span>
+        <span onclick="ignoreFlight('${m.callsign}')" style="color:rgb(171, 57, 57);cursor:pointer;font-size:0.45em; margin-left:6px;">
+          Ignore
+        </span>
+      `;
+    }).join('<br>');
 
 
 const statusMsg = `🔭 Possible ${selectedBody} transit:<br>${statusLines}`;
