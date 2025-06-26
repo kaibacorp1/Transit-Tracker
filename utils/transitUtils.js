@@ -231,3 +231,79 @@ export function getDynamicMargin(baseMargin, altitudeFt = 10000, speedKts = 300)
   const spdWeight = 1.0;
   return baseMargin + (altFactor * altWeight) + (spdFactor * spdWeight);
 }
+
+
+
+
+//________________________ PLANE ON PLANE_____________________________///
+
+
+export function detectPlaneOnPlane({
+  flights, userLat, userLon, userElev = 0, margin = 10, predictSeconds = 0
+}) {
+  const toRad = deg => deg * Math.PI / 180;
+  const toDeg = rad => rad * 180 / Math.PI;
+  const R = 6371000;
+
+  function toCartesian(lat, lon, h) {
+    const φ = toRad(lat), λ = toRad(lon);
+    const x = (R + h) * Math.cos(φ) * Math.cos(λ);
+    const y = (R + h) * Math.cos(φ) * Math.sin(λ);
+    const z = (R + h) * Math.sin(φ);
+    return [x, y, z];
+  }
+
+  function enuFromCartesian(px, py, pz, ox, oy, oz) {
+    const dx = px - ox, dy = py - oy, dz = pz - oz;
+    const φ0 = toRad(userLat), λ0 = toRad(userLon);
+    const east = [-Math.sin(λ0), Math.cos(λ0), 0];
+    const north = [-Math.sin(φ0) * Math.cos(λ0), -Math.sin(φ0) * Math.sin(λ0), Math.cos(φ0)];
+    const up = [Math.cos(φ0) * Math.cos(λ0), Math.cos(φ0) * Math.sin(λ0), Math.sin(φ0)];
+    const e = dx * east[0] + dy * east[1] + dz * east[2];
+    const n = dx * north[0] + dy * north[1] + dz * north[2];
+    const u = dx * up[0] + dy * up[1] + dz * up[2];
+    return [e, n, u];
+  }
+
+  function getAzEl(lat, lon, alt) {
+    const [ox, oy, oz] = toCartesian(userLat, userLon, userElev);
+    const [px, py, pz] = toCartesian(lat, lon, alt);
+    const [e, n, u] = enuFromCartesian(px, py, pz, ox, oy, oz);
+    const az = (Math.atan2(e, n) * 180 / Math.PI + 360) % 360;
+    const el = Math.atan2(u, Math.sqrt(e * e + n * n)) * 180 / Math.PI;
+    return [az, el];
+  }
+
+  const matches = [];
+
+  for (let i = 0; i < flights.length; i++) {
+    for (let j = i + 1; j < flights.length; j++) {
+      const f1 = flights[i];
+      const f2 = flights[j];
+      if (!f1 || !f2) continue;
+
+      const alt1 = f1.altitude || 0;
+      const alt2 = f2.altitude || 0;
+
+      const [az1, el1] = getAzEl(f1.lat, f1.lon, alt1 * 0.3048);
+      const [az2, el2] = getAzEl(f2.lat, f2.lon, alt2 * 0.3048);
+
+      const dAz = toRad(az1 - az2);
+      const el1r = toRad(el1), el2r = toRad(el2);
+      const cosSep = Math.sin(el1r) * Math.sin(el2r) + Math.cos(el1r) * Math.cos(el2r) * Math.cos(dAz);
+      const sep = toDeg(Math.acos(Math.max(-1, Math.min(1, cosSep))));
+
+      const verticalSep = Math.abs(alt1 - alt2);
+
+      if (sep < margin && verticalSep < 4000) {
+        matches.push({
+          pair: [f1, f2],
+          angularSeparation: sep,
+          verticalSeparation: verticalSep
+        });
+      }
+    }
+  }
+
+  return matches;
+}
