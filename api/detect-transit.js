@@ -6,7 +6,7 @@ export default async function handler(req, res) {
   }
 
   // dynamic import to pick up our updated detectTransits()
-  const { detectTransits } = await import('../utils/transitUtils.js');
+  const { detectTransits, detectPlaneOnPlane } = await import('../utils/transitUtils.js');
 
   try {
     const {
@@ -41,6 +41,24 @@ if (normalizedLon > 180) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
+
+
+    
+//______________ for PLANE AND PLANE____________________///
+
+        if (selectedBody === 'plane on plane') {
+      const matches = detectPlaneOnPlane({
+        flights,
+        userLat,
+        userLon: normalizedLon,
+        userElev,
+        margin,
+        predictSeconds
+      });
+      return res.status(200).json({ matches });
+    }
+
+    
     // run the hybrid box + spherical‐separation detector
     const matches = detectTransits({
       flights,
