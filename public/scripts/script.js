@@ -291,18 +291,19 @@ document.getElementById('bodyToggle').addEventListener('change', e => {
   const label = document.getElementById('bodyLabel');
 
   if (selectedBody === 'moon') {
-    title.textContent = '🌙 Moon';
-    label.textContent = 'Moon';
-  } else if (selectedBody === 'sun') {
-    title.textContent = '☀️ Sun';
-    label.textContent = 'Sun';
-    else if (selectedBody === 'plane contrails') {
-    title.textContent = '✈️ Contrail';
-    label.textContent = 'Contrails';
-  } else if (selectedBody === 'plane on plane') {
-    title.textContent = '✈️ Plane vs Plane';
-    label.textContent = 'Plane on Plane';
-  }
+  title.textContent = '🌙 Moon';
+  label.textContent = 'Moon';
+} else if (selectedBody === 'sun') {
+  title.textContent = '☀️ Sun';
+  label.textContent = 'Sun';
+} else if (selectedBody === 'plane contrails') {
+  title.textContent = '✈️ Contrail';
+  label.textContent = 'Contrails';
+} else if (selectedBody === 'plane on plane') {
+  title.textContent = '✈️ Plane vs Plane';
+  label.textContent = 'Plane on Plane';
+}
+
 
 
   updateContrailModeUI();  // NEW
