@@ -954,21 +954,28 @@ function getMarginFeedback(value) {
 }
 
 function updateContrailModeUI() {
-  const isContrail = selectedBody === 'plane contrails';
+  const isContrail    = selectedBody === 'plane contrails';
+  const isPlaneOnPlane = selectedBody === 'plane on plane';
 
-  document.getElementById('predictToggle').disabled = isContrail;
-  document.getElementById('marginSlider').disabled = isContrail;
-  document.getElementById('enhancedPrediction').disabled = isContrail;
+  // ---- disable controls in contrail OR plane-on-plane modes ----
+  document.getElementById('predictToggle').disabled       = isContrail;
+  document.getElementById('marginSlider').disabled       = isContrail;
+  document.getElementById('enhancedPrediction').disabled = isContrail || isPlaneOnPlane;
 
+  // fade the Enhanced button
   const btn = document.getElementById('enhancedPredictionBtn');
   if (btn) {
-    btn.style.opacity = isContrail ? 0.5 : 1;
+    btn.style.opacity = (isContrail || isPlaneOnPlane) ? 0.5 : 1;
   }
 
+  // update the margin feedback text
   document.getElementById('marginFeedback').textContent = isContrail
     ? '🛑 Not applicable in contrail mode.'
-    : getMarginFeedback(margin);
+    : isPlaneOnPlane
+      ? '🔭 Only angular margin matters here.'
+      : getMarginFeedback(margin);
 }
+
 
 
 //____________for the world map 
