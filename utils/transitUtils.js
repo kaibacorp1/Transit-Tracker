@@ -1,14 +1,5 @@
 import SunCalc from 'suncalc';
 
-//for plane on plane 
-
-export function calculateElevation(userLat, userLon, userElev, targetLat, targetLon, targetAlt) {
-  const groundDistance = haversine(userLat, userLon, targetLat, targetLon);
-  const altDiff = targetAlt - userElev;
-  const angleRad = Math.atan2(altDiff, groundDistance);
-  return angleRad * 180 / Math.PI;
-}
-
 /**
  * Projects a moving object’s future position given speed and heading
  */
@@ -239,62 +230,4 @@ export function getDynamicMargin(baseMargin, altitudeFt = 10000, speedKts = 300)
   const altWeight = 1.5;
   const spdWeight = 1.0;
   return baseMargin + (altFactor * altWeight) + (spdFactor * spdWeight);
-}
-
-//_________ plane on Plane__________//
-
-export function detectPlaneOnPlane({
-  flights,
-  userLat,
-  userLon,
-  userElev,
-  margin,           // in degrees
-  predictSeconds,   // how far in future to project
-  searchRadius      // in kilometers
-}) {
-  // Step 1: Filter flights by distance from user
-  const withinRadius = flights.filter(f => {
-    const d = haversine(userLat, userLon, f.latitude, f.longitude);
-    return d <= (searchRadius * 1000); // convert km to meters
-  });
-
-  // Step 2: Project and compute sky position
-  const projected = withinRadius.map(f => {
-    const future = projectPosition(
-      f.latitude, f.longitude,
-      f.heading, f.speed,
-      predictSeconds,
-      f.altitude, f.verticalSpeed
-    );
-
-    const azimuth = calculateAzimuth(userLat, userLon, future.lat, future.lon);
-    const elevation = calculateElevation(userLat, userLon, userElev, future.lat, future.lon, future.alt);
-
-    return {
-      callsign: f.callsign,
-      azimuth,
-      elevation,
-      future
-    };
-  });
-
-  // Step 3: Check all flight pairs
-  const matches = [];
-  for (let i = 0; i < projected.length; i++) {
-    for (let j = i + 1; j < projected.length; j++) {
-      const a = projected[i];
-      const b = projected[j];
-      const separation = sphericalSeparation(a.azimuth, a.elevation, b.azimuth, b.elevation);
-
-      if (separation <= margin) {
-        matches.push({
-          callsigns: [a.callsign, b.callsign],
-          separation,
-          positions: [a.future, b.future]
-        });
-      }
-    }
-  }
-
-  return matches;
 }
