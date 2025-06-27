@@ -725,7 +725,12 @@ const statusLines = selectedBody === 'plane on plane'
     }).join('<br>');
 
 
-const statusMsg = `🔭 Possible ${selectedBody} transit:<br>${statusLines}`;
+const pauseBtn = `<button onclick="toggleAutoRefresh()" style="float:right; margin-left: 10px; font-size: 0.75em;">
+  ${autoRefresh ? '⏸️ Pause' : '▶️ Resume'}
+</button>`;
+
+const statusMsg = `🔭 Possible ${selectedBody} transit: ${pauseBtn}<br>${statusLines}`;
+
 statusEl.innerHTML = statusMsg;
     // 🔔 play alert sound
     if (!document.getElementById('muteToggle').checked) {
