@@ -656,7 +656,13 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
   })
   .then(res => { if (!res.ok) throw new Error(res.status); return res.json(); })
   .then(({ matches, error }) => {
-     matches = matches.filter(m => !ignoredFlights.has(m.callsign));
+     matches = matches.filter(m => {
+  if (m.callsign) return !ignoredFlights.has(m.callsign);
+  if (m.pair?.length === 2) {
+    return !ignoredFlights.has(m.pair[0].callsign) && !ignoredFlights.has(m.pair[1].callsign);
+  }
+  return true;
+});
     const statusEl = document.getElementById('transitStatus');
     if (error) return statusEl.textContent = `❌ ${error}`;
     if (matches.length) {
