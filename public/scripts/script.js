@@ -133,37 +133,30 @@ if (visibleContrails.length === 0) {
 
       // 🧠 Build list of detections
       const timeStr = new Date().toLocaleTimeString('en-GB', { hour12: false });
+      
       const msg = visibleContrails.map(f => {
-      const line = `✈️ <a href="https://www.flightradar24.com/${f.callsign}" target="_blank" style="color: orange;">${f.callsign}</a> at ${(f.altitude / 1000).toFixed(1)} km
-       <span onclick="ignoreFlight('${f.callsign}')" style="color:rgb(171, 57, 57);cursor:pointer;font-size:0.45em; margin-left:6px;">
-       Ignore
-       </span>`;
+  const displayLine = `✈️ <a href="https://www.flightradar24.com/${f.callsign}" target="_blank" style="color: orange;">${f.callsign}</a> at ${(f.altitude / 1000).toFixed(1)} km
+    <span onclick="ignoreFlight('${f.callsign}')" style="color:rgb(171, 57, 57);cursor:pointer;font-size:0.45em; margin-left:6px;">
+    Ignore
+    </span>`;
 
-        
-        // Append to visible log
-        const li = document.createElement('li');
-        li.innerHTML = `${line} ${timeStr}`;
-        transitLog.unshift(li);
+  const logLine = `✈️ <a href="https://www.flightradar24.com/${f.callsign}" target="_blank">${f.callsign}</a> at ${(f.altitude / 1000).toFixed(1)} km`;
 
-        // Re-render the visible top 5
-        logListEl.innerHTML = '';
-        transitLog.slice(0, 5).forEach(el => logListEl.appendChild(el));
+  // Append to visual log (only logLine in log!)
+  const li = document.createElement('li');
+  li.innerHTML = `${logLine} ${timeStr}`;
+  transitLog.unshift(li);
 
-        // Move the rest to "Read More"
-        const extraItems = transitLog.slice(5);
-        document.getElementById('extraLogList').innerHTML = '';
-        extraItems.forEach(el => document.getElementById('extraLogList').appendChild(el));
-        document.getElementById('readMoreBtn').style.display = extraItems.length > 0 ? 'inline-block' : 'none';
+  // Save locally
+  logDetectionLocally(`Contrail detected: ${f.callsign}`, {
+    callsign: f.callsign,
+    altitude: f.altitude,
+    body: 'plane contrails'
+  });
 
-        // Save locally
-        logDetectionLocally(`Contrail detected: ${f.callsign}`, {
-          callsign: f.callsign,
-          altitude: f.altitude,
-          body: 'plane contrails'
-        });
+  return displayLine;
+}).join('<br>');
 
-        return line;
-      }).join('<br>');
 
       // ✅ Update status panel
       statusEl.innerHTML = `👀 Contrail flights detected:<br>${msg}`;
