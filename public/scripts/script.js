@@ -147,6 +147,18 @@ if (visibleContrails.length === 0) {
   li.innerHTML = `${logLine} ${timeStr}`;
   transitLog.unshift(li);
 
+        // Append new logs to UI (like other detections)
+  logListEl.innerHTML = '';
+  transitLog.slice(0, 5).forEach(el => logListEl.appendChild(el));
+
+  const extraItems = transitLog.slice(5);
+  const extraList = document.getElementById('extraLogList');
+  extraList.innerHTML = '';
+  extraItems.forEach(el => extraList.appendChild(el));
+
+  document.getElementById('readMoreBtn').style.display =
+    extraItems.length > 0 ? 'inline-block' : 'none';
+
   // Save locally
   logDetectionLocally(`Contrail detected: ${f.callsign}`, {
   callsign: f.callsign,
