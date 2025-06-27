@@ -113,6 +113,13 @@ function checkContrailFlights(lat, lon, elev) {
   fetchAdsbOne({ lat, lon, radiusKm })
     .then(data => {
       const contrailFlights = data.filter(f => f.altitude > 8000); // meters (~26,000 ft)
+const visibleContrails = contrailFlights.filter(f => !ignoredFlights.has(f.callsign));
+
+if (visibleContrails.length === 0) {
+  statusEl.textContent = 'No visible contrail aircraft in your area.';
+  return;
+}
+
 
       if (contrailFlights.length === 0) {
         statusEl.textContent = 'No visible contrail aircraft in your area.';
@@ -126,7 +133,7 @@ function checkContrailFlights(lat, lon, elev) {
 
       // 🧠 Build list of detections
       const timeStr = new Date().toLocaleTimeString('en-GB', { hour12: false });
-      const msg = contrailFlights.map(f => {
+      const msg = visibleContrails.map(f => {
       const line = `✈️ <a href="https://www.flightradar24.com/${f.callsign}" target="_blank" style="color: orange;">${f.callsign}</a> at ${(f.altitude / 1000).toFixed(1)} km
        <span onclick="ignoreFlight('${f.callsign}')" style="color:rgb(171, 57, 57);cursor:pointer;font-size:0.45em; margin-left:6px;">
        Ignore
