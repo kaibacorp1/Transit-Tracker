@@ -713,7 +713,7 @@ const statusLines = selectedBody === 'plane on plane'
       const [f1, f2] = pair.pair;
       return `
   <span style="font-size:0.9em;">
-    ✈✈️ <a href="https://www.flightradar24.com/${f1.callsign}" target="_blank" style="color: orange;">${f1.callsign}</a>
+    ✈️ <a href="https://www.flightradar24.com/${f1.callsign}" target="_blank" style="color: orange;">${f1.callsign}</a>
     vs
     <a href="https://www.flightradar24.com/${f2.callsign}" target="_blank" style="color: orange;">${f2.callsign}</a>
     — ${pair.angularSeparation.toFixed(1)}° apart
