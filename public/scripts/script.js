@@ -22,6 +22,20 @@ if (!sessionStorage.getItem('sessionStart')) {
 
 /// ZENITH/////
 
+
+/// PAUSE TOGGLE FOR 
+
+function toggleAutoRefresh() {
+  autoRefresh = !autoRefresh;
+  if (autoRefresh) {
+    startAutoRefresh();
+  } else {
+    stopAutoRefresh();
+  }
+}
+
+
+
 //useZenithLogic: document.getElementById('toggleZenithLogic')?.checked || false,
 
 //________ennaced ________
