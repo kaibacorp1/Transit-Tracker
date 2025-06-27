@@ -127,7 +127,7 @@ function checkContrailFlights(lat, lon, elev) {
       // 🧠 Build list of detections
       const timeStr = new Date().toLocaleTimeString('en-GB', { hour12: false });
       const msg = contrailFlights.map(f => {
-        const line = `✈️ <a href="https://www.flightradar24.com/${f.callsign}" target="_blank">${f.callsign}</a> at ${(f.altitude / 1000).toFixed(1)} km`;
+      const line = `✈️ <a href="https://www.flightradar24.com/${f.callsign}" target="_blank" style="color: orange;">${f.callsign}</a> at ${(f.altitude / 1000).toFixed(1)} km`;
         
         // Append to visible log
         const li = document.createElement('li');
@@ -671,9 +671,10 @@ const statusLines = selectedBody === 'plane on plane'
       const [f1, f2] = pair.pair;
       return `
         <span style="font-size:0.9em;">
-          ✈️ <a href="https://www.flightradar24.com/${f1.callsign}" target="_blank">${f1.callsign}</a>
-          vs
-          <a href="https://www.flightradar24.com/${f2.callsign}" target="_blank">${f2.callsign}</a>
+          ✈✈️ <a href="https://www.flightradar24.com/${f1.callsign}" target="_blank" style="color: orange;">${f1.callsign}</a>
+         vs
+        <a href="https://www.flightradar24.com/${f2.callsign}" target="_blank" style="color: orange;">${f2.callsign}</a>
+
           — ${pair.angularSeparation.toFixed(1)}° apart
         </span>`;
     }).join('<br>')
