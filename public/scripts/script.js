@@ -149,10 +149,15 @@ if (visibleContrails.length === 0) {
 
   // Save locally
   logDetectionLocally(`Contrail detected: ${f.callsign}`, {
-    callsign: f.callsign,
-    altitude: f.altitude,
-    body: 'plane contrails'
-  });
+  callsign: f.callsign,
+  altitude: f.altitude,
+  azimuth: null,
+  altitudeAngle: null,
+  body: 'plane contrails',
+  predictionSeconds: 0,
+  margin
+});
+
 
   return displayLine;
 }).join('<br>');
