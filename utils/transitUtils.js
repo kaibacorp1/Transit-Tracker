@@ -285,8 +285,8 @@ export function detectPlaneOnPlane({
       const alt1 = f1.altitude || 0;
       const alt2 = f2.altitude || 0;
 
-      const [az1, el1] = getAzEl(f1.lat, f1.lon, alt1 * 0.3048);
-      const [az2, el2] = getAzEl(f2.lat, f2.lon, alt2 * 0.3048);
+      const [az1, el1] = getAzEl(f1.latitude, f1.longitude, alt1 * 0.3048);
+      const [az2, el2] = getAzEl(f2.latitude, f2.longitude, alt2 * 0.3048);
 
       const dAz = toRad(az1 - az2);
       const el1r = toRad(el1), el2r = toRad(el2);
