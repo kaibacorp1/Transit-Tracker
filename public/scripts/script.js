@@ -702,33 +702,40 @@ statusEl.innerHTML = statusMsg;
     }
 
 
-
-  // 2) Append _all_ new hits to the log
+  // 2) Append all new hits to the log
   matches.forEach(m => {
-  const azCard2  = verbalizeCardinal(toCardinal(m.azimuth));
-  const hdgCard2 = verbalizeCardinal(toCardinal(m.track));
-  const timeStr = new Date().toLocaleTimeString('en-GB', { hour12: false });
+    const timeStr = new Date().toLocaleTimeString('en-GB', { hour12: false });
+    const li = document.createElement('li');
 
-  const li = document.createElement('li');
-  li.innerHTML = `<a href="https://www.flightradar24.com/${m.callsign}" target="_blank">`
-             + `${m.callsign}</a> look up ${azCard2}, ✈️ heading ${hdgCard2} ${timeStr}`;
+    if (selectedBody === 'plane on plane' && m.pair?.length === 2) {
+      const [f1, f2] = m.pair;
+      li.innerHTML = `
+        ✈️ <a href="https://www.flightradar24.com/${f1.callsign}" target="_blank">${f1.callsign}</a>
+        vs
+        <a href="https://www.flightradar24.com/${f2.callsign}" target="_blank">${f2.callsign}</a>
+        — ${m.angularSeparation.toFixed(1)}° apart (${timeStr})
+      `;
+    } else {
+      const azCard2 = verbalizeCardinal(toCardinal(m.azimuth));
+      const hdgCard2 = verbalizeCardinal(toCardinal(m.track));
+      li.innerHTML = `
+        <a href="https://www.flightradar24.com/${m.callsign}" target="_blank">${m.callsign}</a>
+        look up ${azCard2}, ✈️ heading ${hdgCard2} ${timeStr}
+      `;
+    }
 
-  // Always add new entries to the top of transitLog
-transitLog.unshift(li);
+    // Add to top of log
+    transitLog.unshift(li);
+    logListEl.innerHTML = '';
+    transitLog.slice(0, 5).forEach(el => logListEl.appendChild(el));
 
-// Re-render the visible top 5
-logListEl.innerHTML = '';
-transitLog.slice(0, 5).forEach(el => logListEl.appendChild(el));
+    // Move extras
+    const extraItems = transitLog.slice(5);
+    document.getElementById('extraLogList').innerHTML = '';
+    extraItems.forEach(el => document.getElementById('extraLogList').appendChild(el));
+    document.getElementById('readMoreBtn').style.display = extraItems.length > 0 ? 'inline-block' : 'none';
+  });
 
-// Move the rest to "Read More" section
-const extraItems = transitLog.slice(5);
-document.getElementById('extraLogList').innerHTML = '';
-extraItems.forEach(el => document.getElementById('extraLogList').appendChild(el));
-
-// Show "Read More" if needed
-document.getElementById('readMoreBtn').style.display = extraItems.length > 0 ? 'inline-block' : 'none';
-
-});
 
 
   // 3) Make sure the log panel is visible
