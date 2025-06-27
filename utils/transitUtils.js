@@ -285,6 +285,9 @@ export function detectPlaneOnPlane({
       const alt1 = f1.altitude || 0;
       const alt2 = f2.altitude || 0;
 
+      // ⬇️ ✅ ADD THIS RIGHT HERE:
+      if (alt1 < 100 || alt2 < 100) continue;
+
       const [az1, el1] = getAzEl(f1.latitude, f1.longitude, alt1 * 0.3048);
       const [az2, el2] = getAzEl(f2.latitude, f2.longitude, alt2 * 0.3048);
 
