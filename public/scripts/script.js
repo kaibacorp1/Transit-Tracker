@@ -151,12 +151,13 @@ if (visibleContrails.length === 0) {
   logDetectionLocally(`Contrail detected: ${f.callsign}`, {
   callsign: f.callsign,
   altitude: f.altitude,
-  azimuth: null,
-  altitudeAngle: null,
+  azimuth: 0,                // dummy value to avoid undefined
+  altitudeAngle: 90,         // dummy value; contrail = overhead
   body: 'plane contrails',
   predictionSeconds: 0,
   margin
 });
+
 
 
   return displayLine;
