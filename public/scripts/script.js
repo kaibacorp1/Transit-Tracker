@@ -32,7 +32,13 @@ function toggleAutoRefresh() {
   } else {
     stopAutoRefresh();
   }
+
+  // 🔁 Update pause/resume button label
+  if (typeof lastStatusRender === 'function') {
+    lastStatusRender();
+  }
 }
+
 
 
 
@@ -56,6 +62,7 @@ let countdownInterval;
 let locationMode   = 'auto';
 let predictSeconds = 0;
 let margin         = 2.5;
+let lastStatusRender = null;
 
 // ✅ Add this here:
 const ignoredFlights = new Set();
@@ -745,7 +752,16 @@ const pauseBtn = `<button onclick="toggleAutoRefresh()" style="float:right; marg
 
 const statusMsg = `🔭 Possible ${selectedBody} transit: ${pauseBtn}<br>${statusLines}`;
 
-statusEl.innerHTML = statusMsg;
+lastStatusRender = () => {
+  const pauseBtn = `<button onclick="toggleAutoRefresh()" style="float:right; margin-left: 10px; font-size: 0.75em;">
+    ${autoRefresh ? '⏸️ Pause' : '▶️ Resume'}
+  </button>`;
+
+  const statusMsg = `🔭 Possible ${selectedBody} transit: ${pauseBtn}<br>${statusLines}`;
+  statusEl.innerHTML = statusMsg;
+};
+
+lastStatusRender();  // Render it immediately
     // 🔔 play alert sound
     if (!document.getElementById('muteToggle').checked) {
       document.getElementById('alertSound').play().catch(()=>{});
