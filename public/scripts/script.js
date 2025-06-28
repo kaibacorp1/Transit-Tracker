@@ -198,7 +198,15 @@ if (visibleContrails.length === 0) {
 
 
       // ✅ Update status panel
-      statusEl.innerHTML = `👀 Contrail flights detected:<br>${msg}`;
+      lastStatusRender = () => {
+  const pauseBtn = `<button onclick="toggleAutoRefresh()" style="float:right; margin-left: 10px; font-size: 0.75em;">
+    ${autoRefresh ? '⏸️ Pause' : '▶️ Resume'}
+  </button>`;
+  statusEl.innerHTML = `👀 Contrail flights detected: ${pauseBtn}<br>${msg}`;
+};
+
+lastStatusRender();  // draw it
+
       logContainer.style.display = 'block';
     })
     .catch(err => {
