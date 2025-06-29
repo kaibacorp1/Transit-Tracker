@@ -156,10 +156,14 @@ if (visibleContrails.length === 0) {
       const timeStr = new Date().toLocaleTimeString('en-GB', { hour12: false });
       
       const msg = visibleContrails.map(f => {
-  const displayLine = `✈️ <a href="https://www.flightradar24.com/${f.callsign}" target="_blank" style="color: orange; text-decoration: none;">${f.callsign}</a> at ${(f.altitude / 1000).toFixed(1)} km
+  const az = calculateAzimuth(userCoords.lat, userCoords.lon, f.latitude, f.longitude);
+  const dir = verbalizeCardinal(toCardinal(az));
+  
+  const displayLine = `✈️ <a href="https://www.flightradar24.com/${f.callsign}" target="_blank" style="color: orange; text-decoration: none;">
+    ${f.callsign}</a> — look up ${dir} ${(f.altitude / 1000).toFixed(1)} km away
     <span onclick="ignoreFlight('${f.callsign}')" style="color:rgb(171, 57, 57);cursor:pointer;font-size:0.45em; margin-left:6px;">
-    Ignore
-    </span>`;
+    Ignore</span>`;
+
 
   const logLine = `✈️ <a href="https://www.flightradar24.com/${f.callsign}" target="_blank">${f.callsign}</a> at ${(f.altitude / 1000).toFixed(1)} km`;
 
