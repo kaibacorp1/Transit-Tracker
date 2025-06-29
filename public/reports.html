@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -121,6 +122,9 @@
         <label><input type="radio" name="target" value="sun"> 🌞 Sun</label>
       </div>
 
+      <label for="datetime">Date & Time</label>
+      <input type="text" id="datetime" name="Date & Time" placeholder="e.g. Sat 22 June 2025, 12:00:46 Mel time">
+
       <label for="description">Description</label>
       <textarea id="description" name="Description" rows="4" placeholder="Describe what happened..."></textarea>
       <p class="note">
@@ -153,8 +157,11 @@
         </div>
       </div>
 
-      <label for="datetime">Date & Time</label>
-      <input type="text" id="datetime" name="Date & Time" placeholder="e.g. Sat 22 June 2025, 12:00:46 SYD time">
+      <br>
+      <p class="note">
+        You can get this information from 
+        <a href="https://www.flightradar24.com/" target="_blank">FlightRadar24</a> or any other flight tracking app.
+      </p>
 
       <label for="plane">Plane (e.g. YEOR44)</label>
       <input type="text" id="plane" name="Plane">
@@ -174,11 +181,6 @@
         </div>
       </div>
 
-      <p class="note">
-        You can get this information from 
-        <a href="https://www.flightradar24.com/" target="_blank">FlightRadar24</a> or any other flight tracking app.
-      </p>
-
       <label>Where was the plane approximately when the app started alerting you?
         <span class="note">(It’s fine if you don’t have this information)</span>
       </label>
@@ -197,11 +199,11 @@
       <div class="row">
         <div>
           <label for="alignLat">Latitude</label>
-          <input type="text" id="alignLat" name="Alignment Latitude" value="-33.91521">
+          <input type="text" id="alignLat" name="Alignment Latitude" value="-14.91521">
         </div>
         <div>
           <label for="alignLon">Longitude</label>
-          <input type="text" id="alignLon" name="Alignment Longitude" value="151.18973">
+          <input type="text" id="alignLon" name="Alignment Longitude" value="119.18973">
         </div>
       </div>
 
@@ -209,11 +211,11 @@
       <div class="row">
         <div>
           <label for="yourLat">Latitude</label>
-          <input type="text" id="yourLat" name="User Latitude" value="-33.918720">
+          <input type="text" id="yourLat" name="User Latitude" value="-15.918720">
         </div>
         <div>
           <label for="yourLon">Longitude</label>
-          <input type="text" id="yourLon" name="User Longitude" value="151.197519">
+          <input type="text" id="yourLon" name="User Longitude" value="120.197519">
         </div>
         <div>
           <label for="yourElev">Elevation (m)</label>
@@ -226,7 +228,7 @@
 
     <div class="side-image">
       <h3>Example: Where to find plane info</h3>
-      <img src="/public/graphs/planeinfo.PNG" alt="Plane Info Example">
+      <img src="/public/graphs/Planeinfo.PNG" alt="Plane Info Example">
     </div>
   </div>
 
