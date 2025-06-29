@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Submit a Report</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      line-height: 1.6;
+      margin: 2rem auto;
+      max-width: 1200px;
+      padding: 0 1rem;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+    }
+
+    label {
+      display: block;
+      margin-top: 1.2rem;
+      font-weight: 600;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.25rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    .row {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .row > div {
+      flex: 1;
+    }
+
+    .radio-group {
+      display: flex;
+      gap: 1.5rem;
+      margin-top: 0.5rem;
+    }
+
+    button {
+      margin-top: 2rem;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      background-color: black;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #333;
+    }
+
+    .note {
+      font-size: 0.95rem;
+      color: #555;
+      margin-top: 0.3rem;
+    }
+
+    .disclaimer {
+      background: #f5f5f5;
+      padding: 1rem;
+      border-left: 4px solid #999;
+      margin-bottom: 2rem;
+      font-size: 1rem;
+    }
+
+    .flex-wrapper {
+      display: flex;
+      flex-direction: row;
+      gap: 2rem;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .side-image {
+      flex: 1;
+      max-width: 280px;
+    }
+
+    .side-image img {
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    form {
+      flex: 2;
+      min-width: 300px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Submit a Report</h1>
+
+  <div class="disclaimer">
+    Thank you for contributing! Every report helps us improve the algorithm and the math behind the app.  
+    The more detail, the better.  
+    If you're uncomfortable sharing your exact location, feel free to offset it by a few meters — we totally understand.  
+    All your information is confidential and will only be used to improve the system.
+  </div>
+
+  <div class="flex-wrapper">
+    <form action="mailto:sandu.godakumbura@gmail.com" method="POST" enctype="text/plain">
+
+      <label>Select Target</label>
+      <div class="radio-group">
+        <label><input type="radio" name="target" value="moon" required> 🌒 Moon</label>
+        <label><input type="radio" name="target" value="sun"> 🌞 Sun</label>
+      </div>
+
+      <label for="description">Description</label>
+      <textarea id="description" name="Description" rows="4" placeholder="Describe what happened..."></textarea>
+      <p class="note">
+        The more accurate the information, the better.  
+        We recommend watching the radar carefully as the transit or near-alignment happens and noting details in real time.
+      </p>
+
+      <label>App Settings</label>
+      <div class="row">
+        <div>
+          <label for="searchRadius">Search Radius</label>
+          <input type="text" id="searchRadius" name="Search Radius">
+        </div>
+        <div>
+          <label for="predictionMode">Prediction Mode</label>
+          <input type="text" id="predictionMode" name="Prediction Mode">
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label for="detectionMargin">Detection Margin (deg)</label>
+          <input type="text" id="detectionMargin" name="Detection Margin">
+        </div>
+        <div>
+          <label for="enhancedPrediction">Enhanced Prediction</label>
+          <select id="enhancedPrediction" name="Enhanced Prediction">
+            <option value="on">On</option>
+            <option value="off">Off</option>
+          </select>
+        </div>
+      </div>
+
+      <label for="datetime">Date & Time</label>
+      <input type="text" id="datetime" name="Date & Time" placeholder="e.g. Sat 22 June 2025, 12:00:46 SYD time">
+
+      <label for="plane">Plane (e.g. YEOR44)</label>
+      <input type="text" id="plane" name="Plane">
+
+      <div class="row">
+        <div>
+          <label for="alt">Approx Altitude (feet)</label>
+          <input type="text" id="alt" name="Altitude">
+        </div>
+        <div>
+          <label for="track">Track (deg)</label>
+          <input type="text" id="track" name="Track">
+        </div>
+        <div>
+          <label for="speed">Ground Speed (kts)</label>
+          <input type="text" id="speed" name="Speed">
+        </div>
+      </div>
+
+      <p class="note">
+        You can get this information from 
+        <a href="https://www.flightradar24.com/" target="_blank">FlightRadar24</a> or any other flight tracking app.
+      </p>
+
+      <label>Where was the plane approximately when the app started alerting you?
+        <span class="note">(It’s fine if you don’t have this information)</span>
+      </label>
+      <div class="row">
+        <div>
+          <label for="alertLat">Latitude</label>
+          <input type="text" id="alertLat" name="Alert Latitude">
+        </div>
+        <div>
+          <label for="alertLon">Longitude</label>
+          <input type="text" id="alertLon" name="Alert Longitude">
+        </div>
+      </div>
+
+      <label>Celestial Alignment (where the plane seemed close to Moon/Sun)</label>
+      <div class="row">
+        <div>
+          <label for="alignLat">Latitude</label>
+          <input type="text" id="alignLat" name="Alignment Latitude" value="-33.91521">
+        </div>
+        <div>
+          <label for="alignLon">Longitude</label>
+          <input type="text" id="alignLon" name="Alignment Longitude" value="151.18973">
+        </div>
+      </div>
+
+      <label>Your Location</label>
+      <div class="row">
+        <div>
+          <label for="yourLat">Latitude</label>
+          <input type="text" id="yourLat" name="User Latitude" value="-33.918720">
+        </div>
+        <div>
+          <label for="yourLon">Longitude</label>
+          <input type="text" id="yourLon" name="User Longitude" value="151.197519">
+        </div>
+        <div>
+          <label for="yourElev">Elevation (m)</label>
+          <input type="text" id="yourElev" name="User Elevation" value="10.0">
+        </div>
+      </div>
+
+      <button type="submit">Submit Report</button>
+    </form>
+
+    <div class="side-image">
+      <h3>Example: Where to find plane info</h3>
+      <img src="/public/graphs/planeinfo.PNG" alt="Plane Info Example">
+    </div>
+  </div>
+
+</body>
+</html>
