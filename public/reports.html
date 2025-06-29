@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -170,17 +169,6 @@
     </div>
 
     <h2>Plane 1 Info</h2>
-
-<div id="secondPlaneBlock" style="display:none;"> style="display:none;">
-      <h2>Plane 2 Info (Only for Plane-on-Plane)</h2>
-      <label for="secondPlane">Plane (e.g. ABC123)</label>
-      <input type="text" id="secondPlane" name="Second Plane">
-
-      <div class="row">
-        <div>
-          <label for="secondAlt">Approx Altitude (feet)</label>
-          <input type="text" id="secondAlt" name="Second Altitude">
-        </div>
     <p class="note">
       You can get this information from 
       <a href="https://www.flightradar24.com/" target="_blank">FlightRadar24</a> or any other flight tracking app.
@@ -201,51 +189,6 @@
       <div>
         <label for="speed">Ground Speed (kts)</label>
         <input type="text" id="speed" name="Speed">
-      </div>
-    </div>
-
-    <h2>Approx. Alert Position</h2>
-    <label>Where was the plane approximately when the app started alerting you?
-      <span class="note">(It’s fine if you don’t have this information)</span>
-    </label>
-    <div class="row">
-      <div>
-        <label for="alertLat">Latitude</label>
-        <input type="text" id="alertLat" name="Alert Latitude">
-      </div>
-      <div>
-        <label for="alertLon">Longitude</label>
-        <input type="text" id="alertLon" name="Alert Longitude">
-      </div>
-    </div>
-
-    <div id="celestialBlock">
-      <h2>Celestial Alignment</h2>
-      <div class="row">
-        <div>
-          <label for="alignLat">Latitude</label>
-          <input type="text" id="alignLat" name="Alignment Latitude" value="-33.91521">
-        </div>
-        <div>
-          <label for="alignLon">Longitude</label>
-          <input type="text" id="alignLon" name="Alignment Longitude" value="151.18973">
-        </div>
-      </div>
-    </div>
-
-    <h2>Your Location</h2>
-    <div class="row">
-      <div>
-        <label for="yourLat">Latitude</label>
-        <input type="text" id="yourLat" name="User Latitude" value="-33.918720">
-      </div>
-      <div>
-        <label for="yourLon">Longitude</label>
-        <input type="text" id="yourLon" name="User Longitude" value="151.197519">
-      </div>
-      <div>
-        <label for="yourElev">Elevation (m)</label>
-        <input type="text" id="yourElev" name="User Elevation" value="10.0">
       </div>
     </div>
 
@@ -277,6 +220,35 @@
         <div>
           <label for="secondLon">Longitude</label>
           <input type="text" id="secondLon" name="Second Longitude">
+        </div>
+      </div>
+    </div>
+
+    <h2>Approx. Alert Position</h2>
+    <label>Where was the plane approximately when the app started alerting you?
+      <span class="note">(It’s fine if you don’t have this information)</span>
+    </label>
+    <div class="row">
+      <div>
+        <label for="alertLat">Latitude</label>
+        <input type="text" id="alertLat" name="Alert Latitude">
+      </div>
+      <div>
+        <label for="alertLon">Longitude</label>
+        <input type="text" id="alertLon" name="Alert Longitude">
+      </div>
+    </div>
+
+    <div id="celestialBlock">
+      <h2>Celestial Alignment</h2>
+      <div class="row">
+        <div>
+          <label for="alignLat">Latitude</label>
+          <input type="text" id="alignLat" name="Alignment Latitude" value="-33.91521">
+        </div>
+        <div>
+          <label for="alignLon">Longitude</label>
+          <input type="text" id="alignLon" name="Alignment Longitude" value="151.18973">
         </div>
       </div>
     </div>
