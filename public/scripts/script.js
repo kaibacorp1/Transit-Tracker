@@ -771,7 +771,7 @@ const statusLines = selectedBody === 'plane on plane'
           ${m.callsign}
         </a>
         <span style="font-size:0.75em; font-weight:normal;">
-          look up ${azCard}, ✈️ heading ${hdgCard}
+         — look up ${azCard}, ✈️ heading ${hdgCard}
         </span>
         <span onclick="ignoreFlight('${m.callsign}')" style="color:rgb(171, 57, 57);cursor:pointer;font-size:0.45em; margin-left:6px;">
           Ignore
@@ -844,7 +844,7 @@ lastStatusRender();  // Render it immediately
       const hdgCard2 = verbalizeCardinal(toCardinal(m.track));
       li.innerHTML = `
         <a href="https://www.flightradar24.com/${m.callsign}" target="_blank">${m.callsign}</a>
-        look up ${azCard2}, ✈️ heading ${hdgCard2} ${timeStr}
+       — look up ${azCard2}, ✈️ heading ${hdgCard2} ${timeStr}
       `;
     }
 
