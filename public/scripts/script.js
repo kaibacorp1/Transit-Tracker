@@ -165,10 +165,16 @@ if (visibleContrails.length === 0) {
   const az = calculateAzimuth(userCoords.lat, userCoords.lon, f.latitude, f.longitude);
   const dir = verbalizeCardinal(toCardinal(az));
   
-  const displayLine = `✈️ <a href="https://www.flightradar24.com/${f.callsign}" target="_blank" style="color: orange; text-decoration: none;">
-    ${f.callsign}</a> — look up ${dir} ${(f.altitude / 1000).toFixed(1)} km away
-    <span onclick="ignoreFlight('${f.callsign}')" style="color:rgb(171, 57, 57);cursor:pointer;font-size:0.45em; margin-left:6px;">
-    Ignore</span>`;
+  const displayLine = `
+✈️ <a href="https://www.flightradar24.com/${f.callsign}" target="_blank" style="color: orange; text-decoration: none;">
+  ${f.callsign}
+</a>
+<span style="font-size: 0.75em; font-weight: normal;">
+  — look up ${dir} ${(f.altitude / 1000).toFixed(1)} km away
+</span>
+<span onclick="ignoreFlight('${f.callsign}')" style="color:rgb(171, 57, 57);cursor:pointer;font-size:0.45em; margin-left:6px;">
+  Ignore
+</span>`;
 
 
   const logLine = `✈️ <a href="https://www.flightradar24.com/${f.callsign}" target="_blank">${f.callsign}</a> at ${(f.altitude / 1000).toFixed(1)} km`;
