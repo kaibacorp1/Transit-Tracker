@@ -39,7 +39,13 @@ function toggleAutoRefresh() {
   }
 }
 
-
+  // ✅ Update button style
+  const btn = document.getElementById('pauseResumeBtn');
+  if (btn) {
+    btn.textContent = autoRefresh ? '⏸️ Pause' : '▶️ Resume';
+    btn.style.backgroundColor = autoRefresh ? '#285431' : '#66252f';
+  }
+}
 
 
 //useZenithLogic: document.getElementById('toggleZenithLogic')?.checked || false,
@@ -203,20 +209,21 @@ if (visibleContrails.length === 0) {
 
       // ✅ Update status panel
       lastStatusRender = () => {
-  const pauseBtn = `<button onclick="toggleAutoRefresh()" style="
+  const pauseBtn = `<button id="pauseResumeBtn" onclick="toggleAutoRefresh()" style="
   float: right;
   margin-left: 10px;
   font-size: 0.75em;
-  padding: 2px 6px;
+  padding: 3px 6px;
   border: none;
   border-radius: 4px;
-  background-color: ${autoRefresh ? '#f8d7da' : '#d4edda'};
-  color: ${autoRefresh ? '#721c24' : '#155724'};
+  color: white;
   font-weight: bold;
   cursor: pointer;
+  background-color: ${autoRefresh ? '#285431' : '#66252f'};
 ">
   ${autoRefresh ? '⏸️ Pause' : '▶️ Resume'}
 </button>`;
+
   statusEl.innerHTML = `👀 Contrail flights detected: ${pauseBtn}<br>${msg}`;
 };
 
@@ -771,17 +778,17 @@ const statusLines = selectedBody === 'plane on plane'
     }).join('<br>');
 
 
-const pauseBtn = `<button onclick="toggleAutoRefresh()" style="
+const pauseBtn = `<button id="pauseResumeBtn" onclick="toggleAutoRefresh()" style="
   float: right;
   margin-left: 10px;
   font-size: 0.75em;
-  padding: 2px 6px;
+  padding: 3px 6px;
   border: none;
   border-radius: 4px;
-  background-color: ${autoRefresh ? '#f8d7da' : '#d4edda'};
-  color: ${autoRefresh ? '#721c24' : '#155724'};
+  color: white;
   font-weight: bold;
   cursor: pointer;
+  background-color: ${autoRefresh ? '#285431' : '#66252f'};
 ">
   ${autoRefresh ? '⏸️ Pause' : '▶️ Resume'}
 </button>`;
@@ -790,17 +797,17 @@ const pauseBtn = `<button onclick="toggleAutoRefresh()" style="
 const statusMsg = `🔭 Possible ${selectedBody} transit: ${pauseBtn}<br>${statusLines}`;
 
 lastStatusRender = () => {
-  const pauseBtn = `<button onclick="toggleAutoRefresh()" style="
+  const pauseBtn = `<button id="pauseResumeBtn" onclick="toggleAutoRefresh()" style="
   float: right;
   margin-left: 10px;
   font-size: 0.75em;
-  padding: 2px 6px;
+  padding: 3px 6px;
   border: none;
   border-radius: 4px;
-  background-color: ${autoRefresh ? '#f8d7da' : '#d4edda'};
-  color: ${autoRefresh ? '#721c24' : '#155724'};
+  color: white;
   font-weight: bold;
   cursor: pointer;
+  background-color: ${autoRefresh ? '#285431' : '#66252f'};
 ">
   ${autoRefresh ? '⏸️ Pause' : '▶️ Resume'}
 </button>`;
