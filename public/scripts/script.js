@@ -768,7 +768,7 @@ const statusLines = selectedBody === 'plane on plane'
         <a href="https://www.flightradar24.com/${m.callsign}" target="_blank" style="color:orange;font-weight:bold;text-decoration:none;">
           ${m.callsign}
         </a>
-        <span style="font-size:0.85em;">
+        <span style="font-size:0.75em; font-weight:normal;">
           look up ${azCard}, ✈️ heading ${hdgCard}
         </span>
         <span onclick="ignoreFlight('${m.callsign}')" style="color:rgb(171, 57, 57);cursor:pointer;font-size:0.45em; margin-left:6px;">
