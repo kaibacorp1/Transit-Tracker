@@ -37,15 +37,15 @@ function toggleAutoRefresh() {
   if (typeof lastStatusRender === 'function') {
     lastStatusRender();
   }
-}
 
-  // ✅ Update button style
+  // ✅ Update button style (must be inside the function)
   const btn = document.getElementById('pauseResumeBtn');
   if (btn) {
     btn.textContent = autoRefresh ? '⏸️ Pause' : '▶️ Resume';
     btn.style.backgroundColor = autoRefresh ? '#285431' : '#66252f';
   }
 }
+
 
 
 //useZenithLogic: document.getElementById('toggleZenithLogic')?.checked || false,
