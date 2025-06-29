@@ -755,7 +755,9 @@ const statusLines = selectedBody === 'plane on plane'
     ✈️ <a href="https://www.flightradar24.com/${f1.callsign}" target="_blank" style="color: orange; text-decoration: none;">${f1.callsign}</a>
     vs
     <a href="https://www.flightradar24.com/${f2.callsign}" target="_blank" style="color: orange; text-decoration: none;">${f2.callsign}</a>
-    — look up ${direction} ${pair.angularSeparation.toFixed(1)}° apart
+    <span style="font-size:0.75em; font-weight:normal;">
+  — look up ${direction} ${pair.angularSeparation.toFixed(1)}° apart
+</span>
     <span onclick="ignoreFlight('${f1.callsign}'); ignoreFlight('${f2.callsign}')" style="color:rgb(171, 57, 57);cursor:pointer;font-size:0.45em; margin-left:6px;">
       Ignore
     </span>
