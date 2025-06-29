@@ -42,7 +42,7 @@ function toggleAutoRefresh() {
   const btn = document.getElementById('pauseResumeBtn');
   if (btn) {
     btn.textContent = autoRefresh ? '🔴 Pause' : '🟢 Resume';
-    btn.style.backgroundColor = autoRefresh ? '#285431' : '#66252f';
+    btn.style.backgroundColor = autoRefresh ? '#66252f' : '#285431';
   }
 }
 
