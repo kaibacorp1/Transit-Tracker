@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,10 +13,18 @@
       max-width: 1200px;
       padding: 0 1rem;
     }
-    h1 { font-size: 1.8rem; }
+    h1 {
+      font-size: 1.8rem;
+    }
+    h2 {
+      font-size: 1.3rem;
+      margin-top: 2rem;
+      border-bottom: 2px solid #ccc;
+      padding-bottom: 0.3rem;
+    }
     label {
       display: block;
-      margin-top: 1.2rem;
+      margin-top: 1rem;
       font-weight: 600;
     }
     input, textarea, select {
@@ -30,7 +39,9 @@
       display: flex;
       gap: 1rem;
     }
-    .row > div { flex: 1; }
+    .row > div {
+      flex: 1;
+    }
     .radio-group {
       display: flex;
       gap: 1.5rem;
@@ -47,7 +58,9 @@
       border-radius: 4px;
       cursor: pointer;
     }
-    button:hover { background-color: #333; }
+    button:hover {
+      background-color: #333;
+    }
     .note {
       font-size: 0.95rem;
       color: #555;
@@ -96,12 +109,13 @@
 <div class="flex-wrapper">
   <form action="mailto:sandu.godakumbura@gmail.com" method="POST" enctype="text/plain">
 
+    <h2>Observation Target</h2>
     <label>Select Target</label>
     <div class="radio-group">
       <label><input type="radio" name="target" value="moon" required> 🌒 Moon</label>
       <label><input type="radio" name="target" value="sun"> 🌞 Sun</label>
       <label><input type="radio" name="target" value="plane_on_plane" id="planeOnPlane"> ✈️ Plane on Plane</label>
-      <label><input type="radio" name="target" value="contrail"> ☁️ Plane Contrails</label>
+      <label><input type="radio" name="target" value="contrail" id="contrail"> ☁️ Plane Contrails</label>
     </div>
 
     <label for="datetime">Date & Time</label>
@@ -114,7 +128,7 @@
       We recommend watching the radar carefully as the transit or near-alignment happens and noting details in real time.
     </p>
 
-    <label>App Settings</label>
+    <h2>App Settings</h2>
     <div class="row">
       <div>
         <label for="searchRadius">Search Radius</label>
@@ -139,6 +153,7 @@
       </div>
     </div>
 
+    <h2>Plane 1 Info</h2>
     <p class="note">
       You can get this information from 
       <a href="https://www.flightradar24.com/" target="_blank">FlightRadar24</a> or any other flight tracking app.
@@ -162,6 +177,7 @@
       </div>
     </div>
 
+    <h2>Approx. Alert Position</h2>
     <label>Where was the plane approximately when the app started alerting you?
       <span class="note">(It’s fine if you don’t have this information)</span>
     </label>
@@ -176,19 +192,21 @@
       </div>
     </div>
 
-    <label>Celestial Alignment (where the plane seemed close to Moon/Sun)</label>
-    <div class="row">
-      <div>
-        <label for="alignLat">Latitude</label>
-        <input type="text" id="alignLat" name="Alignment Latitude" value="-33.91521">
-      </div>
-      <div>
-        <label for="alignLon">Longitude</label>
-        <input type="text" id="alignLon" name="Alignment Longitude" value="151.18973">
+    <div id="celestialBlock">
+      <h2>Celestial Alignment</h2>
+      <div class="row">
+        <div>
+          <label for="alignLat">Latitude</label>
+          <input type="text" id="alignLat" name="Alignment Latitude" value="-33.91521">
+        </div>
+        <div>
+          <label for="alignLon">Longitude</label>
+          <input type="text" id="alignLon" name="Alignment Longitude" value="151.18973">
+        </div>
       </div>
     </div>
 
-    <label>Your Location</label>
+    <h2>Your Location</h2>
     <div class="row">
       <div>
         <label for="yourLat">Latitude</label>
@@ -204,8 +222,8 @@
       </div>
     </div>
 
-    <div id="secondPlaneBlock" style="display:none; margin-top: 1.5rem;">
-      <h3>Second Plane Information</h3>
+    <div id="secondPlaneBlock" style="display:none;">
+      <h2>Plane 2 Info (Only for Plane-on-Plane)</h2>
       <label for="secondPlane">Plane (e.g. ABC123)</label>
       <input type="text" id="secondPlane" name="Second Plane">
 
@@ -249,21 +267,18 @@
 document.addEventListener('DOMContentLoaded', () => {
   const targetRadios = document.querySelectorAll('input[name="target"]');
   const secondPlaneBlock = document.getElementById('secondPlaneBlock');
+  const celestialBlock = document.getElementById('celestialBlock');
 
-  const toggleSecondPlaneBlock = () => {
+  const toggleSections = () => {
     const selected = document.querySelector('input[name="target"]:checked');
-    if (selected && selected.value === 'plane_on_plane') {
-      secondPlaneBlock.style.display = 'block';
-    } else {
-      secondPlaneBlock.style.display = 'none';
-    }
+    if (!selected) return;
+
+    secondPlaneBlock.style.display = (selected.value === 'plane_on_plane') ? 'block' : 'none';
+    celestialBlock.style.display = (selected.value === 'contrail') ? 'none' : 'block';
   };
 
-  targetRadios.forEach(radio => {
-    radio.addEventListener('change', toggleSecondPlaneBlock);
-  });
-
-  toggleSecondPlaneBlock(); // run on load
+  targetRadios.forEach(radio => radio.addEventListener('change', toggleSections));
+  toggleSections();
 });
 </script>
 
