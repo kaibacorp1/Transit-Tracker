@@ -726,12 +726,14 @@ document.getElementById('enhancedPrediction').addEventListener('change', (e) => 
 const statusLines = selectedBody === 'plane on plane'
   ? matches.map(pair => {
       const [f1, f2] = pair.pair;
+      const azimuth = calculateAzimuth(f1.latitude, f1.longitude, f2.latitude, f2.longitude);
+      const direction = verbalizeCardinal(toCardinal(azimuth));
       return `
   <span style="font-size:0.9em;">
     ✈️ <a href="https://www.flightradar24.com/${f1.callsign}" target="_blank" style="color: orange; text-decoration: none;">${f1.callsign}</a>
     vs
     <a href="https://www.flightradar24.com/${f2.callsign}" target="_blank" style="color: orange; text-decoration: none;">${f2.callsign}</a>
-    — ${pair.angularSeparation.toFixed(1)}° apart
+    — look up ${direction} ${pair.angularSeparation.toFixed(1)}° apart
     <span onclick="ignoreFlight('${f1.callsign}'); ignoreFlight('${f2.callsign}')" style="color:rgb(171, 57, 57);cursor:pointer;font-size:0.45em; margin-left:6px;">
       Ignore
     </span>
