@@ -121,6 +121,22 @@
     <label for="datetime">Date & Time</label>
     <input type="text" id="datetime" name="Date & Time" placeholder="e.g. Sat 22 June 2025, 12:00:46 SYD time">
 
+    <h2>Your Location</h2>
+    <div class="row">
+      <div>
+        <label for="yourLat">Latitude</label>
+        <input type="text" id="yourLat" name="User Latitude" value="-33.918720">
+      </div>
+      <div>
+        <label for="yourLon">Longitude</label>
+        <input type="text" id="yourLon" name="User Longitude" value="151.197519">
+      </div>
+      <div>
+        <label for="yourElev">Elevation (m)</label>
+        <input type="text" id="yourElev" name="User Elevation" value="10.0">
+      </div>
+    </div>
+
     <label for="description">Description</label>
     <textarea id="description" name="Description" rows="4" placeholder="Describe what happened..."></textarea>
     <p class="note">
@@ -154,6 +170,17 @@
     </div>
 
     <h2>Plane 1 Info</h2>
+
+<div id="secondPlaneBlock" style="display:none;"> style="display:none;">
+      <h2>Plane 2 Info (Only for Plane-on-Plane)</h2>
+      <label for="secondPlane">Plane (e.g. ABC123)</label>
+      <input type="text" id="secondPlane" name="Second Plane">
+
+      <div class="row">
+        <div>
+          <label for="secondAlt">Approx Altitude (feet)</label>
+          <input type="text" id="secondAlt" name="Second Altitude">
+        </div>
     <p class="note">
       You can get this information from 
       <a href="https://www.flightradar24.com/" target="_blank">FlightRadar24</a> or any other flight tracking app.
@@ -274,7 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!selected) return;
 
     secondPlaneBlock.style.display = (selected.value === 'plane_on_plane') ? 'block' : 'none';
-    celestialBlock.style.display = (selected.value === 'contrail') ? 'none' : 'block';
+    celestialBlock.style.display = (selected.value === 'moon' || selected.value === 'sun') ? 'block' : 'none';
   };
 
   targetRadios.forEach(radio => radio.addEventListener('change', toggleSections));
