@@ -41,7 +41,7 @@ function toggleAutoRefresh() {
   // ✅ Update button style (must be inside the function)
   const btn = document.getElementById('pauseResumeBtn');
   if (btn) {
-    btn.textContent = autoRefresh ? '⏸️ Pause' : '▶️ Resume';
+    btn.textContent = autoRefresh ? '🔴 Pause' : '🟢 Resume';
     btn.style.backgroundColor = autoRefresh ? '#285431' : '#66252f';
   }
 }
@@ -221,7 +221,7 @@ if (visibleContrails.length === 0) {
   cursor: pointer;
   background-color: ${autoRefresh ? '#285431' : '#66252f'};
 ">
-  ${autoRefresh ? '⏸️ Pause' : '▶️ Resume'}
+  ${autoRefresh ? '🔴 Pause' : '🟢 Resume'}
 </button>`;
 
   statusEl.innerHTML = `👀 Contrail flights detected: ${pauseBtn}<br>${msg}`;
@@ -790,7 +790,7 @@ const pauseBtn = `<button id="pauseResumeBtn" onclick="toggleAutoRefresh()" styl
   cursor: pointer;
   background-color: ${autoRefresh ? '#285431' : '#66252f'};
 ">
-  ${autoRefresh ? '⏸️ Pause' : '▶️ Resume'}
+  ${autoRefresh ? '🔴 Pause' : '🟢 Resume'}
 </button>`;
 
 
@@ -809,7 +809,7 @@ lastStatusRender = () => {
   cursor: pointer;
   background-color: ${autoRefresh ? '#285431' : '#66252f'};
 ">
-  ${autoRefresh ? '⏸️ Pause' : '▶️ Resume'}
+  ${autoRefresh ? '🔴 Pause' : '🟢 Resume'}
 </button>`;
 
 
