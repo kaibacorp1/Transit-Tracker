@@ -219,7 +219,7 @@ if (visibleContrails.length === 0) {
   color: white;
   font-weight: bold;
   cursor: pointer;
-  background-color: ${autoRefresh ? '#285431' : '#66252f'};
+  background-color: ${autoRefresh ? '#66252f' : '#285431'};
 ">
   ${autoRefresh ? '🔴 Pause' : '🟢 Resume'}
 </button>`;
@@ -788,7 +788,7 @@ const pauseBtn = `<button id="pauseResumeBtn" onclick="toggleAutoRefresh()" styl
   color: white;
   font-weight: bold;
   cursor: pointer;
-  background-color: ${autoRefresh ? '#285431' : '#66252f'};
+  background-color: ${autoRefresh ? '66252f' : '#285431'};
 ">
   ${autoRefresh ? '🔴 Pause' : '🟢 Resume'}
 </button>`;
@@ -807,7 +807,7 @@ lastStatusRender = () => {
   color: white;
   font-weight: bold;
   cursor: pointer;
-  background-color: ${autoRefresh ? '#285431' : '#66252f'};
+  background-color: ${autoRefresh ? '#66252f' : '#285431'};
 ">
   ${autoRefresh ? '🔴 Pause' : '🟢 Resume'}
 </button>`;
