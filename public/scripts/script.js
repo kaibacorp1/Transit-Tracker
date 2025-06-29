@@ -203,7 +203,18 @@ if (visibleContrails.length === 0) {
 
       // ✅ Update status panel
       lastStatusRender = () => {
-  const pauseBtn = `<button onclick="toggleAutoRefresh()" style="float:right; margin-left: 10px; font-size: 0.75em;">
+  const pauseBtn = `<button onclick="toggleAutoRefresh()" style="
+  float: right;
+  margin-left: 10px;
+  font-size: 0.75em;
+  padding: 2px 6px;
+  border: none;
+  border-radius: 4px;
+  background-color: ${autoRefresh ? '#f8d7da' : '#d4edda'};
+  color: ${autoRefresh ? '#721c24' : '#155724'};
+  font-weight: bold;
+  cursor: pointer;
+">
   ${autoRefresh ? '⏸️ Pause' : '▶️ Resume'}
 </button>`;
   statusEl.innerHTML = `👀 Contrail flights detected: ${pauseBtn}<br>${msg}`;
@@ -760,16 +771,40 @@ const statusLines = selectedBody === 'plane on plane'
     }).join('<br>');
 
 
-const pauseBtn = `<button onclick="toggleAutoRefresh()" style="float:right; margin-left: 10px; font-size: 0.75em;">
+const pauseBtn = `<button onclick="toggleAutoRefresh()" style="
+  float: right;
+  margin-left: 10px;
+  font-size: 0.75em;
+  padding: 2px 6px;
+  border: none;
+  border-radius: 4px;
+  background-color: ${autoRefresh ? '#f8d7da' : '#d4edda'};
+  color: ${autoRefresh ? '#721c24' : '#155724'};
+  font-weight: bold;
+  cursor: pointer;
+">
   ${autoRefresh ? '⏸️ Pause' : '▶️ Resume'}
 </button>`;
+
 
 const statusMsg = `🔭 Possible ${selectedBody} transit: ${pauseBtn}<br>${statusLines}`;
 
 lastStatusRender = () => {
-  const pauseBtn = `<button onclick="toggleAutoRefresh()" style="float:right; margin-left: 10px; font-size: 0.75em;">
-    ${autoRefresh ? '⏸️ Pause' : '▶️ Resume'}
-  </button>`;
+  const pauseBtn = `<button onclick="toggleAutoRefresh()" style="
+  float: right;
+  margin-left: 10px;
+  font-size: 0.75em;
+  padding: 2px 6px;
+  border: none;
+  border-radius: 4px;
+  background-color: ${autoRefresh ? '#f8d7da' : '#d4edda'};
+  color: ${autoRefresh ? '#721c24' : '#155724'};
+  font-weight: bold;
+  cursor: pointer;
+">
+  ${autoRefresh ? '⏸️ Pause' : '▶️ Resume'}
+</button>`;
+
 
   const statusMsg = `🔭 Possible ${selectedBody} transit: ${pauseBtn}<br>${statusLines}`;
   statusEl.innerHTML = statusMsg;
