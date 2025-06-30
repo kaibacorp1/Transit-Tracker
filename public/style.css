@@ -194,3 +194,49 @@ footer a:hover {
   width: var(--slider-width);
   max-width: var(--slider-max-width);
 }
+
+
+/* for MOBILE */
+
+@media (max-width: 600px) {
+  .container {
+    padding: 1rem;
+    margin: 0 0.5rem;
+    border-radius: 8px;
+  }
+
+  .controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .controls select,
+  .controls button {
+    width: 100%;
+  }
+
+  .tab-buttons {
+    flex-direction: column;
+  }
+
+  .tab-buttons button {
+    width: 100%;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  #marginSlider {
+    width: 100%;
+  }
+
+  #alertModal > div {
+    width: 90%;
+    font-size: 0.9rem;
+  }
+
+  footer {
+    font-size: 0.75rem;
+  }
+}
