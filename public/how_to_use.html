@@ -492,6 +492,79 @@
       </ul>
     </section>
 
+<!-- Step 15 -->
+<section id="step-15" class="step">
+  <h2>15. Additional Transit Modes</h2>
+
+  <style>
+    .tab-nav {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 2px solid #ccc;
+    }
+    .tab-nav button {
+      background: none;
+      border: none;
+      padding: 0.6rem 1rem;
+      font-size: 1rem;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+    }
+    .tab-nav button.active {
+      border-bottom-color: #2563eb;
+      font-weight: bold;
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+  </style>
+
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="showTab('tab-plane')">✈️ Plane-on-Plane</button>
+    <button class="tab-btn" onclick="showTab('tab-contrail')">✈️💨 Contrail Alignments</button>
+  </div>
+
+  <div id="tab-plane" class="tab-content active">
+    <h3>✈️ Plane-on-Plane</h3>
+    <p>This mode detects when one aircraft appears to pass directly in front of another in the sky, from your viewing location. Great for silhouette photography and rare alignments.</p>
+    <ul>
+      <li>From the app’s <strong>Transit Mode</strong> dropdown, select <code>✈️ on ✈️</code>.</li>
+      <li>The app will now look for overlapping flight paths at similar altitudes and bearing.</li>
+      <li>Predictions are based on current speed, heading, and altitude proximity.</li>
+      <li>Detection margin still applies, so widen it if you want looser matches.</li>
+    </ul>
+    <p><strong>Note:</strong> Due to fast relative motion, these events are brief and harder to photograph precisely.</p>
+  </div>
+
+  <div id="tab-contrail" class="tab-content">
+    <h3>✈️💨 Contrail Alignments</h3>
+    <p>This mode highlights aircraft whose contrails visually align with your celestial target (e.g., Sun or Moon), ideal for long-exposure compositions or atmospheric visuals.</p>
+    <ul>
+      <li>Choose <strong>Transit Mode</strong> → <code>✈️💨💨</code> from the dropdown.</li>
+      <li>The app will highlight planes leaving trails that appear to “pierce” the Sun/Moon from your angle.</li>
+      <li>These aren't true transits but aesthetic alignments — great for creative photos.</li>
+      <li>Enable <strong>Prediction Mode</strong> for better anticipation of alignments.</li>
+    </ul>
+    <p><strong>Tip:</strong> Use wider detection margins (e.g., 10–20°) to catch creative shots.</p>
+  </div>
+
+  <script>
+    function showTab(id) {
+      const tabs = document.querySelectorAll('.tab-content');
+      const buttons = document.querySelectorAll('.tab-btn');
+      tabs.forEach(tab => tab.classList.remove('active'));
+      buttons.forEach(btn => btn.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      event.target.classList.add('active');
+    }
+  </script>
+</section>
+
+    
   </main>
 
   <footer class="container">
