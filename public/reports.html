@@ -12,9 +12,7 @@
       max-width: 1200px;
       padding: 0 1rem;
     }
-    h1 {
-      font-size: 1.8rem;
-    }
+    h1 { font-size: 1.8rem; }
     h2 {
       font-size: 1.3rem;
       margin-top: 2rem;
@@ -57,9 +55,7 @@
       border-radius: 4px;
       cursor: pointer;
     }
-    button:hover {
-      background-color: #333;
-    }
+    button:hover { background-color: #333; }
     .note {
       font-size: 0.95rem;
       color: #555;
@@ -106,7 +102,10 @@
 </div>
 
 <div class="flex-wrapper">
-  <form action="mailto:sandu.godakumbura@gmail.com" method="POST" enctype="text/plain">
+  <form action="https://formsubmit.co/sandu.godakumbura@gmail.com" method="POST">
+    <input type="hidden" name="_captcha" value="false">
+    <input type="hidden" name="_subject" value="New Report Submission">
+    <input type="hidden" name="_template" value="table">
 
     <h2>Observation Target</h2>
     <label>Select Target</label>
@@ -258,7 +257,7 @@
 
   <div class="side-image">
     <h3>Example: Where to find plane info</h3>
-    <img src="/public/graphs/Planeinfo.png" alt="Plane Info Example">
+    <img src="/public/graphs/planeinfo.PNG" alt="Plane Info Example">
   </div>
 </div>
 
