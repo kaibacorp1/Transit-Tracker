@@ -718,7 +718,7 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
     }
   });
 
- console.log("✅ Enhanced Prediction value:", document.getElementById('enhancedPrediction').checked);
+// console.log("✅ Enhanced Prediction value:", document.getElementById('enhancedPrediction').checked);
   
   // ── Send the normalized array instead of the raw one ──
   fetch('/api/detect-transit', {
