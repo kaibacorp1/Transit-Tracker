@@ -22,7 +22,7 @@
 <body>
 
   <h1>Privacy &amp; Cookies Policy</h1>
-  <p class="small"><strong>Effective Date:</strong> June 9, 2025</p>
+  <p class="small"><strong>Effective Date:</strong> June 30, 2025</p>
   <p>
     Welcome to Transit-Tracker ("<strong>App</strong>", "<strong>we</strong>", "<strong>us</strong>", or "<strong>our</strong>"). Protecting your privacy is important to us. This Policy explains how we collect, use, disclose, and safeguard your information when you use our App. By accessing or using the App, you agree to the practices described below.
   </p>
@@ -32,7 +32,7 @@
     <h2>1. Information We Collect</h2>
 
     <h3>1.1 Geolocation Data</h3>
-    <p>The App requests your device geolocation (latitude, longitude, and, where available, altitude) to calculate celestial transits. We do not store your geolocation on our servers beyond the immediate request/response necessary to render results.</p>
+    <p>The App requests your device geolocation (latitude, longitude, and, where available, altitude) to calculate celestial transits. You may set this manually, use GPS, or select a point on the map. We do not store your location on any server; it is processed locally in the browser.</p>
 
     <h3>1.2 Credentials in <code>sessionStorage</code></h3>
     <p>
@@ -52,7 +52,7 @@
   <div class="section">
     <h2>2. How We Use Your Information</h2>
     <ul>
-      <li><strong>Geolocation</strong> – to compute and display real-time celestial transit events based on your position.</li>
+      <li><strong>Geolocation</strong> – to compute and display real-time celestial transit events based on your position. You can provide this manually, via GPS, or by using the map.</li>
       <li><strong>Credentials</strong> – to authenticate with flight-data providers (OpenSky, ADS-B Exchange, ADS-B One). They are not reused for any other purpose.</li>
       <li><strong>Logs</strong> – to keep a local history of transit events, stored only on your device.</li>
       <li><strong>App Functionality</strong> – essential cookies/storage to remember UI choices (e.g., selected tab, auto-refresh countdown).</li>
@@ -66,9 +66,9 @@
     <p>We integrate with these services; by using the App you also agree to their terms:</p>
     <ul>
       <li><strong>SunCalc</strong> &ndash; open-source library (<a href="https://github.com/mourner/suncalc" target="_blank" rel="noopener">MIT</a>) for Sun/Moon positions.</li>
-      <li><strong>OpenSky Network API</strong> &ndash; flight data retrieved via your OpenSky credentials, forwarded through <code>opensky-proxy.onrender.com</code>. Governed by OpenSky ToS.</li>
+      <li><strong>OpenSky Network API</strong> &ndash; flight data retrieved via your OpenSky credentials, forwarded through <code>opensky-proxy.onrender.com</code>.</li>
       <li><strong>ADS-B Exchange</strong> &ndash; optional; requires your RapidAPI key/host. Governed by ADS-B Exchange ToS.</li>
-      <li><strong>ADS-B One</strong> &ndash; optional; uses publicly available endpoint (<a href="https://api.adsb.one" target="_blank" rel="noopener">api.adsb.one</a>). No key needed; usage subject to ADS-B One terms.</li>
+      <li><strong>ADS-B One</strong> &ndash; optional; uses publicly available endpoint (<a href="https://api.adsb.one" target="_blank" rel="noopener">api.adsb.one</a>).</li>
     </ul>
     <p>We forward your credentials only to the selected provider for each request and do not store provider responses on our servers.</p>
   </div>
@@ -100,7 +100,7 @@
       <li>Credentials stay in browser <code>sessionStorage</code>.</li>
       <li>No geolocation or flight logs are stored server-side.</li>
     </ul>
-    <p>No method is 100 % secure; use at your own risk.</p>
+    <p>No method is 100% secure; use at your own risk.</p>
   </div>
 
   <!-- 6. USER RIGHTS -->
@@ -109,27 +109,40 @@
     <p>You can clear geolocation permission, credentials, and logs at any time via your browser settings or in-app controls.</p>
   </div>
 
-  <!-- 7. CHILDREN -->
+  <!-- 7. SPECIAL MODES -->
   <div class="section">
-    <h2>7. Children’s Privacy</h2>
+    <h2>7. Special Modes: Plane-on-Plane & Contrail</h2>
+    <p>
+      The App includes additional modes:
+    </p>
+    <ul>
+      <li><strong>✈️ Plane-on-Plane</strong> – detects overlapping aircraft paths for silhouette alignment opportunities. This mode uses relative aircraft positions and does not require celestial body data or prediction logic.</li>
+      <li><strong>✈️💨 Contrail Alignment</strong> – identifies aircraft with trails that appear to visually align for artistic compositions. This mode is purely visual and does not use position prediction or enhanced logic.</li>
+    </ul>
+    <p>These modes do not change the privacy model or require extra permissions.</p>
+  </div>
+
+  <!-- 8. CHILDREN -->
+  <div class="section">
+    <h2>8. Children’s Privacy</h2>
     <p>The App is not directed to children under 13. We do not knowingly collect data from children. Contact us if you believe a child has provided personal data.</p>
   </div>
 
-  <!-- 8. THIRD-PARTY LINKS -->
+  <!-- 9. THIRD-PARTY LINKS -->
   <div class="section">
-    <h2>8. Third-Party Links</h2>
+    <h2>9. Third-Party Links</h2>
     <p>The App may link to external sites (OpenSky, ADS-B Exchange, ADS-B One). We are not responsible for their privacy practices.</p>
   </div>
 
-  <!-- 9. CHANGES -->
+  <!-- 10. CHANGES -->
   <div class="section">
-    <h2>9. Changes to This Policy</h2>
+    <h2>10. Changes to This Policy</h2>
     <p>We may update this Policy from time to time. The “Effective Date” will reflect the latest revision.</p>
   </div>
 
-  <!-- 10. CONTACT -->
+  <!-- 11. CONTACT -->
   <div class="section">
-    <h2>10. Contact</h2>
+    <h2>11. Contact</h2>
     <p>
       <strong>Rey Sandu Godakumbura</strong><br>
       Website: <a href="https://www.lifebeyondstars.com" target="_blank">lifebeyondstars.com</a><br>
@@ -138,19 +151,19 @@
   </div>
 
   <p class="small">This Privacy & Cookies Policy forms part of our Terms and Conditions. By using Transit-Tracker you acknowledge that you have read and understood this Policy.</p>
-    <footer>
-      <p>Copyright © Rey Sandu Godakumbura</p>
-      <p>
-        <a href="/public/reports.html">Help us</a> |
-        <a href="/public/aboutus.html">About Us</a> |
-        <a href="https://www.lifebeyondstars.com/about-me" target="_blank">About Creator</a> |
-        <a href="/public/terms.html">Terms of Use</a> |
-        <a href="/public/privacy.html">Privacy & Cookies</a> |
-        <a href="LICENSE.txt">License</a> |
-        <a href="mailto:sandu.godakumbura@gmail.com">Contact</a> |
-        <a href="public/how_to_use.html">How to Use</a> |
-        <a href="public/dome/dome.html">3D visualizer</a>
-      </p>
-    </footer>
+  <footer>
+    <p>Copyright © Rey Sandu Godakumbura</p>
+    <p>
+      <a href="/public/reports.html">Help us</a> |
+      <a href="/public/aboutus.html">About Us</a> |
+      <a href="https://www.lifebeyondstars.com/about-me" target="_blank">About Creator</a> |
+      <a href="/public/terms.html">Terms of Use</a> |
+      <a href="/public/privacy.html">Privacy & Cookies</a> |
+      <a href="LICENSE.txt">License</a> |
+      <a href="mailto:sandu.godakumbura@gmail.com">Contact</a> |
+      <a href="public/how_to_use.html">How to Use</a> |
+      <a href="public/dome/dome.html">3D visualizer</a>
+    </p>
+  </footer>
 </body>
 </html>
