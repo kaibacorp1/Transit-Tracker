@@ -18,136 +18,113 @@
 <body>
 
   <h1>Terms and Conditions</h1>
-  <p class="small"><strong>Last Updated:</strong> June 9, 2025</p>
+  <p class="small"><strong>Last Updated:</strong> June 30, 2025</p>
 
   <p>Welcome to Transit-Tracker! Please read these Terms and Conditions (“<strong>Terms</strong>”) carefully before using the Transit-Tracker application (the “<strong>App</strong>”) operated by Rey Sandu Godakumbura (“<strong>Author</strong>,” “<strong>we</strong>,” “<strong>us</strong>,” or “<strong>our</strong>”). By accessing or using the App (whether via web browser, mobile device, or any other means), you (“<strong>User</strong>,” “<strong>you</strong>,” or “<strong>your</strong>”) agree to be bound by these Terms. If you do not agree with any part of these Terms, you may not use the App.</p>
 
   <div class="section">
     <h2>1. Acceptance of Terms</h2>
-    <p>By clicking “I agree,” or by installing, accessing, or using the App in any manner, you expressly acknowledge and agree that you have read, understood, and agree to be bound by these Terms. These Terms constitute a legally binding agreement between you and the Author regarding your use of the App and any associated documentation, content, or services.</p>
+    <p>By clicking “I agree,” or by installing, accessing, or using the App in any manner, you expressly acknowledge and agree that you have read, understood, and agree to be bound by these Terms.</p>
   </div>
 
   <div class="section">
     <h2>2. Eligibility and User Obligations</h2>
     <h3>2.1 Age Requirement</h3>
-    <p>You must be at least 13 years old (or older if local law requires a higher age) to use the App. If you are under 18, you agree to use the App only with the involvement and permission of a parent or legal guardian.</p>
+    <p>You must be at least 13 years old (or older if local law requires a higher age) to use the App.</p>
     <h3>2.2 Accurate Information</h3>
-    <p>You agree to provide accurate, current, and complete information when prompted (e.g., valid OpenSky/ADS-B Exchange credentials, correct API keys, and valid geolocation). You are solely responsible for maintaining the confidentiality of any account credentials you supply or generate.</p>
+    <p>You agree to provide accurate, current, and complete information when prompted.</p>
     <h3>2.3 Prohibited Conduct</h3>
     <p>When using the App, you shall not:</p>
     <ul>
-      <li>Impersonate any person or entity, or falsely represent your affiliation with any person or entity.</li>
-      <li>Use the App to collect or harvest personal data of others or to facilitate any other unlawful purpose.</li>
-      <li>Interfere with or disrupt the App’s servers, networks, or services, including launching any automated hacking, denial-of-service, or spam attacks.</li>
-      <li>Attempt to gain unauthorized access to any portion of the App, or any other systems or networks connected to the App.</li>
-      <li>Use bots, scrapers, or automated tools to query our API or the App’s endpoints more frequently than is permitted by the interface (the default polling interval is 5 seconds; any more aggressive polling may result in throttling or termination of your access).</li>
+      <li>Impersonate any person or entity;</li>
+      <li>Harvest personal data of others or use the App unlawfully;</li>
+      <li>Disrupt the App’s services or servers;</li>
+      <li>Use bots or scrapers to poll the API faster than the default interval (5 seconds).</li>
     </ul>
-    <p>Violation of any of the above may result in immediate suspension or termination of your account and legal action.</p>
   </div>
 
   <div class="section">
     <h2>3. License Grant and Restrictions</h2>
     <h3>3.1 Limited License</h3>
-    <p>Subject to your strict compliance with these Terms and any other posted policies, the Author grants you a limited, non-exclusive, non-transferable, revocable license to access and use the App solely for your personal, non-commercial, informational use. You may use the App to view and calculate celestial transits (e.g., flights intersecting the Moon or Sun) for your personal interest or educational purposes.</p>
+    <p>The Author grants you a limited, non-exclusive license to use the App for personal, non-commercial, informational purposes. You may use it to view and calculate transit events (e.g., planes crossing the Moon/Sun, intersecting other aircraft, or casting contrail overlays).</p>
     <h3>3.2 Restrictions</h3>
-    <p>Except as expressly permitted in these Terms or in the separate LICENSE file, you must not:</p>
+    <p>Except as permitted, you must not:</p>
     <ul>
-      <li>Copy, modify, translate, or create derivative works of any part of the App or its source code;</li>
-      <li>Reverse-engineer, decompile, or disassemble any portion of the compiled or obfuscated code contained in the App;</li>
-      <li>Redistribute, publish, sublicense, rent, lease, loan, sell, or transfer the App (in whole or in part);</li>
-      <li>Remove, alter, or obscure any proprietary notices, including trademark or copyright notices, appearing on or in the App;</li>
-      <li>Use the App for any commercial or revenue-generating purpose, unless you obtain prior written permission from the Author.</li>
+      <li>Copy, reverse-engineer, or redistribute the App;</li>
+      <li>Use it commercially without permission;</li>
+      <li>Remove or alter any proprietary notices.</li>
     </ul>
-    <p>See our separate <strong>LICENSE</strong> file (available at <code>/LICENSE.txt</code>) for full details on permissible use of our code and third-party components.</p>
   </div>
 
   <div class="section">
     <h2>4. Third-Party Services and Data</h2>
-    <h3>4.1 Dependencies on Third-Party Providers</h3>
-    <p>The App integrates data and/or code from the following third parties. You acknowledge and agree that:</p>
+    <p>The App uses data or code from:</p>
     <ul>
-      <li><strong>SunCalc</strong> (<a href="https://github.com/mourner/suncalc" target="_blank" rel="noopener">https://github.com/mourner/suncalc</a>) is licensed under the MIT License; any redistribution of its code must include the original MIT license text.</li>
-      <li><strong>OpenSky Network API</strong> (<a href="https://opensky-network.org" target="_blank" rel="noopener">https://opensky-network.org</a>) is governed by OpenSky’s Terms of Service. Flight data requests are forwarded through the Author’s proxy endpoint (<code>opensky-proxy.onrender.com</code>). We do not store or cache any flight data beyond the immediate request/response. You must supply valid OpenSky credentials and comply with OpenSky’s rate limits and usage policies.</li>
-      <li><strong>ADS-B Exchange</strong> (<a href="https://www.adsbexchange.com/" target="_blank" rel="noopener">https://www.adsbexchange.com/</a>) data is subject to ADS-B Exchange’s Terms of Service. You must supply your own ADS-B Exchange credentials. We do not store or redistribute ADS-B Exchange data beyond real-time lookup.</li>
-      <li><strong>ADS-B One</strong> (<a href="https://api.adsb.one" target="_blank" rel="noopener">https://api.adsb.one</a>) data is publicly available and subject to any usage limits published by the project. No API key is required; we retrieve data on-demand and do not cache or redistribute it.</li>
-      <li><strong>Browser Geolocation API</strong>: By granting geolocation permission, you consent to share latitude, longitude, and altitude (if available) with our backend solely to compute celestial transits. We do not store or share your location data beyond the immediate, ephemeral transit calculation.</li>
+      <li>SunCalc (MIT License): used for Sun/Moon angle and Enhanced Prediction math.</li>
+      <li>OpenSky Network, ADS-B Exchange, ADS-B One APIs (flight data).</li>
+      <li>Browser Geolocation API (user location). Data is not stored long-term.</li>
     </ul>
-    <h3>4.2 Third-Party Change Disclaimer</h3>
-    <p>You acknowledge that any Third-Party provider (OpenSky, ADS-B Exchange, ADS-B One, SunCalc) may change its Terms of Service, data formats, rate limits, or availability at any time. The Author is not responsible for any disruptions or policy changes by these providers. It is your responsibility to verify compliance with their current Terms before using the App.</p>
+    <p>We are not responsible for third-party policy changes or outages.</p>
   </div>
 
   <div class="section">
     <h2>5. Privacy and User Data</h2>
     <h3>5.1 Location Data</h3>
-    <p>To function, the App requests your geographical coordinates via the browser’s Geolocation API. Declining permission will disable certain features. Granted coordinates are transmitted only to compute flight transits and are not stored on any external server.</p>
+    <p>Location data is used only to compute transit predictions. It is not stored or shared externally.</p>
     <h3>5.2 Credentials</h3>
-    <p>Your OpenSky and ADS-B Exchange credentials are stored locally in your browser’s <code>sessionStorage</code>. We do not transmit, log, or store these credentials on our server beyond forwarding them (once per query) to the respective Third-Party API. ADS-B One requires no credentials.</p>
+    <p>Stored only in your browser's sessionStorage. Not transmitted or logged.</p>
     <h3>5.3 Local Logs</h3>
-    <p>All flight-detection logs are stored in your browser’s <code>localStorage</code>. They remain on your device and are never transmitted to the server.</p>
+    <p>Flight logs are stored in localStorage on your device only.</p>
+    <h3>5.4 Enhanced Prediction</h3>
+    <p>When enabled (for Sun/Moon transits), the app uses additional trigonometric logic including zenith angle (<code>useZenithLogic</code>), altitude offset (<code>sunMoonHorizontalOffset</code>), and plane distance limit (<code>sunMoonMaxPlaneDistanceKm</code>) to refine accuracy. It may slightly alter computed prediction zones.</p>
   </div>
 
   <div class="section">
-    <h2>6. Intellectual Property and Trademarks</h2>
-    <h3>6.1 Ownership</h3>
-    <p>All content, code, design, screenshots, and documentation included in the App are © 2025 Rey Sandu Godakumbura. “Transit-Tracker” and “LifeBeyondStars.com” are trademarks of Rey Sandu Godakumbura. All rights are reserved.</p>
-    <h3>6.2 Trademark Restrictions</h3>
-    <p>No part of the App may be used under the same branding, logo, or trade name without prior written consent of the Author.</p>
+    <h2>6. Intellectual Property</h2>
+    <p>All content and code are © 2025 Rey Sandu Godakumbura. Transit-Tracker™ is a trademark. All rights reserved.</p>
   </div>
 
   <div class="section">
     <h2>7. Prohibited Uses</h2>
-    <p>You specifically agree never to:</p>
     <ul>
-      <li>Use the App to store, transmit, or distribute unlawful or infringing content.</li>
-      <li>Query or harvest data faster than the default 5-second interval.</li>
-      <li>Resell or commercially exploit any part of the App without permission.</li>
-      <li>Reverse-engineer or decompile compiled code.</li>
+      <li>Do not exploit, copy, or redistribute the App without permission.</li>
+      <li>No scraping, excessive polling, or unauthorized commercial use.</li>
     </ul>
   </div>
 
   <div class="section">
-    <h2>8. Disclaimer of Warranties</h2>
-    <p><strong>THE APP AND ALL CONTENT ARE PROVIDED “AS IS” AND “AS AVAILABLE,” WITHOUT WARRANTY OF ANY KIND.</strong> THE AUTHOR DOES NOT GUARANTEE THAT:</p>
-    <ul>
-      <li>THE APP WILL PERFORM WITHOUT INTERRUPTION OR ERROR;</li>
-      <li>OUTPUT WILL BE ACCURATE OR UP-TO-DATE;</li>
-      <li>ANY THIRD-PARTY SERVICE (OPEN SKY, ADS-B EXCHANGE, ADS-B ONE, OR GEOLOCATION) WILL BE CONTINUOUSLY AVAILABLE.</li>
-    </ul>
+    <h2>8. No Warranty</h2>
+    <p>The App is provided "as is." No guarantees of uninterrupted use or data accuracy.</p>
   </div>
 
   <div class="section">
     <h2>9. Limitation of Liability</h2>
-    <p>TO THE EXTENT PERMITTED BY LAW, IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES ARISING FROM OR RELATED TO YOUR USE OF THE APP.</p>
+    <p>The Author is not liable for any damages resulting from your use of the App.</p>
   </div>
 
   <div class="section">
     <h2>10. Indemnification</h2>
-    <p>You agree to defend, indemnify, and hold harmless Rey Sandu Godakumbura from any claims arising out of:</p>
-    <ul>
-      <li>Your misuse of the App or violation of these Terms;</li>
-      <li>Content or data you transmit;</li>
-      <li>Your integration with any Third-Party service (OpenSky, ADS-B Exchange, ADS-B One, SunCalc).</li>
-    </ul>
+    <p>You agree to hold the Author harmless for claims arising from your misuse of the App.</p>
   </div>
 
   <div class="section">
     <h2>11. Termination</h2>
-    <p>We may suspend or terminate your access without notice if you violate these Terms or for technical/security reasons.</p>
+    <p>Access may be terminated at any time for violations or technical reasons.</p>
   </div>
 
   <div class="section">
     <h2>12. Changes to Terms</h2>
-    <p>We may modify these Terms at any time. Continued use after the “Last Updated” date signifies acceptance.</p>
+    <p>Terms may be updated. Continued use after the update date implies agreement.</p>
   </div>
 
   <div class="section">
-    <h2>13. Governing Law and Dispute Resolution</h2>
-    <p>These Terms are governed by the laws of New South Wales, Australia. Any disputes shall be resolved exclusively in Sydney courts.</p>
+    <h2>13. Governing Law</h2>
+    <p>These Terms are governed by the laws of New South Wales, Australia. Disputes will be resolved in Sydney courts.</p>
   </div>
 
   <div class="section">
-    <h2>14. No Support or Maintenance</h2>
-    <p>The Author is not obligated to provide support, updates, or maintenance. Use the App at your own risk.</p>
+    <h2>14. No Maintenance Guarantee</h2>
+    <p>Use is at your own risk. The Author does not guarantee updates or support.</p>
   </div>
 
   <div class="section">
@@ -159,20 +136,20 @@
     </p>
   </div>
 
-  <p><strong>BY USING THE TRANSIT-TRACKER APP, YOU ACKNOWLEDGE THAT YOU HAVE READ, UNDERSTOOD, AND AGREE TO BE BOUND BY THESE TERMS.</strong></p>
-    <footer>
-      <p>Copyright © Rey Sandu Godakumbura</p>
-      <p>
-        <a href="/public/reports.html">Help us</a> |
-        <a href="/public/aboutus.html">About Us</a> |
-        <a href="https://www.lifebeyondstars.com/about-me" target="_blank">About Creator</a> |
-        <a href="/public/terms.html">Terms of Use</a> |
-        <a href="/public/privacy.html">Privacy & Cookies</a> |
-        <a href="LICENSE.txt">License</a> |
-        <a href="mailto:sandu.godakumbura@gmail.com">Contact</a> |
-        <a href="public/how_to_use.html">How to Use</a> |
-        <a href="public/dome/dome.html">3D visualizer</a>
-      </p>
-    </footer>
+  <p><strong>BY USING THE TRANSIT-TRACKER APP, YOU AGREE TO BE BOUND BY THESE TERMS.</strong></p>
+  <footer>
+    <p>Copyright © Rey Sandu Godakumbura</p>
+    <p>
+      <a href="/public/reports.html">Help us</a> |
+      <a href="/public/aboutus.html">About Us</a> |
+      <a href="https://www.lifebeyondstars.com/about-me" target="_blank">About Creator</a> |
+      <a href="/public/terms.html">Terms of Use</a> |
+      <a href="/public/privacy.html">Privacy & Cookies</a> |
+      <a href="LICENSE.txt">License</a> |
+      <a href="mailto:sandu.godakumbura@gmail.com">Contact</a> |
+      <a href="public/how_to_use.html">How to Use</a> |
+      <a href="public/dome/dome.html">3D visualizer</a>
+    </p>
+  </footer>
 </body>
 </html>
