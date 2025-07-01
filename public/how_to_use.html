@@ -216,30 +216,30 @@
 
 
     <!-- Step 3 -->
-    <section id="step-3" class="step">
-      <h2>3. Set Your Location</h2>
-      <p>
-        Below the API section, locate the <strong>Location Mode</strong> controls:
-      </p>
-      <ol>
-        <li>
-          <strong>Location Mode</strong> dropdown:
+<section id="step-3" class="step">
+  <h2>3. Set Your Location</h2>
+  <p>
+    Below the API section, locate the <strong>Location Mode</strong> controls:
+  </p>
+  <ol>
+    <li>
+      <strong>Location Mode</strong> dropdown:
+      <ul>
+        <li><strong>Auto (GPS)</strong> – Uses your device’s geolocation. Grant permission when prompted to allow accurate latitude/longitude detection.</li>
+        <li><strong>Manual</strong> – Enables three fields for manual entry:
           <ul>
-            <li><strong>Auto (GPS)</strong> – Uses your device’s geolocation. Grant permission when prompted to allow
-              accurate latitude/longitude detection.</li>
-            <li><strong>Manual</strong> – Enables three fields for manual entry:
-              <ul>
-                <li><strong>Latitude</strong> (e.g., <code>−33.8688</code>).</li>
-                <li><strong>Longitude</strong> (e.g., <code>151.2093</code>).</li>
-                <li><strong>Elevation (m)</strong> (default: <code>10</code>).</li>
-              </ul>
-            </li>
+            <li><strong>Latitude</strong> (e.g., <code>−33.8688</code>).</li>
+            <li><strong>Longitude</strong> (e.g., <code>151.2093</code>).</li>
+            <li><strong>Elevation (m)</strong> (default: <code>10</code>).</li>
           </ul>
         </li>
-        <li>After selecting Auto or entering manual coordinates, click <strong>🔄 Refresh</strong> to confirm your location.
-          The app fetches the Sun/Moon position for that point.</li>
-      </ol>
-    </section>
+        <li><strong>📍 Select from Map</strong> – Click on the small map preview to choose a location by tapping or dragging. This auto-fills your coordinates based on the clicked point.</li>
+      </ul>
+    </li>
+    <li>After setting your location, click <strong>🔄 Refresh</strong> to apply changes and fetch celestial position data (used in Moon/Sun modes).</li>
+  </ol>
+</section>
+
 
     <!-- Step 4 -->
     <section id="step-4" class="step">
@@ -291,15 +291,20 @@
     Use the <strong>Detection Margin</strong> slider (in degrees °):
   </p>
   <ul>
-    <li>Move between <code>1°</code> and <code>50°</code> in <code>0.5°</code> increments (default: <code>2.5°</code>).</li>
-    <li>The numerical value updates dynamically as you adjust the slider.</li>
-    <li>A feedback message appears below (e.g., <em>“🌟 Very strict (photography)”</em> or <em>“😊 Moderate”</em>).</li>
-    <li>
-      If you see <strong>🟢 Enhanced Prediction ON</strong>, the app is using additional calculations to refine the predicted aircraft path and timing—taking into account motion blur, angular velocity, and the object's apparent size.
+    <li>Adjust between <code>1°</code> and <code>50°</code> in <code>0.5°</code> steps. Default is <code>2.5°</code>.</li>
+    <li>Smaller margins catch only precise alignments (ideal for astrophotography).</li>
+    <li>Larger margins increase coverage but allow looser "near-miss" matches.</li>
+    <li>As you move the slider, a text label will describe the setting (e.g., “🌟 Very strict” or “😊 Moderate”).</li>
+    <li><strong>🟢 Enhanced Prediction ON</strong> (default for Sun & Moon transits) enables these intelligent adjustments:
+      <ul>
+        <li><strong>Zenith logic</strong>: If the Sun/Moon is high in the sky (>80°), the detection margin is auto-shrunk to reduce false positives.</li>
+        <li><strong>3D heading analysis</strong>: Uses flight direction and vertical angle to predict trajectory more precisely.</li>
+        <li><strong>Offset compensation</strong>: Adjusts alignment check based on angular separation and speed, improving timing accuracy.</li>
+      </ul>
     </li>
-    <li><strong>Enhanced Prediction</strong> only applies to <strong>Sun</strong> and <strong>Moon</strong> transits.</li>
   </ul>
 </section>
+
 
 
     <!-- Step 6 -->
@@ -499,60 +504,80 @@
 <!-- Step 15 -->
 <section id="step-15" class="step">
   <h2>15. Additional Transit Modes</h2>
+
   <style>
-    .tab-nav { display: flex; gap: 1rem; margin-bottom: 1rem; border-bottom: 2px solid #ccc; }
-    .tab-nav button { background: none; border: none; padding: 0.6rem 1rem; font-size: 1rem; cursor: pointer; border-bottom: 3px solid transparent; }
-    .tab-nav button.active { border-bottom-color: #2563eb; font-weight: bold; }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-    .mode-info { margin-top: 0.5rem; font-style: italic; color: #555; }
+    .tab-nav {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 2px solid #ccc;
+    }
+    .tab-nav button {
+      background: none;
+      border: none;
+      padding: 0.6rem 1rem;
+      font-size: 1rem;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+    }
+    .tab-nav button.active {
+      border-bottom-color: #2563eb;
+      font-weight: bold;
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
   </style>
 
   <div class="tab-nav">
-    <button class="tab-btn active" onclick="showTab('tab-plane')">✈️ Plane‑on‑Plane</button>
+    <button class="tab-btn active" onclick="showTab('tab-plane')">✈️ Plane-on-Plane</button>
     <button class="tab-btn" onclick="showTab('tab-contrail')">✈️💨 Contrail Alignments</button>
   </div>
 
   <div id="tab-plane" class="tab-content active">
-    <h3>✈️ Plane‑on‑Plane</h3>
-    <p>Detects when one aircraft crosses directly in front of another from your viewpoint—ideal for rare silhouette captures.</p>
+    <h3>✈️ Plane-on-Plane</h3>
+    <p>This mode detects when one aircraft appears to pass directly in front of another in the sky, from your viewing location. Ideal for silhouette photography and rare air-to-air alignments.</p>
     <ul>
-      <li>Select <code>✈️ on ✈️</code> in the Transit Mode dropdown.</li>
-      <li>App compares flight path overlap plus altitude proximity.</li>
+      <li>In the app’s <strong>Transit Mode</strong> dropdown, choose <code>✈️ on ✈️</code>.</li>
+      <li>The system evaluates overlapping aircraft paths based on:
+        <ul>
+          <li>Heading alignment</li>
+          <li>Altitude proximity</li>
+          <li>Projected path convergence</li>
+        </ul>
+      </li>
+      <li><strong>Detection Margin</strong> is used and recommended here (e.g., 2.5–5°) to allow some angular leeway in overlap.</li>
+      <li><strong>🟢 Enhanced Prediction is automatically disabled</strong> in this mode to simplify the geometry and avoid overcomplicating predictions between moving targets.</li>
     </ul>
-    <p class="mode-info">
-      • Search Radius: affects area examined<br>
-      • Prediction Mode: off ≤ 30 sec ahead<br>
-      • Detection Margin: in degrees (default 2.5°)
-    </p>
-    <p><strong>Note:</strong> These events move quickly—wider margin helps catch them.</p>
+    <p><strong>Note:</strong> Events can be very fast and subtle; they benefit from high-refresh intervals and wider margins for detection.</p>
   </div>
 
   <div id="tab-contrail" class="tab-content">
     <h3>✈️💨 Contrail Alignments</h3>
-    <p>Highlights aircraft whose contrails appear to align with your Sun/Moon target—great for long‑exposure compositions.</p>
+    <p>This mode highlights aircraft leaving visible contrails that align from your point of view — straight or angled lines useful for composition. It’s designed for photography enthusiasts looking to capture dramatic skies, not transits.</p>
     <ul>
-      <li>Select <code>✈️💨💨</code> in the Transit Mode dropdown.</li>
-      <li>App checks for contrails visually intersecting the celestial body.</li>
+      <li>Select <strong>Transit Mode</strong> → <code>✈️💨💨</code> in the app controls.</li>
+      <li>Detection is based on straightness and orientation of contrail relative to your viewing vector — no celestial body required.</li>
+      <li><strong>Detection Margin</strong> is <em>disabled</em> for this mode since it doesn’t involve angular offsets from a central point.</li>
+      <li><strong>🟢 Enhanced Prediction is also disabled</strong> here because long contrails are static — they don’t require predictive modeling.</li>
     </ul>
-    <p class="mode-info">
-      • Search Radius: area around target<br>
-      • Prediction Mode: off ≤ 30 sec ahead (recommended ON)<br>
-      • Detection Margin: 10–20° works best for creative shots
-    </p>
-    <p><strong>Tip:</strong> Use wider margin for artistic effects.</p>
+    <p><strong>Tip:</strong> Use this mode during golden hour or after sunset for dramatic sky shots with aligned contrails.</p>
   </div>
 
   <script>
     function showTab(id) {
       const tabs = document.querySelectorAll('.tab-content');
-      const btns = document.querySelectorAll('.tab-btn');
-      tabs.forEach(t => t.classList.remove('active'));
-      btns.forEach(b => b.classList.remove('active'));
+      const buttons = document.querySelectorAll('.tab-btn');
+      tabs.forEach(tab => tab.classList.remove('active'));
+      buttons.forEach(btn => btn.classList.remove('active'));
       document.getElementById(id).classList.add('active');
       event.target.classList.add('active');
     }
   </script>
 </section>
+
 
 
