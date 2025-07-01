@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>About Us - Celestial Transit Tracker</title>
+  <title>About Us – Celestial Transit Tracker</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -26,58 +26,87 @@
       height: auto;
       border-radius: 8px 8px 0 0;
     }
+    figcaption {
+      font-size: 0.9em;
+      color: #666;
+      margin-top: 0.5em;
+      text-align: center;
+    }
     h1, h2 {
       color: #222;
     }
     .contact-info {
-      margin-top: 20px;
+      margin-top: 30px;
       padding: 15px;
       background: #eef;
       border-radius: 5px;
+    }
+    footer {
+      text-align: center;
+      font-size: 0.9em;
+      margin-top: 40px;
+      padding: 20px 10px;
+      background: #fff;
+      border-top: 1px solid #ddd;
+    }
+    footer a {
+      color: #0066cc;
+      text-decoration: none;
+    }
+    footer a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <!-- Header Image -->
-    <img src="/public/graphs/aboutusPic.jpg" alt="Celestial Transit Tracker Team" class="header-photo">
-    photo by Rey Sandu Godakumbura |Fuji XT4| 150-600mm tamron | @www.lifebeyondstars.com
+    <figure>
+      <img src="/public/graphs/aboutusPic.jpg" alt="Celestial Transit Tracker – Photo by Rey Sandu Godakumbura" class="header-photo">
+      <figcaption>
+        Photo by Rey Sandu Godakumbura | Fuji X-T4 + Tamron 150-600mm | <a href="https://www.lifebeyondstars.com" target="_blank">www.lifebeyondstars.com</a>
+      </figcaption>
+    </figure>
 
-    <!-- About Us Content -->
+    <!-- About Content -->
     <section>
       <h2>My Story</h2>
-      <p>I’ve always been obsessed with astrophotography, and back in 2021 I discovered the thrill of flight-transit shots—those magical instants when a plane crosses in front of a celestial body. I would spend hours glued to flight trackers, scanning the skies for any hint of a glinting light heading toward the Sun or hearing a distant plane engine rumble. Every time I sensed a possible transit, I’d dash outside with my camera, hoping to nail the perfect shot.</p>
-      <p>That obsession led me to record flight and celestial data long before the app existed. By logging countless hours of flight paths, timestamps, speeds, and positions, I built a solid database to test predictions and validate the trigonometry that drives the app’s accuracy.</p>
+      <p>I'm Rey, and I’ve always been obsessed with astrophotography. In 2021, I stumbled into the thrilling world of aircraft transits—those split-second moments when a plane passes directly in front of the Sun or Moon. I started chasing those shots manually, scanning the skies and tracking planes with whatever tools I had, hoping to catch that perfect silhouette.</p>
+      <p>Back then, I was recording flight paths, times, and trajectories manually—no automation, just passion. Over time, I accumulated enough data to reverse-engineer the geometry behind these events. That research laid the groundwork for what would become this app.</p>
     </section>
+
     <section>
       <h2>Mission</h2>
-      <p>My goal is to make transit photography more accessible and rewarding. We combine real-time flight data and precise celestial calculations to predict upcoming transits with a configurable lead time and margin of error. While the app is not 100% perfect—nature and real-world variables always have the final say—it helps you spend less time crunching numbers and more time behind the lens.</p>
+      <p>Transit photography can be both beautiful and brutally time-sensitive. My goal is to simplify the process and help others get that rare, perfectly aligned shot without spending hours doing manual tracking or guesswork. The app combines real-time flight data with precise celestial calculations to forecast potential transits, with adjustable detection margins and predictive logic to suit every skill level—from casual spotters to hardcore photographers.</p>
     </section>
+
     <section>
       <h2>Our Journey</h2>
-      <p>From that trove of pre-app data, I distilled the key trigonometric relationships needed to forecast transits. Then, with the help of OpenAI’s o4-mini-high model, I translated those equations into clean, efficient code—no genius required, just a passion for both astronomy and aviation. Every day, I dedicate time to refining the algorithms, improving the UI, and incorporating feedback from our growing community of transit photographers.</p>
+      <p>It started as a bunch of equations and rough sketches in a notebook. With help from OpenAI’s assistant models and lots of real-world testing, those early formulas evolved into the fully interactive web app you see today. Each feature—whether it’s margin tuning, API switching, or new modes like Plane-on-Plane or Contrail alignment—comes from personal experience and user feedback. I use the app every day and continuously improve it based on real-world tests and community suggestions.</p>
     </section>
 
     <!-- Contact Info -->
     <div class="contact-info">
       <h2>Contact & Feedback</h2>
-      <p>Have questions, feature requests, or want to share your transit photos? Reach out at:</p>
+      <p>Have questions, ideas, or just want to share your transit photos? I’d love to hear from you:</p>
       <p><a href="mailto:sandu.godakumbura@gmail.com">sandu.godakumbura@gmail.com</a></p>
     </div>
   </div>
-      <footer>
-      <p>Copyright © Rey Sandu Godakumbura</p>
-      <p>
-        <a href="/public/reports.html">Help us</a> |
-        <a href="/public/aboutus.html">About Us</a> |
-        <a href="https://www.lifebeyondstars.com/about-me" target="_blank">About Creator</a> |
-        <a href="/public/terms.html">Terms of Use</a> |
-        <a href="/public/privacy.html">Privacy & Cookies</a> |
-        <a href="LICENSE.txt">License</a> |
-        <a href="mailto:sandu.godakumbura@gmail.com">Contact</a> |
-        <a href="public/how_to_use.html">How to Use</a> |
-        <a href="public/dome/dome.html">3D visualizer</a>
-      </p>
-    </footer>
+
+  <!-- Footer -->
+  <footer>
+    <p>Copyright © Rey Sandu Godakumbura</p>
+    <p>
+      <a href="/public/reports.html">Help us</a> |
+      <a href="/public/aboutus.html">About Us</a> |
+      <a href="https://www.lifebeyondstars.com/about-me" target="_blank">About Creator</a> |
+      <a href="/public/terms.html">Terms of Use</a> |
+      <a href="/public/privacy.html">Privacy & Cookies</a> |
+      <a href="LICENSE.txt">License</a> |
+      <a href="mailto:sandu.godakumbura@gmail.com">Contact</a> |
+      <a href="/public/how_to_use.html">How to Use</a> |
+      <a href="/public/dome/dome.html">3D visualizer</a>
+    </p>
+  </footer>
 </body>
 </html>
