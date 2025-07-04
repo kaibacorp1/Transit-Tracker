@@ -60,6 +60,11 @@ window.useAdsbexchange = false;
 window.useRadarBox      = false;   
 window.useAdsbOne = false;
 
+
+function normalizeLongitude(lon) {
+  return lon > 180 ? lon - 360 : lon;
+}
+
 // --- State Variables ---
 let selectedBody   = 'moon';
 let autoRefresh    = true;
@@ -111,7 +116,7 @@ dismissLogBtn.addEventListener('click', () => {
 async function fetchAdsbOne({ lat, lon, radiusKm }) {
   const radiusNm = (radiusKm / 1.852).toFixed(1);
   const res = await fetch(
-    `https://api.adsb.one/v2/point/${lat}/${lon}/${radiusNm}`
+    `https://api.adsb.one/v2/point/${lat}/${normalizeLongitude(lon)}/${radiusNm}`
   );
   if (!res.ok) throw new Error(`ADSB-One ${res.status}`);
   const json = await res.json();
