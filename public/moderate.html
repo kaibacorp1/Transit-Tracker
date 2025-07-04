@@ -77,15 +77,12 @@
     .btn.delete {
       background: #6c757d;
     }
-    /* 👇 Flicker fix: hide UI until auth check is done */
     body.loading #loginBtn,
     body.loading #moderationQueue {
       display: none !important;
     }
   </style>
 </head>
-
-<!-- 👇 Add 'loading' class -->
 <body class="loading">
   <h1>Moderation Queue (Admin Only)</h1>
   <button id="loginBtn">🔑 Sign in as Admin</button>
@@ -132,15 +129,17 @@
     });
 
     onAuthStateChanged(auth, user => {
-      document.body.classList.remove('loading'); // 👈 Unhide UI after check
-      const container = document.getElementById('moderationQueue');
-      if (!user) {
-        loginBtn.style.display = 'inline-block';
-        container.textContent = '⚠️ Admin login required.';
-      } else {
-        loginBtn.style.display = 'none';
-        loadModeration();
-      }
+      setTimeout(() => {
+        document.body.classList.remove('loading');
+        const container = document.getElementById('moderationQueue');
+        if (!user) {
+          loginBtn.style.display = 'inline-block';
+          container.textContent = '⚠️ Admin login required.';
+        } else {
+          loginBtn.style.display = 'none';
+          loadModeration();
+        }
+      }, 0);
     });
 
     async function loadModeration() {
