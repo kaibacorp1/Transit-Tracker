@@ -240,3 +240,9 @@ footer a:hover {
     font-size: 0.75rem;
   }
 }
+
+body.loading #loginBtn,
+body.loading #moderationQueue {
+  display: none !important;
+}
+
