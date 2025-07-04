@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -78,9 +77,13 @@
     .btn.delete {
       background: #6c757d;
     }
+    body.loading #loginBtn,
+    body.loading #moderationQueue {
+      display: none !important;
+    }
   </style>
 </head>
-<body>
+<body class="loading">
   <h1>Moderation Queue (Admin Only)</h1>
   <button id="loginBtn">🔑 Sign in as Admin</button>
   <div id="moderationQueue">Loading…</div>
@@ -126,6 +129,7 @@
     });
 
     onAuthStateChanged(auth, user => {
+      document.body.classList.remove('loading');
       const container = document.getElementById('moderationQueue');
       if (!user) {
         loginBtn.style.display = 'inline-block';
@@ -149,21 +153,21 @@
         const el = document.createElement('div');
         el.className = 'item';
         el.id = `item-${id}`;
-        el.innerHTML = `
-          <img src="${data.url}" alt="Photo">
+        el.innerHTML = \`
+          <img src="\${data.url}" alt="Photo">
           <div class="meta">
-            ${data.title ? `<strong>${data.title}</strong><br>` : ''}
-            ${data.dateTaken || ''}<br>
-            ${data.location || ''}<br>
-            ${data.equipment || ''}<br>
-            <div class="desc" style="margin-top:0.5rem;">${data.description || ''}</div>
+            \${data.title ? \`<strong>\${data.title}</strong><br>\` : ''}
+            \${data.dateTaken || ''}<br>
+            \${data.location || ''}<br>
+            \${data.equipment || ''}<br>
+            <div class="desc" style="margin-top:0.5rem;">\${data.description || ''}</div>
           </div>
           <div class="buttons">
-            ${isApproved
-              ? `<button class="btn edit" data-id="${id}">✏️ Edit</button><button class="btn delete" data-id="${id}">🗑️ Delete</button>`
-              : `<button class="btn approve" data-id="${id}">Approve</button><button class="btn reject" data-id="${id}">Reject</button>`}
+            \${isApproved
+              ? \`<button class="btn edit" data-id="\${id}">✏️ Edit</button><button class="btn delete" data-id="\${id}">🗑️ Delete</button>\`
+              : \`<button class="btn approve" data-id="\${id}">Approve</button><button class="btn reject" data-id="\${id}">Reject</button>\`}
           </div>
-        `;
+        \`;
         container.appendChild(el);
       };
 
