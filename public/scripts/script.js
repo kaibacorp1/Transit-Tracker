@@ -46,50 +46,6 @@ function toggleAutoRefresh() {
   }
 }
 
-//_________________new 
-
-function displayTransitAlert({ callsign, confidence, azimuth, altitudeAngle, distance, selectedBody }) {
-  const colorMap = {
-    possible: '#ffcc00',
-    likely:   '#ff8800',
-    imminent: '#ff4444'
-  };
-  const iconMap = {
-    possible: '🟡',
-    likely:   '🟠',
-    imminent: '🔴'
-  };
-
-  const msg = `${iconMap[confidence]} ${confidence.toUpperCase()} TRANSIT — ${callsign}
-Az: ${azimuth}°, Alt: ${altitudeAngle}°, Dist: ${distance}m`;
-
-  const el = document.createElement('div');
-  el.className = 'transit-alert';
-  el.style.backgroundColor = colorMap[confidence];
-  el.style.padding = '10px';
-  el.style.margin = '8px 0';
-  el.style.borderRadius = '6px';
-  el.style.fontWeight = 'bold';
-  el.style.color = '#000';
-  el.textContent = msg;
-
-  document.getElementById('alerts').prepend(el);
-
-  playSoundForConfidence(confidence);
-
-  setTimeout(() => el.remove(), 25000);  // auto-dismiss after 25s
-}
-
-
-function playSoundForConfidence(confidence) {
-  const map = {
-    possible: new Audio('/alert-soft.mp3'),
-    likely:   new Audio('/alert-mid.mp3'),
-    imminent: new Audio('/alert-loud.mp3')
-  };
-  map[confidence]?.play().catch(e => {});
-}
-
 
 
 //useZenithLogic: document.getElementById('toggleZenithLogic')?.checked || false,
