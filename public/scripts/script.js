@@ -573,33 +573,34 @@ function getCelestialPosition(lat, lon, elev) {
     checkContrailFlights(lat, lon, elev);
     return;
   }
-    if (selectedBody === 'plane on plane') {
+
+  if (selectedBody === 'plane on plane') {
     checkNearbyFlights(lat, lon, elev, 0, 0);  // bodyAz, bodyAlt not needed
     return;
   }
-
 
   const now = new Date();
   const pos = selectedBody === 'moon'
     ? SunCalc.getMoonPosition(now, lat, lon)
     : SunCalc.getPosition(now, lat, lon);
-  const az  = (pos.azimuth * 180) / Math.PI + 180;
+
+  const az = (pos.azimuth * 180) / Math.PI + 180;
   const alt = (pos.altitude * 180) / Math.PI;
 
   document.getElementById('moonAz').textContent = az.toFixed(2);
   document.getElementById('moonAlt').textContent = alt.toFixed(2);
 
   checkNearbyFlights(lat, lon, elev, az, alt);
-}
 
-// EARLY PREDICTION
-if (typeof startEarlyPrediction === 'function') {
-  fetchAdsbOne({ lat, lon, radiusKm: 20 })  // or however you get live planes
-    .then(planes => {
-      const observer = { lat, lon, elev };
-      startEarlyPrediction(planes, observer, az, alt);
-    })
-    .catch(console.error);
+  // ✅ EARLY PREDICTION HOOK
+  if (typeof startEarlyPrediction === 'function') {
+    fetchAdsbOne({ lat, lon, radiusKm: 20 })
+      .then(planes => {
+        const observer = { lat, lon, elev };
+        startEarlyPrediction(planes, observer, az, alt);
+      })
+      .catch(console.error);
+  }
 }
 
 // --- Flight Fetching & Backend Detection ---
