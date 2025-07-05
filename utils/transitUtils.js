@@ -99,7 +99,8 @@ let marginToUse = margin;
 if (useDynamicMargin) {
   const altFt = geoAlt;
   const spdKts = speed;
-  marginToUse = getDynamicMargin(margin, altFt, spdKts);
+  const dynamic = getDynamicMargin(margin, altFt, spdKts);
+  marginToUse = Math.min(margin, dynamic);  // Don’t let it exceed user input
 }
       
       const azimuth = calculateAzimuth(userLat, userLon, latitude, longitude);
@@ -232,10 +233,8 @@ export function getDynamicMargin(baseMargin, altitudeFt = 10000, speedKts = 300)
   const spdFactor = Math.max(0, (150 - speedKts) / 150);      // 0 to 1
   const altWeight = 1.5;
   const spdWeight = 1.0;
-  const rawMargin = baseMargin + (altFactor * altWeight) + (spdFactor * spdWeight);
-return Math.min(rawMargin, 4.5);  // Cap max margin to 4.5°
+  return baseMargin + (altFactor * altWeight) + (spdFactor * spdWeight);
 }
-
 
 
 
