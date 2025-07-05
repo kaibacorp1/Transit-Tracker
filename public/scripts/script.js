@@ -33,29 +33,6 @@ function toggleAutoRefresh() {
     stopAutoRefresh();
   }
 
-
-//_________________
-setInterval(() => {
-  if (typeof startEarlyPrediction === 'function' && window.userCoords) {
-    const { lat, lon, elev } = window.userCoords;
-    const pos = selectedBody === 'moon'
-      ? SunCalc.getMoonPosition(new Date(), lat, lon)
-      : SunCalc.getPosition(new Date(), lat, lon);
-
-    const az  = (pos.azimuth * 180) / Math.PI + 180;
-    const alt = (pos.altitude * 180) / Math.PI;
-
-    fetchAdsbOne({ lat, lon, radiusKm: 20 })
-      .then(planes => {
-        const observer = { lat, lon, elev };
-        startEarlyPrediction(planes, observer, az, alt);
-      })
-      .catch(console.error);
-  }
-}, 10000); // every 10 seconds
-
-
-  
   // 🔁 Update pause/resume button label
   if (typeof lastStatusRender === 'function') {
     lastStatusRender();
@@ -82,11 +59,6 @@ const enhancedPredictionEnabled = document.getElementById('enhancedPrediction')?
 window.useAdsbexchange = false;
 window.useRadarBox      = false;   
 window.useAdsbOne = false;
-
-
-function normalizeLongitude(lon) {
-  return lon > 180 ? lon - 360 : lon;
-}
 
 // --- State Variables ---
 let selectedBody   = 'moon';
@@ -139,7 +111,7 @@ dismissLogBtn.addEventListener('click', () => {
 async function fetchAdsbOne({ lat, lon, radiusKm }) {
   const radiusNm = (radiusKm / 1.852).toFixed(1);
   const res = await fetch(
-    `https://api.adsb.one/v2/point/${lat}/${normalizeLongitude(lon)}/${radiusNm}`
+    `https://api.adsb.one/v2/point/${lat}/${lon}/${radiusNm}`
   );
   if (!res.ok) throw new Error(`ADSB-One ${res.status}`);
   const json = await res.json();
@@ -596,35 +568,25 @@ function getCelestialPosition(lat, lon, elev) {
     checkContrailFlights(lat, lon, elev);
     return;
   }
-
-  if (selectedBody === 'plane on plane') {
+    if (selectedBody === 'plane on plane') {
     checkNearbyFlights(lat, lon, elev, 0, 0);  // bodyAz, bodyAlt not needed
     return;
   }
+
 
   const now = new Date();
   const pos = selectedBody === 'moon'
     ? SunCalc.getMoonPosition(now, lat, lon)
     : SunCalc.getPosition(now, lat, lon);
-
-  const az = (pos.azimuth * 180) / Math.PI + 180;
+  const az  = (pos.azimuth * 180) / Math.PI + 180;
   const alt = (pos.altitude * 180) / Math.PI;
 
   document.getElementById('moonAz').textContent = az.toFixed(2);
   document.getElementById('moonAlt').textContent = alt.toFixed(2);
 
   checkNearbyFlights(lat, lon, elev, az, alt);
-
-  // ✅ EARLY PREDICTION HOOK
-  if (typeof startEarlyPrediction === 'function') {
-    fetchAdsbOne({ lat, lon, radiusKm: 20 })
-      .then(planes => {
-        const observer = { lat, lon, elev };
-        startEarlyPrediction(planes, observer, az, alt);
-      })
-      .catch(console.error);
-  }
 }
+
 
 // --- Flight Fetching & Backend Detection ---
   function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
