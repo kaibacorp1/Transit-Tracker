@@ -144,8 +144,11 @@ if (
     }
   };
 
-  // always just check once, exactly as in the old app
-  checkTransitsAt(predictSeconds);
+// check multiple future points instead of just one
+for (let t = 0; t <= predictSeconds; t += 5) {
+  checkTransitsAt(t);
+}
+
 
   return matches;
 }
@@ -221,7 +224,7 @@ function isHeadingTowardBody3D(plane, bodyAz, bodyAlt, marginDeg = 12) {
               dirVector[2] * targetVector[2];
   const angleRad = Math.acos(Math.max(-1, Math.min(1, dot)));
   const angleDeg = toDeg(angleRad);
-  return angleDeg < marginDeg;
+return angleDeg < Math.min(marginDeg, 6);
 }
 
 export function getDynamicMargin(baseMargin, altitudeFt = 10000, speedKts = 300) {
@@ -229,7 +232,8 @@ export function getDynamicMargin(baseMargin, altitudeFt = 10000, speedKts = 300)
   const spdFactor = Math.max(0, (150 - speedKts) / 150);      // 0 to 1
   const altWeight = 1.5;
   const spdWeight = 1.0;
-  return baseMargin + (altFactor * altWeight) + (spdFactor * spdWeight);
+  const rawMargin = baseMargin + (altFactor * altWeight) + (spdFactor * spdWeight);
+return Math.min(rawMargin, 4.5);  // Cap max margin to 4.5°
 }
 
 
