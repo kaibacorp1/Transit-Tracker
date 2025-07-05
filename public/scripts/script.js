@@ -33,6 +33,29 @@ function toggleAutoRefresh() {
     stopAutoRefresh();
   }
 
+
+//_________________
+setInterval(() => {
+  if (typeof startEarlyPrediction === 'function' && window.userCoords) {
+    const { lat, lon, elev } = window.userCoords;
+    const pos = selectedBody === 'moon'
+      ? SunCalc.getMoonPosition(new Date(), lat, lon)
+      : SunCalc.getPosition(new Date(), lat, lon);
+
+    const az  = (pos.azimuth * 180) / Math.PI + 180;
+    const alt = (pos.altitude * 180) / Math.PI;
+
+    fetchAdsbOne({ lat, lon, radiusKm: 20 })
+      .then(planes => {
+        const observer = { lat, lon, elev };
+        startEarlyPrediction(planes, observer, az, alt);
+      })
+      .catch(console.error);
+  }
+}, 10000); // every 10 seconds
+
+
+  
   // 🔁 Update pause/resume button label
   if (typeof lastStatusRender === 'function') {
     lastStatusRender();
