@@ -592,6 +592,15 @@ function getCelestialPosition(lat, lon, elev) {
   checkNearbyFlights(lat, lon, elev, az, alt);
 }
 
+// EARLY PREDICTION
+if (typeof startEarlyPrediction === 'function') {
+  fetchAdsbOne({ lat, lon, radiusKm: 20 })  // or however you get live planes
+    .then(planes => {
+      const observer = { lat, lon, elev };
+      startEarlyPrediction(planes, observer, az, alt);
+    })
+    .catch(console.error);
+}
 
 // --- Flight Fetching & Backend Detection ---
   function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
