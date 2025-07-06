@@ -532,14 +532,45 @@ document.getElementById('downloadLogBtn').addEventListener('click', () => {
 
 // --- Geolocation Handlers ---
 function success(position) {
-  const lat  = position.coords.latitude;
-  const lon  = position.coords.longitude;
-  const elev = position.coords.altitude || 10;
-  window.userCoords = { lat, lon, elev };
-  updateLocationUI(lat, lon, elev);
-  getCelestialPosition(lat, lon, elev);
-  startAutoRefresh();
+  const lat = position.coords.latitude;
+  const lon = position.coords.longitude;
+
+  const fallback = () => {
+    const elev = 10;
+    window.userCoords = { lat, lon, elev };
+    updateLocationUI(lat, lon, elev);
+    getCelestialPosition(lat, lon, elev);
+    startAutoRefresh();
+  };
+
+  const cacheKey = `elev_${lat.toFixed(3)}_${lon.toFixed(3)}`;
+  const cached = localStorage.getItem(cacheKey);
+
+  if (cached) {
+    const elev = parseFloat(cached);
+    window.userCoords = { lat, lon, elev };
+    updateLocationUI(lat, lon, elev);
+    getCelestialPosition(lat, lon, elev);
+    startAutoRefresh();
+    return;
+  }
+
+  // 🌍 Try OpenElevation API
+  fetch(`https://api.open-elevation.com/api/v1/lookup?locations=${lat},${lon}`)
+    .then(res => res.json())
+    .then(data => {
+      const elev = data?.results?.[0]?.elevation ?? 10;
+      localStorage.setItem(cacheKey, elev);
+      window.userCoords = { lat, lon, elev };
+      updateLocationUI(lat, lon, elev);
+      getCelestialPosition(lat, lon, elev);
+      startAutoRefresh();
+    })
+    .catch(() => {
+      fallback(); // safe fallback to 10m
+    });
 }
+
 
 function error(err) {
   alert(`Could not get your location. Reason: ${err.message}`);
