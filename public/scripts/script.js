@@ -738,6 +738,17 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
   }
   return true;
 });
+
+  // Deduplicate by callsign or callsign pair
+  const seen = new Set();
+  matches = matches.filter(m => {
+    const id = m.callsign || (m.pair ? `${m.pair[0].callsign}|${m.pair[1].callsign}` : null);
+    if (!id || seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+
+
     const statusEl = document.getElementById('transitStatus');
     if (error) return statusEl.textContent = `❌ ${error}`;
     if (matches.length) {
