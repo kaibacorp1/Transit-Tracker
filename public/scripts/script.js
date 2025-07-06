@@ -84,7 +84,12 @@ function logDetectionLocally(message, metadata = {}) {
   localStorage.setItem('transitLog', JSON.stringify(history));
 }
 
-//___________
+//___________GPS False cordinate fix 
+
+function normalizeLongitude(lon) {
+  return ((lon + 180) % 360 + 360) % 360 - 180;
+}
+//__________________
 
 function hasSessionExpired() {
   const start = parseInt(sessionStorage.getItem('sessionStart'), 10);
@@ -109,6 +114,7 @@ dismissLogBtn.addEventListener('click', () => {
 // ─── ADSB-One Integration (no API key) ───────────────────────────────────
 
 async function fetchAdsbOne({ lat, lon, radiusKm }) {
+  lon = normalizeLongitude(lon);
   const radiusNm = (radiusKm / 1.852).toFixed(1);
   const res = await fetch(
     `https://api.adsb.one/v2/point/${lat}/${lon}/${radiusNm}`
