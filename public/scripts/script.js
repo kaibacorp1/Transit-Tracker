@@ -160,7 +160,7 @@ if (visibleContrails.length === 0) {
       }
 
       // 🎵 Play alert sound
-      if (!document.getElementById('muteToggle')?.checked) {
+      if (!isMuted) {
         document.getElementById('alertSound')?.play().catch(() => {});
       }
 
