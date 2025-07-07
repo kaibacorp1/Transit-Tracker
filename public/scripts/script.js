@@ -886,7 +886,7 @@ lastStatusRender = () => {
 
 lastStatusRender();  // Render it immediately
     // 🔔 play alert sound
-    if (!document.getElementById('muteToggle').checked) {
+    if (!isMuted) {
       document.getElementById('alertSound').play().catch(()=>{});
     }
 
