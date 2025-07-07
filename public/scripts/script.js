@@ -594,13 +594,16 @@ function getCurrentLocationAndRun() {
   updateLocationUI(lat, lon, elev);
   getCelestialPosition(lat, lon, elev);
 } else {
-  if (!window.locationAlertShown) {
-    alert('Please enter valid latitude and longitude.');
-    window.locationAlertShown = true;
-    setTimeout(() => {
-      window.locationAlertShown = false;
-    }, 3000); // Prevents repeated alerts within 3 seconds
-  }
+  const errorEl = document.getElementById('locationErrorMsg');
+if (errorEl) {
+  errorEl.textContent = '⚠️ Please enter valid latitude and longitude.';
+  errorEl.style.display = 'block';
+
+  setTimeout(() => {
+    errorEl.style.display = 'none';
+  }, 3000);
+}
+
 }
 
   } else if (window.userCoords) {
