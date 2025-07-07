@@ -588,13 +588,21 @@ function getCurrentLocationAndRun() {
     const lat  = parseFloat(document.getElementById('manualLat').value);
     const lon  = parseFloat(document.getElementById('manualLon').value);
     const elev = parseFloat(document.getElementById('manualElev').value) || 10;
+   
     if (!isNaN(lat) && !isNaN(lon)) {
-      window.userCoords = { lat, lon, elev };
-      updateLocationUI(lat, lon, elev);
-      getCelestialPosition(lat, lon, elev);
-    } else {
-      alert('Please enter valid latitude and longitude.');
-    }
+  window.userCoords = { lat, lon, elev };
+  updateLocationUI(lat, lon, elev);
+  getCelestialPosition(lat, lon, elev);
+} else {
+  if (!window.locationAlertShown) {
+    alert('Please enter valid latitude and longitude.');
+    window.locationAlertShown = true;
+    setTimeout(() => {
+      window.locationAlertShown = false;
+    }, 3000); // Prevents repeated alerts within 3 seconds
+  }
+}
+
   } else if (window.userCoords) {
     getCelestialPosition(window.userCoords.lat, window.userCoords.lon, window.userCoords.elev);
   }
