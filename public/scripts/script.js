@@ -1237,3 +1237,23 @@ document.getElementById('readMoreBtn').addEventListener('click', () => {
     btn.textContent = '🔽 Read More';
   }
 });
+
+//________NEW BUTTON BUTTON___//
+
+const muteBtn = document.getElementById('muteToggleBtn');
+const alertSound = document.getElementById('alertSound');
+
+let isMuted = localStorage.getItem('muteAlerts') === 'true';
+
+function updateMuteButton() {
+  muteBtn.textContent = isMuted ? '🔕' : '🔇';
+}
+
+updateMuteButton();
+
+muteBtn.addEventListener('click', () => {
+  isMuted = !isMuted;
+  localStorage.setItem('muteAlerts', isMuted);
+  updateMuteButton();
+});
+
