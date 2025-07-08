@@ -1243,10 +1243,28 @@ document.getElementById('readMoreBtn').addEventListener('click', () => {
 const muteBtn = document.getElementById('muteToggleBtn');
 const alertSound = document.getElementById('alertSound');
 
+//VOL SLIDER 
+const volumeSlider = document.getElementById('volumeSlider');
+
+// Load saved volume or default to 1
+let savedVolume = parseFloat(localStorage.getItem('alertVolume'));
+if (!isNaN(savedVolume)) {
+  alertSound.volume = savedVolume;
+  volumeSlider.value = savedVolume;
+}
+
+// Update volume live + persist to localStorage
+volumeSlider.addEventListener('input', () => {
+  const vol = parseFloat(volumeSlider.value);
+  alertSound.volume = vol;
+  localStorage.setItem('alertVolume', vol);
+});
+
+
 let isMuted = localStorage.getItem('muteAlerts') === 'true';
 
 function updateMuteButton() {
-  muteBtn.textContent = isMuted ? '🔕' : '🔇';
+  muteBtn.textContent = isMuted ? '🔕' : '🔔';
 }
 
 updateMuteButton();
