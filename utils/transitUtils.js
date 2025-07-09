@@ -151,7 +151,7 @@ if (
   };
 
 // check multiple future points instead of just one
-for (let t = 0; t <= predictSeconds; t += 5) {
+for (let t = 0; t <= predictSeconds; t += 2) {
   checkTransitsAt(t);
 }
 
