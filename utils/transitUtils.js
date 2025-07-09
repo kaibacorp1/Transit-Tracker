@@ -97,9 +97,9 @@ if (useZenithLogic && futureBodyAlt > 80) {
       
 let marginToUse = margin;
 if (useDynamicMargin) {
-  const altFt = geoAlt;
-  const spdKts = speed;
-  const dynamic = getDynamicMargin(margin, altFt, spdKts);
+const altFt = geoAlt / 0.3048;       // convert meters → feet
+const spdKts = speed / 0.514444;     // convert m/s → knots
+const dynamic = getDynamicMargin(margin, altFt, spdKts);
   marginToUse = Math.min(margin, dynamic);  // Don’t let it exceed user input
 }
       
