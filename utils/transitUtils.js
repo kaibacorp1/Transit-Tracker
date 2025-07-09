@@ -90,18 +90,23 @@ export function detectTransits({
         geoAlt = proj.alt;
       }
 
+// Step 1: Start fresh from the user-defined margin
+let baseMargin = margin;
+
+// Step 2: If Sun/Moon is very high, make the margin a bit tighter
 if (useZenithLogic && futureBodyAlt > 80) {
-  margin = margin * 0.8;
+  baseMargin = margin * 0.8;
 }
 
-      
-let marginToUse = margin;
+// Step 3: Optionally adjust for low/slow aircraft
+let marginToUse = baseMargin;
 if (useDynamicMargin) {
-const altFt = geoAlt / 0.3048;       // convert meters → feet
-const spdKts = speed / 0.514444;     // convert m/s → knots
-const dynamic = getDynamicMargin(margin, altFt, spdKts);
-  marginToUse = Math.min(margin, dynamic);  // Don’t let it exceed user input
+  const altFt = geoAlt / 0.3048;
+  const spdKts = speed / 0.514444;
+  const dynamic = getDynamicMargin(baseMargin, altFt, spdKts);
+  marginToUse = Math.min(baseMargin, dynamic);
 }
+
       
       const azimuth = calculateAzimuth(userLat, userLon, latitude, longitude);
       const distance = haversine(userLat, userLon, latitude, longitude);
