@@ -16,7 +16,7 @@ module.exports = async (req, res) => {
     const now = new Date();
     const moonPos = SunCalc.getMoonPosition(now, observer.lat, observer.lon);
 
-    const response = await fetch('https://opensky-network.org/api/states/all');
+    const response = await fetch('https://api.adsb.one/api/states/all');
     const data = await response.json();
     const planes = data.states || [];
 
