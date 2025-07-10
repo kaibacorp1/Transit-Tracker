@@ -16,12 +16,23 @@ module.exports = async (req, res) => {
     const now = new Date();
     const moonPos = SunCalc.getMoonPosition(now, observer.lat, observer.lon);
 
+    // === NEW: Use adsb.lol with full bounding box ===
     const response = await fetch(
-  'https://api.adsb.one/api/states/all?lamin=-90&lamax=90&lomin=-180&lomax=180'
-);
-    const data = await response.json();
+      'https://api.adsb.lol/api/states/all?lamin=-90&lamax=90&lomin=-180&lomax=180'
+    );
+
+    // === NEW: Parse safely ===
+    let data;
+    try {
+      data = await response.json();
+    } catch (err) {
+      console.error("Failed to parse aircraft data:", err);
+      return res.status(502).json({ error: "Invalid JSON from aircraft API" });
+    }
+
     const planes = data.states || [];
 
+    // === Proximity Filter (100 km radius) ===
     const matchingPlanes = planes.filter(p => {
       const lat = p[6];
       const lon = p[5];
