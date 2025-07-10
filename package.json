@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "commonjs",
   "dependencies": {
-    "suncalc": "^1.9.0"
+    "suncalc": "^1.9.0",
     "node-fetch": "^2.6.7"
   }
 }
