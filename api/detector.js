@@ -1,31 +1,25 @@
-// /api/detector.js
-
 const fetch = require('node-fetch');
 const SunCalc = require('suncalc');
 const nodemailer = require('nodemailer');
 
 module.exports = async (req, res) => {
-  // === CONFIG ===
   const observer = {
     lat: -43.154364,
     lon: 172.739712,
     radiusKm: 100,
-    marginDegrees: 50 // large margin for now
+    marginDegrees: 50
   };
 
   const alertEmail = 'sandu.godakumbura@gmail.com';
 
   try {
-    // === 1. Get Moon Position ===
     const now = new Date();
     const moonPos = SunCalc.getMoonPosition(now, observer.lat, observer.lon);
 
-    // === 2. Fetch Aircraft Data ===
     const response = await fetch('https://opensky-network.org/api/states/all');
     const data = await response.json();
     const planes = data.states || [];
 
-    // === 3. Check Each Plane for Proximity to Moon ===
     const matchingPlanes = planes.filter(p => {
       const lat = p[6];
       const lon = p[5];
@@ -34,11 +28,11 @@ module.exports = async (req, res) => {
       const dLat = toRadians(lat - observer.lat);
       const dLon = toRadians(lon - observer.lon);
       const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.sin(dLat / 2) ** 2 +
         Math.cos(toRadians(observer.lat)) * Math.cos(toRadians(lat)) *
-        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        Math.sin(dLon / 2) ** 2;
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      const distance = 6371 * c; // Earth's radius in km
+      const distance = 6371 * c;
 
       return distance <= observer.radiusKm;
     });
@@ -47,19 +41,19 @@ module.exports = async (req, res) => {
       const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
-          user: 'youremail@gmail.com', // <-- replace with your Gmail
-          pass: 'your_app_password_here' // <-- use App Password from Gmail settings
+          user: process.env.ALERT_EMAIL,
+          pass: process.env.ALERT_EMAIL_PASSWORD
         }
       });
 
-      const info = await transporter.sendMail({
-        from: 'Transit Chaser <youremail@gmail.com>',
+      await transporter.sendMail({
+        from: `Transit Chaser <${process.env.ALERT_EMAIL}>`,
         to: alertEmail,
         subject: '🚨 Moon Transit Candidate Detected!',
-        text: `We found ${matchingPlanes.length} aircraft within ${observer.radiusKm}km and ${observer.marginDegrees}° margin near the moon.`
+        text: `We found ${matchingPlanes.length} aircraft within ${observer.radiusKm}km of your location near the moon.\n\nTimestamp: ${now.toUTCString()}`
       });
 
-      return res.status(200).json({ message: 'Alert sent!', info });
+      return res.status(200).json({ message: 'Alert sent!' });
     } else {
       return res.status(200).json({ message: 'No candidates found.' });
     }
