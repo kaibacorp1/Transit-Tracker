@@ -50,7 +50,7 @@ module.exports = async (req, res) => {
       return distance <= observer.radiusKm;
     });
 
-    if (true) {
+    if (matchingPlanes.length > 0) {
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
