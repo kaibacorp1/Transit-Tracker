@@ -29,6 +29,9 @@ module.exports = async (req, res) => {
     }
 
     const planes = data.states || [];
+    console.log("Total planes received:", planes.length);
+console.log("Sample plane:", planes[0]);
+
 
     const matchingPlanes = planes.filter(p => {
       const lat = p[6];
