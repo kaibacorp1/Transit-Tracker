@@ -6,8 +6,8 @@ module.exports = async (req, res) => {
   const observer = {
     lat: -43.154364,
     lon: 172.739712,
-    radiusKm: 100,
-    marginDegrees: 50
+    radiusKm: 1000,
+    marginDegrees: 150
   };
 
   const alertEmail = 'sandu.godakumbura@gmail.com';
