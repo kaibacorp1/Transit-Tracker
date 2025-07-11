@@ -1,10 +1,8 @@
 {
   "name": "celestial-transit-tracker",
   "version": "1.0.0",
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
-    "suncalc": "^1.9.0",
-    "node-fetch": "^2.6.7",
-    "nodemailer": "^6.9.9"
+    "suncalc": "^1.9.0"
   }
 }
