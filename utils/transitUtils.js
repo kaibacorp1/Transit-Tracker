@@ -151,9 +151,96 @@ if (
   };
 
 // check multiple future points instead of just one
+let bestMatch = null;
+let bestTime = 0;
+
+// Search the entire prediction window
 for (let t = 0; t <= predictSeconds; t += 2) {
-  checkTransitsAt(t);
+  const { az: futureBodyAz, alt: futureBodyAlt } = getBodyPositionAt(t);
+
+  for (const plane of flights) {
+    let {
+      latitude,
+      longitude,
+      altitude: geoAlt,
+      heading = 0,
+      speed,
+      verticalSpeed = 0,
+      callsign
+    } = plane;
+
+    if (geoAlt < MIN_ALTITUDE_FEET) continue;
+
+    if (use3DHeading && t > 0 && heading != null && speed != null) {
+      const proj = projectPosition(latitude, longitude, heading, speed, t, geoAlt, verticalSpeed);
+      latitude = proj.lat;
+      longitude = proj.lon;
+      geoAlt = proj.alt;
+    }
+
+    // Step 1: Start fresh from the user-defined margin
+    let baseMargin = margin;
+
+    // Step 2: Tighten margin near zenith
+    if (useZenithLogic && futureBodyAlt > 80) {
+      baseMargin = margin * 0.8;
+    }
+
+    // Step 3: Dynamic margin logic
+    let marginToUse = baseMargin;
+    if (useDynamicMargin) {
+      const altFt = geoAlt / 0.3048;
+      const spdKts = speed / 0.514444;
+      const dynamic = getDynamicMargin(baseMargin, altFt, spdKts);
+      marginToUse = Math.min(baseMargin, dynamic);
+    }
+
+    const azimuth = calculateAzimuth(userLat, userLon, latitude, longitude);
+    const distance = haversine(userLat, userLon, latitude, longitude);
+    const elevationAngle = Math.atan2(geoAlt - userElev, distance) * 180 / Math.PI;
+
+    const azDiff = Math.abs(((azimuth - futureBodyAz + 540) % 360) - 180);
+    const altDiff = Math.abs(elevationAngle - futureBodyAlt);
+    const isZenith = useZenithLogic && futureBodyAlt > 80;
+    const sep = sphericalSeparation(azimuth, elevationAngle, futureBodyAz, futureBodyAlt);
+
+    if (
+      (isZenith && sep < marginToUse) ||
+      (!isZenith && azDiff < marginToUse && altDiff < marginToUse)
+    ) {
+      const headingToBody = Math.abs((((heading - futureBodyAz + 540) % 360) - 180));
+      const isMatch = (
+        sep < marginToUse ||
+        (use3DHeading
+          ? isHeadingTowardBody3D({
+              heading,
+              verticalSpeed,
+              speed
+            }, futureBodyAz, futureBodyAlt, margin)
+          : headingToBody < 12)
+      );
+
+      if (isMatch && t > bestTime) {
+        bestMatch = {
+          callsign,
+          azimuth: azimuth.toFixed(1),
+          altitudeAngle: elevationAngle.toFixed(1),
+          distance: distance.toFixed(1),
+          selectedBody,
+          predictionSeconds: t,
+          track: heading
+        };
+        bestTime = t;
+      }
+    }
+  }
 }
+
+// Push just the best match
+if (bestMatch) {
+  matches.push(bestMatch);
+}
+
 
 
   return matches;
