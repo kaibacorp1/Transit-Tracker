@@ -49,11 +49,11 @@ export function detectTransits({
   predictSeconds = 0,
   selectedBody,
   use3DHeading = false,
-  useZenithLogic = false,
-  useDynamicMargin = false
+  useZenithLogic = false,   // ✅ NEW
+  useDynamicMargin = false  // ✅ NEW
 }) {
   const matches = [];
-  const MIN_ALTITUDE_FEET = 50;
+  const MIN_ALTITUDE_FEET = 50;  // Min altitude
   const now = Date.now();
 
   const getBodyPositionAt = (secondsAhead) => {
@@ -67,10 +67,7 @@ export function detectTransits({
     };
   };
 
-  // Store best match PER plane
-  const bestPerPlane = {};
-
-  for (let t = 0; t <= predictSeconds; t += 2) {
+  const checkTransitsAt = (t) => {
     const { az: futureBodyAz, alt: futureBodyAlt } = getBodyPositionAt(t);
 
     for (const plane of flights) {
@@ -93,62 +90,74 @@ export function detectTransits({
         geoAlt = proj.alt;
       }
 
-      let baseMargin = margin;
-      if (useZenithLogic && futureBodyAlt > 80) baseMargin *= 0.8;
+// Step 1: Start fresh from the user-defined margin
+let baseMargin = margin;
 
-      let marginToUse = baseMargin;
-      if (useDynamicMargin) {
-        const altFt = geoAlt / 0.3048;
-        const spdKts = speed / 0.514444;
-        const dynamic = getDynamicMargin(baseMargin, altFt, spdKts);
-        marginToUse = Math.min(baseMargin, dynamic);
-      }
+// Step 2: If Sun/Moon is very high, make the margin a bit tighter
+if (useZenithLogic && futureBodyAlt > 80) {
+  baseMargin = margin * 0.8;
+}
 
+// Step 3: Optionally adjust for low/slow aircraft
+let marginToUse = baseMargin;
+if (useDynamicMargin) {
+  const altFt = geoAlt / 0.3048;
+  const spdKts = speed / 0.514444;
+  const dynamic = getDynamicMargin(baseMargin, altFt, spdKts);
+  marginToUse = Math.min(baseMargin, dynamic);
+}
+
+      
       const azimuth = calculateAzimuth(userLat, userLon, latitude, longitude);
       const distance = haversine(userLat, userLon, latitude, longitude);
       const elevationAngle = Math.atan2(geoAlt - userElev, distance) * 180 / Math.PI;
 
       const azDiff = Math.abs(((azimuth - futureBodyAz + 540) % 360) - 180);
       const altDiff = Math.abs(elevationAngle - futureBodyAlt);
-      const sep = sphericalSeparation(azimuth, elevationAngle, futureBodyAz, futureBodyAlt);
 
       const isZenith = useZenithLogic && futureBodyAlt > 80;
-      const matchesMargin = (isZenith && sep < marginToUse) || (!isZenith && azDiff < marginToUse && altDiff < marginToUse);
-      if (!matchesMargin) continue;
+const sep = sphericalSeparation(azimuth, elevationAngle, futureBodyAz, futureBodyAlt);
 
-      const headingToBody = Math.abs((((heading - futureBodyAz + 540) % 360) - 180));
-      const isMatch = (
-        sep < marginToUse ||
-        (use3DHeading
-          ? isHeadingTowardBody3D({ heading, verticalSpeed, speed }, futureBodyAz, futureBodyAlt, margin)
-          : headingToBody < 12)
-      );
+if (
+  (isZenith && sep < marginToUse) ||
+  (!isZenith && azDiff < marginToUse && altDiff < marginToUse)
+) {
+  const headingToBody = Math.abs((((heading - futureBodyAz + 540) % 360) - 180));
+  const isMatch = (
+  sep < marginToUse ||
+  (use3DHeading
+    ? isHeadingTowardBody3D({
+        heading,
+        verticalSpeed,
+        speed
+      }, futureBodyAz, futureBodyAlt, margin)
+    : headingToBody < 12)
+);
 
-      if (isMatch) {
-        const existing = bestPerPlane[callsign];
-        if (!existing || t > existing.predictionSeconds) {
-          bestPerPlane[callsign] = {
-            callsign,
-            azimuth: azimuth.toFixed(1),
-            altitudeAngle: elevationAngle.toFixed(1),
-            distance: distance.toFixed(1),
-            selectedBody,
-            predictionSeconds: t,
-            track: heading
-          };
-        }
-      }
+  if (isMatch) {
+    matches.push({
+      callsign,
+      azimuth: azimuth.toFixed(1),
+      altitudeAngle: elevationAngle.toFixed(1),
+      distance: distance.toFixed(1),
+      selectedBody,
+      predictionSeconds: predictSeconds,
+      track: heading
+    });
+  }
+}
+
     }
-  }
+  };
 
-  // Push best match per plane
-  for (const key in bestPerPlane) {
-    matches.push(bestPerPlane[key]);
-  }
+// check multiple future points instead of just one
+for (let t = 0; t <= predictSeconds; t += 2) {
+  checkTransitsAt(t);
+}
+
 
   return matches;
 }
-
 
 /**
  * Haversine: ground distance between two coords (meters).
