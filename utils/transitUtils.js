@@ -82,6 +82,8 @@ export function detectTransits({
         callsign
       } = plane;
 
+      // ⛔️ Skip descending planes under 500 ft
+      if (geoAlt < 400) continue;
       if (!latitude || !longitude || geoAlt < MIN_ALTITUDE_FEET || matchedCallsigns.has(callsign)) continue;
 
       if (use3DHeading && t > 0 && heading != null && speed != null) {
