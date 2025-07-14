@@ -49,12 +49,11 @@ export function detectTransits({
   predictSeconds = 0,
   selectedBody,
   use3DHeading = false,
-  useZenithLogic = false,
-  useDynamicMargin = false
+  useZenithLogic = false,   // ✅ NEW
+  useDynamicMargin = false  // ✅ NEW
 }) {
   const matches = [];
-  const matchedCallsigns = new Set(); // ✅ Prevent duplicate alerts
-  const MIN_ALTITUDE_FEET = 50;
+  const MIN_ALTITUDE_FEET = 50;  // Min altitude
   const now = Date.now();
 
   const getBodyPositionAt = (secondsAhead) => {
@@ -82,7 +81,7 @@ export function detectTransits({
         callsign
       } = plane;
 
-      if (!latitude || !longitude || geoAlt < MIN_ALTITUDE_FEET || matchedCallsigns.has(callsign)) continue;
+      if (geoAlt < MIN_ALTITUDE_FEET) continue;
 
       if (use3DHeading && t > 0 && heading != null && speed != null) {
         const proj = projectPosition(latitude, longitude, heading, speed, t, geoAlt, verticalSpeed);
@@ -91,23 +90,24 @@ export function detectTransits({
         geoAlt = proj.alt;
       }
 
-      // Step 1: Start fresh from the user-defined margin
-      let baseMargin = margin;
+// Step 1: Start fresh from the user-defined margin
+let baseMargin = margin;
 
-      // Step 2: If Sun/Moon is very high, make the margin a bit tighter
-      if (useZenithLogic && futureBodyAlt > 80) {
-        baseMargin *= 0.8;
-      }
+// Step 2: If Sun/Moon is very high, make the margin a bit tighter
+if (useZenithLogic && futureBodyAlt > 80) {
+  baseMargin = margin * 0.8;
+}
 
-      // Step 3: Optionally adjust for low/slow aircraft
-      let marginToUse = baseMargin;
-      if (useDynamicMargin) {
-        const altFt = geoAlt / 0.3048;
-        const spdKts = speed / 0.514444;
-        const dynamic = getDynamicMargin(baseMargin, altFt, spdKts);
-        marginToUse = Math.min(baseMargin, dynamic);
-      }
+// Step 3: Optionally adjust for low/slow aircraft
+let marginToUse = baseMargin;
+if (useDynamicMargin) {
+  const altFt = geoAlt / 0.3048;
+  const spdKts = speed / 0.514444;
+  const dynamic = getDynamicMargin(baseMargin, altFt, spdKts);
+  marginToUse = Math.min(baseMargin, dynamic);
+}
 
+      
       const azimuth = calculateAzimuth(userLat, userLon, latitude, longitude);
       const distance = haversine(userLat, userLon, latitude, longitude);
       const elevationAngle = Math.atan2(geoAlt - userElev, distance) * 180 / Math.PI;
@@ -116,42 +116,48 @@ export function detectTransits({
       const altDiff = Math.abs(elevationAngle - futureBodyAlt);
 
       const isZenith = useZenithLogic && futureBodyAlt > 80;
-      const sep = sphericalSeparation(azimuth, elevationAngle, futureBodyAz, futureBodyAlt);
+const sep = sphericalSeparation(azimuth, elevationAngle, futureBodyAz, futureBodyAlt);
 
-      const headingToBody = Math.abs((((heading - futureBodyAz + 540) % 360) - 180));
-      const isMatch = (
-        (isZenith && sep < marginToUse) ||
-        (!isZenith && azDiff < marginToUse && altDiff < marginToUse)
-      ) && (
-        sep < marginToUse ||
-        (use3DHeading
-          ? isHeadingTowardBody3D({ heading, verticalSpeed, speed }, futureBodyAz, futureBodyAlt, marginToUse)
-          : headingToBody < 12)
-      );
+if (
+  (isZenith && sep < marginToUse) ||
+  (!isZenith && azDiff < marginToUse && altDiff < marginToUse)
+) {
+  const headingToBody = Math.abs((((heading - futureBodyAz + 540) % 360) - 180));
+  const isMatch = (
+  sep < marginToUse ||
+  (use3DHeading
+    ? isHeadingTowardBody3D({
+        heading,
+        verticalSpeed,
+        speed
+      }, futureBodyAz, futureBodyAlt, margin)
+    : headingToBody < 12)
+);
 
-      if (isMatch) {
-        matches.push({
-          callsign,
-          azimuth: azimuth.toFixed(1),
-          altitudeAngle: elevationAngle.toFixed(1),
-          distance: distance.toFixed(1),
-          selectedBody,
-          matchInSeconds: t, // ✅ New!
-          track: heading
-        });
-        matchedCallsigns.add(callsign); // ✅ No repeat alerts for same plane
-      }
+  if (isMatch) {
+    matches.push({
+      callsign,
+      azimuth: azimuth.toFixed(1),
+      altitudeAngle: elevationAngle.toFixed(1),
+      distance: distance.toFixed(1),
+      selectedBody,
+      predictionSeconds: predictSeconds,
+      track: heading
+    });
+  }
+}
+
     }
   };
 
-  // ✅ Sweep time window every 2 seconds up to predictSeconds
-  for (let t = 0; t <= predictSeconds; t += 2) {
-    checkTransitsAt(t);
-  }
+// check multiple future points instead of just one
+for (let t = 0; t <= predictSeconds; t += 2) {
+  checkTransitsAt(t);
+}
+
 
   return matches;
 }
-
 
 /**
  * Haversine: ground distance between two coords (meters).
