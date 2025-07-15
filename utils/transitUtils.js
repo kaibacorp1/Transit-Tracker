@@ -68,83 +68,93 @@ export function detectTransits({
     };
   };
 
-  const checkTransitsAt = (t) => {
-    const { az: futureBodyAz, alt: futureBodyAlt } = getBodyPositionAt(t);
+ 
+// 🔁 PLACE THIS NEAR THE TOP OF detectTransits, BEFORE checkTransitsAt()
+const previousSeparation = new Map();
 
-    for (const plane of flights) {
-      let {
-        latitude,
-        longitude,
-        altitude: geoAlt,
-        heading = 0,
-        speed,
-        verticalSpeed = 0,
-        callsign
-      } = plane;
+const checkTransitsAt = (t) => {
+  const { az: futureBodyAz, alt: futureBodyAlt } = getBodyPositionAt(t);
 
-      // ⛔️ Skip descending planes under 500 ft
-      if (geoAlt < 400) continue;
-      if (!latitude || !longitude || geoAlt < MIN_ALTITUDE_FEET || matchedCallsigns.has(callsign)) continue;
+  for (const plane of flights) {
+    let {
+      latitude,
+      longitude,
+      altitude: geoAlt,
+      heading = 0,
+      speed,
+      verticalSpeed = 0,
+      callsign
+    } = plane;
 
-      if (use3DHeading && t > 0 && heading != null && speed != null) {
-        const proj = projectPosition(latitude, longitude, heading, speed, t, geoAlt, verticalSpeed);
-        latitude = proj.lat;
-        longitude = proj.lon;
-        geoAlt = proj.alt;
-      }
+    if (geoAlt < 400) continue;
+    if (!latitude || !longitude || geoAlt < MIN_ALTITUDE_FEET || matchedCallsigns.has(callsign)) continue;
 
-      // Step 1: Start fresh from the user-defined margin
-      let baseMargin = margin;
-
-      // Step 2: If Sun/Moon is very high, make the margin a bit tighter
-      if (useZenithLogic && futureBodyAlt > 80) {
-        baseMargin *= 0.8;
-      }
-
-      // Step 3: Optionally adjust for low/slow aircraft
-      let marginToUse = baseMargin;
-      if (useDynamicMargin) {
-        const altFt = geoAlt / 0.3048;
-        const spdKts = speed / 0.514444;
-        const dynamic = getDynamicMargin(baseMargin, altFt, spdKts);
-        marginToUse = Math.min(baseMargin, dynamic);
-      }
-
-      const azimuth = calculateAzimuth(userLat, userLon, latitude, longitude);
-      const distance = haversine(userLat, userLon, latitude, longitude);
-      const elevationAngle = Math.atan2(geoAlt - userElev, distance) * 180 / Math.PI;
-
-      const azDiff = Math.abs(((azimuth - futureBodyAz + 540) % 360) - 180);
-      const altDiff = Math.abs(elevationAngle - futureBodyAlt);
-
-      const isZenith = useZenithLogic && futureBodyAlt > 80;
-      const sep = sphericalSeparation(azimuth, elevationAngle, futureBodyAz, futureBodyAlt);
-
-      const headingToBody = Math.abs((((heading - futureBodyAz + 540) % 360) - 180));
-      const isMatch = (
-        (isZenith && sep < marginToUse) ||
-        (!isZenith && azDiff < marginToUse && altDiff < marginToUse)
-      ) && (
-        sep < marginToUse ||
-        (use3DHeading
-          ? isHeadingTowardBody3D({ heading, verticalSpeed, speed }, futureBodyAz, futureBodyAlt, marginToUse)
-          : headingToBody < 12)
-      );
-
-      if (isMatch) {
-        matches.push({
-          callsign,
-          azimuth: azimuth.toFixed(1),
-          altitudeAngle: elevationAngle.toFixed(1),
-          distance: distance.toFixed(1),
-          selectedBody,
-          matchInSeconds: t, // ✅ New!
-          track: heading
-        });
-        matchedCallsigns.add(callsign); // ✅ No repeat alerts for same plane
-      }
+    if (use3DHeading && t > 0 && heading != null && speed != null) {
+      const proj = projectPosition(latitude, longitude, heading, speed, t, geoAlt, verticalSpeed);
+      latitude = proj.lat;
+      longitude = proj.lon;
+      geoAlt = proj.alt;
     }
-  };
+
+    let baseMargin = margin;
+    if (useZenithLogic && futureBodyAlt > 80) {
+      baseMargin *= 0.8;
+    }
+
+    let marginToUse = baseMargin;
+    if (useDynamicMargin) {
+      const altFt = geoAlt / 0.3048;
+      const spdKts = speed / 0.514444;
+      const dynamic = getDynamicMargin(baseMargin, altFt, spdKts);
+      marginToUse = Math.min(baseMargin, dynamic);
+    }
+
+    const azimuth = calculateAzimuth(userLat, userLon, latitude, longitude);
+    const distance = haversine(userLat, userLon, latitude, longitude);
+    const elevationAngle = Math.atan2(geoAlt - userElev, distance) * 180 / Math.PI;
+
+    const azDiff = Math.abs(((azimuth - futureBodyAz + 540) % 360) - 180);
+    const altDiff = Math.abs(elevationAngle - futureBodyAlt);
+
+    const isZenith = useZenithLogic && futureBodyAlt > 80;
+    const sep = sphericalSeparation(azimuth, elevationAngle, futureBodyAz, futureBodyAlt);
+
+    const headingToBody = Math.abs((((heading - futureBodyAz + 540) % 360) - 180));
+    const closingIn = (use3DHeading
+      ? isHeadingTowardBody3D({ heading, verticalSpeed, speed }, futureBodyAz, futureBodyAlt, marginToUse)
+      : headingToBody < 12);
+
+    const prevSep = previousSeparation.get(callsign);
+    previousSeparation.set(callsign, sep);
+
+    const isMatch = (
+      (isZenith && sep < marginToUse) ||
+      (!isZenith && azDiff < marginToUse && altDiff < marginToUse)
+    ) && (sep < marginToUse || closingIn);
+
+    const approachingSoon = (
+      !isMatch &&
+      prevSep !== undefined &&
+      sep < marginToUse + 2.5 &&
+      closingIn &&
+      prevSep > sep
+    );
+
+    if (isMatch || approachingSoon) {
+      matches.push({
+        callsign,
+        azimuth: azimuth.toFixed(1),
+        altitudeAngle: elevationAngle.toFixed(1),
+        distance: distance.toFixed(1),
+        selectedBody,
+        matchInSeconds: t,
+        track: heading,
+        type: isMatch ? "match" : "early"
+      });
+      matchedCallsigns.add(callsign);
+    }
+  }
+};
 
   // ✅ Sweep time window every 2 seconds up to predictSeconds
   for (let t = 0; t <= predictSeconds; t += 2) {
