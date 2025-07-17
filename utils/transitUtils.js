@@ -127,12 +127,14 @@ const checkTransitsAt = (t) => {
     const prevSep = previousSeparation.get(callsign);
     previousSeparation.set(callsign, sep);
 
-    const is3DAligned = isVectorAligned(
+    const alignmentThreshold = Math.cos(toRad(marginToUse)); // convert degrees to cosine
+const is3DAligned = isVectorAligned(
   userLat, userLon, userElev,
   latitude, longitude, geoAlt,
   futureBodyAz, futureBodyAlt,
-  0.99 // tweak threshold if needed
+  alignmentThreshold
 );
+
 
 const isMatch = (
   (isZenith && sep < marginToUse) ||
