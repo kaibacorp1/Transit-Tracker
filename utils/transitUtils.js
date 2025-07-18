@@ -86,7 +86,7 @@ const checkTransitsAt = (t) => {
       callsign
     } = plane;
 
-    if (geoAlt < 150) continue;
+    if (geoAlt < 200) continue;
     if (!latitude || !longitude || geoAlt < MIN_ALTITUDE_FEET || matchedCallsigns.has(callsign)) continue;
 
     if (use3DHeading && t > 0 && heading != null && speed != null) {
@@ -127,20 +127,10 @@ const checkTransitsAt = (t) => {
     const prevSep = previousSeparation.get(callsign);
     previousSeparation.set(callsign, sep);
 
-    const alignmentThreshold = Math.cos(toRad(marginToUse)); // convert degrees to cosine
-const is3DAligned = isVectorAligned(
-  userLat, userLon, userElev,
-  latitude, longitude, geoAlt,
-  futureBodyAz, futureBodyAlt,
-  alignmentThreshold
-);
-
-
-const isMatch = (
-  (isZenith && sep < marginToUse) ||
-  (!isZenith && azDiff < marginToUse && altDiff < marginToUse)
-) && (sep < marginToUse || closingIn) && is3DAligned;
-
+    const isMatch = (
+      (isZenith && sep < marginToUse) ||
+      (!isZenith && azDiff < marginToUse && altDiff < marginToUse)
+    ) && (sep < marginToUse || closingIn);
 
     const approachingSoon = (
       !isMatch &&
@@ -248,30 +238,6 @@ function isHeadingTowardBody3D(plane, bodyAz, bodyAlt, marginDeg = 12) {
   const angleDeg = toDeg(angleRad);
 return angleDeg < Math.min(marginDeg, 6);
 }
-
-
-function dotProduct(v1, v2) {
-  return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2];
-}
-
-function isVectorAligned(observerLat, observerLon, observerElev, targetLat, targetLon, targetAlt, sunAz, sunAlt, alignmentThreshold = 0.99) {
-  // Convert Sun position to 3D vector
-  const sunVec = celestialToVector(sunAz, sunAlt);
-
-  // Vector from observer to aircraft in ENU
-  const toRad = deg => deg * Math.PI / 180;
-  const latDiff = (targetLat - observerLat) * 111.32; // km
-  const lonDiff = (targetLon - observerLon) * 94.0;    // approx at that lat
-  const altDiff = (targetAlt - observerElev) / 1000;   // m to km
-
-  const enuVec = [-lonDiff, latDiff, altDiff]; // [East, North, Up]
-  const mag = Math.sqrt(enuVec[0]**2 + enuVec[1]**2 + enuVec[2]**2);
-  const unitVec = enuVec.map(v => v / mag);
-
-  const alignment = dotProduct(sunVec, unitVec);
-  return alignment > alignmentThreshold;
-}
-
 
 export function getDynamicMargin(baseMargin, altitudeFt = 10000, speedKts = 300) {
   const altFactor = Math.max(0, (1000 - altitudeFt) / 1000);  // 0 to 1
