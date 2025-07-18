@@ -86,7 +86,7 @@ const checkTransitsAt = (t) => {
       callsign
     } = plane;
 
-    if (geoAlt < 200) continue;
+    if (geoAlt < 150) continue;
     if (!latitude || !longitude || geoAlt < MIN_ALTITUDE_FEET || matchedCallsigns.has(callsign)) continue;
 
     if (use3DHeading && t > 0 && heading != null && speed != null) {
