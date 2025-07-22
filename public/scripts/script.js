@@ -807,13 +807,17 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
   })
   .then(res => { if (!res.ok) throw new Error(res.status); return res.json(); })
   .then(({ matches, error }) => {
-     matches = matches.filter(m => {
-  if (m.callsign) return !ignoredFlights.has(m.callsign);
-  if (m.pair?.length === 2) {
-    return !ignoredFlights.has(m.pair[0].callsign) && !ignoredFlights.has(m.pair[1].callsign);
-  }
-  return true;
-});
+  // 🟡 TAG EACH MATCH with the celestial body (sun or moon)
+  matches.forEach(m => m.source = bodyLabel || selectedBody);
+
+  matches = matches.filter(m => {
+    if (m.callsign) return !ignoredFlights.has(m.callsign);
+    if (m.pair?.length === 2) {
+      return !ignoredFlights.has(m.pair[0].callsign) && !ignoredFlights.has(m.pair[1].callsign);
+    }
+    return true;
+  });
+
 
   // Deduplicate by callsign or callsign pair
   const seen = new Set();
