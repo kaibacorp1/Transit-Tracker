@@ -387,8 +387,10 @@ document.getElementById('bodyToggle').addEventListener('change', e => {
 } else if (selectedBody === 'plane on plane') {
   title.textContent = '✈️ Plane vs Plane';
   label.textContent = 'Plane on Plane';
+} else if (selectedBody === 'sunmoon') {
+  title.textContent = '🌞🌙 Sun & Moon';
+  label.textContent = 'Sun & Moon';
 }
-
 
 
   updateContrailModeUI();  // NEW
@@ -612,28 +614,54 @@ if (errorEl) {
 }
 
 function getCelestialPosition(lat, lon, elev) {
+  const now = new Date();
+
   if (selectedBody === 'plane contrails') {
     checkContrailFlights(lat, lon, elev);
     return;
   }
-    if (selectedBody === 'plane on plane') {
-    checkNearbyFlights(lat, lon, elev, 0, 0);  // bodyAz, bodyAlt not needed
+
+  if (selectedBody === 'plane on plane') {
+    checkNearbyFlights(lat, lon, elev, 0, 0); // not used
     return;
   }
 
+  if (selectedBody === 'sunmoon') {
+    const moonPos = SunCalc.getMoonPosition(now, lat, lon);
+    const sunPos  = SunCalc.getPosition(now, lat, lon);
 
-  const now = new Date();
+    const moonAz  = (moonPos.azimuth * 180) / Math.PI + 180;
+    const moonAlt = (moonPos.altitude * 180) / Math.PI;
+    const sunAz   = (sunPos.azimuth * 180) / Math.PI + 180;
+    const sunAlt  = (sunPos.altitude * 180) / Math.PI;
+
+    // Optional: average both for display
+    const avgAz = (moonAz + sunAz) / 2;
+    const avgAlt = (moonAlt + sunAlt) / 2;
+
+    document.getElementById('moonAz').textContent  = avgAz.toFixed(2);
+    document.getElementById('moonAlt').textContent = avgAlt.toFixed(2);
+
+    // 🚨 New: call twice (once for sun, once for moon)
+    checkNearbyFlights(lat, lon, elev, sunAz, sunAlt);
+    checkNearbyFlights(lat, lon, elev, moonAz, moonAlt);
+    return;
+  }
+
+  // Normal case: moon or sun
   const pos = selectedBody === 'moon'
     ? SunCalc.getMoonPosition(now, lat, lon)
     : SunCalc.getPosition(now, lat, lon);
+
   const az  = (pos.azimuth * 180) / Math.PI + 180;
   const alt = (pos.altitude * 180) / Math.PI;
 
-  document.getElementById('moonAz').textContent = az.toFixed(2);
+  document.getElementById('moonAz').textContent  = az.toFixed(2);
   document.getElementById('moonAlt').textContent = alt.toFixed(2);
 
   checkNearbyFlights(lat, lon, elev, az, alt);
 }
+
 
 
 // --- Flight Fetching & Backend Detection ---
