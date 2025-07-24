@@ -109,6 +109,14 @@ const checkTransitsAt = (t) => {
       marginToUse = Math.min(baseMargin, dynamic);
     }
 
+// 🛬 Low Altitude Boost Mode
+if (geoAlt < 150) {             // < 500 ft
+  marginToUse += 1.0;
+} else if (geoAlt < 300) {      // < 1000 ft
+  marginToUse += 0.5;
+}
+
+    
     const azimuth = calculateAzimuth(userLat, userLon, latitude, longitude);
     const distance = haversine(userLat, userLon, latitude, longitude);
     const elevationAngle = Math.atan2(geoAlt - userElev, distance) * 180 / Math.PI;
