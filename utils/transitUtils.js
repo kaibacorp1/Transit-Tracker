@@ -77,14 +77,23 @@ const checkTransitsAt = (t) => {
 
   for (const plane of flights) {
     let {
-      latitude,
-      longitude,
-      altitude: geoAlt,
-      heading = 0,
-      speed,
-      verticalSpeed = 0,
-      callsign
-    } = plane;
+  latitude,
+  longitude,
+  altitude: geoAlt,
+  heading = 0,
+  speed,
+  verticalSpeed = 0,
+  callsign,
+  trackRate = 0,
+  roll = 0
+} = plane;
+
+    // 🌀 Detect sharp turns
+const isTurning = Math.abs(trackRate) > 1 || Math.abs(roll) > 10;
+if (isTurning && t > 0 && use3DHeading) {
+  // 🔁 Skip 3D prediction if turning too sharply
+  return;
+}
 
     if (geoAlt < 200) continue;
     if (!latitude || !longitude || geoAlt < MIN_ALTITUDE_FEET || matchedCallsigns.has(callsign)) continue;
