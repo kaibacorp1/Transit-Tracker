@@ -89,11 +89,11 @@ const checkTransitsAt = (t) => {
 } = plane;
 
     // 🌀 Detect sharp turns
-const isTurning = Math.abs(trackRate) > 1 || Math.abs(roll) > 10;
-if (isTurning && t > 0 && use3DHeading) {
+//const isTurning = Math.abs(trackRate) > 1 || Math.abs(roll) > 10;
+//if (isTurning && t > 0 && use3DHeading) {
   // 🔁 Skip 3D prediction if turning too sharply
-  return;
-}
+ // return;
+//}
 
     if (geoAlt < 200) continue;
     if (!latitude || !longitude || geoAlt < MIN_ALTITUDE_FEET || matchedCallsigns.has(callsign)) continue;
