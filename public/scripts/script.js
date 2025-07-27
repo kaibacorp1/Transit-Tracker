@@ -933,8 +933,8 @@ lastStatusRender();  // Render it immediately
   // … keep your existing alert sound & localStorage logging …
 }
  else {
-const selectedBody = document.getElementById('bodyToggle').value;
-statusEl.textContent = `No aircraft aligned with the ${selectedBody} right now.`;
+const label = document.getElementById('bodyLabel')?.textContent || selectedBody;
+statusEl.textContent = `No aircraft aligned with the ${label} right now.`;
  }
 
   })
