@@ -77,23 +77,14 @@ const checkTransitsAt = (t) => {
 
   for (const plane of flights) {
     let {
-  latitude,
-  longitude,
-  altitude: geoAlt,
-  heading = 0,
-  speed,
-  verticalSpeed = 0,
-  callsign,
-  trackRate = 0,
-  roll = 0
-} = plane;
-
-    // 🌀 Detect sharp turns
-//const isTurning = Math.abs(trackRate) > 1 || Math.abs(roll) > 10;
-//if (isTurning && t > 0 && use3DHeading) {
-  // 🔁 Skip 3D prediction if turning too sharply
- // return;
-//}
+      latitude,
+      longitude,
+      altitude: geoAlt,
+      heading = 0,
+      speed,
+      verticalSpeed = 0,
+      callsign
+    } = plane;
 
     if (geoAlt < 200) continue;
     if (!latitude || !longitude || geoAlt < MIN_ALTITUDE_FEET || matchedCallsigns.has(callsign)) continue;
@@ -118,14 +109,6 @@ const checkTransitsAt = (t) => {
       marginToUse = Math.min(baseMargin, dynamic);
     }
 
-// 🛬 Low Altitude Boost Mode
-if (geoAlt < 150) {             // < 500 ft
-  marginToUse += 1.0;
-} else if (geoAlt < 300) {      // < 1000 ft
-  marginToUse += 0.5;
-}
-
-    
     const azimuth = calculateAzimuth(userLat, userLon, latitude, longitude);
     const distance = haversine(userLat, userLon, latitude, longitude);
     const elevationAngle = Math.atan2(geoAlt - userElev, distance) * 180 / Math.PI;
@@ -181,7 +164,7 @@ if (sep > maxAllowedSep) {
 };
 
   // ✅ Sweep time window every 2 seconds up to predictSeconds
-  for (let t = 0; t <= predictSeconds; t += 1) {
+  for (let t = 0; t <= predictSeconds; t += 2) {
     checkTransitsAt(t);
   }
 
