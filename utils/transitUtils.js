@@ -164,7 +164,7 @@ if (sep > maxAllowedSep) {
 };
 
   // ✅ Sweep time window every 1 second up to predictSeconds
-  for (let t = 0; t <= predictSeconds; t += 2) {
+  for (let t = 0; t <= predictSeconds; t += 1) {
     checkTransitsAt(t);
   }
 
