@@ -86,7 +86,7 @@ const checkTransitsAt = (t) => {
       callsign
     } = plane;
 
-    if (geoAlt < 200) continue;
+    if (geoAlt < 100) continue;
     if (!latitude || !longitude || geoAlt < MIN_ALTITUDE_FEET || matchedCallsigns.has(callsign)) continue;
 
     if (use3DHeading && t > 0 && heading != null && speed != null) {
@@ -164,7 +164,7 @@ if (sep > maxAllowedSep) {
 };
 
   // ✅ Sweep time window every 1 second up to predictSeconds
-  for (let t = 0; t <= predictSeconds; t += 1) {
+  for (let t = 0; t <= predictSeconds; t += 2) {
     checkTransitsAt(t);
   }
 
