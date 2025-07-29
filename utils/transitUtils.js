@@ -139,15 +139,8 @@ if (sep > maxAllowedSep) {
       (!isZenith && azDiff < marginToUse && altDiff < marginToUse)
     ) && (sep < marginToUse || closingIn);
 
-    const approachingSoon = (
-      !isMatch &&
-      prevSep !== undefined &&
-      sep < marginToUse + 2.5 &&
-      closingIn &&
-      prevSep > sep
-    );
 
-    if (isMatch || approachingSoon) {
+    if (isMatch) {
       matches.push({
         callsign,
         azimuth: azimuth.toFixed(1),
