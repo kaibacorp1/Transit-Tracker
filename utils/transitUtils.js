@@ -53,7 +53,7 @@ export function detectTransits({
   useDynamicMargin = false
 }) {
   const matches = [];
-  const matchedCallsigns = new Set(); // ✅ Prevent duplicate alerts
+  //const matchedCallsigns = new Set(); // ✅ Prevent duplicate alerts
   const MIN_ALTITUDE_FEET = 50;
   const now = Date.now();
 
@@ -87,7 +87,7 @@ const checkTransitsAt = (t) => {
     } = plane;
 
     if (geoAlt < 100) continue;
-    if (!latitude || !longitude || geoAlt < MIN_ALTITUDE_FEET || matchedCallsigns.has(callsign)) continue;
+    if (!latitude || !longitude || geoAlt < MIN_ALTITUDE_FEET) continue;
 
     if (use3DHeading && t > 0 && heading != null && speed != null) {
       const proj = projectPosition(latitude, longitude, heading, speed, t, geoAlt, verticalSpeed);
