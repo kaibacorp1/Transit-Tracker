@@ -151,7 +151,7 @@ if (sep > maxAllowedSep) {
         track: heading,
         type: isMatch ? "match" : "early"
       });
-      matchedCallsigns.add(callsign);
+      //matchedCallsigns.add(callsign);
     }
   }
 };
