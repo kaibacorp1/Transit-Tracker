@@ -120,11 +120,6 @@ const checkTransitsAt = (t) => {
     const sep = sphericalSeparation(azimuth, elevationAngle, futureBodyAz, futureBodyAlt);
 
 
-    // 🚧 Sanity check — ignore clearly unrelated planes
-const maxAllowedSep = Math.max(margin * 4, 10);  // e.g., 2.5 margin → 10°
-if (sep > maxAllowedSep) {
-  continue; // don't consider planes this far away
-}
 
     const headingToBody = Math.abs((((heading - futureBodyAz + 540) % 360) - 180));
     const closingIn = (use3DHeading
