@@ -70,6 +70,7 @@ export function detectTransits({
 
 
 // 🔁 PLACE THIS NEAR THE TOP OF detectTransits, BEFORE checkTransitsAt()
+const matchedCallsigns = new Set(); // ✅ Active now!
 const previousSeparation = new Map();
 
 const checkTransitsAt = (t) => {
@@ -87,7 +88,7 @@ const checkTransitsAt = (t) => {
     } = plane;
 
     if (geoAlt < 100) continue;
-    if (!latitude || !longitude || geoAlt < MIN_ALTITUDE_FEET) continue;
+    if (!latitude || !longitude || geoAlt < MIN_ALTITUDE_FEET || matchedCallsigns.has(callsign)) continue;
 
     if (use3DHeading && t > 0 && heading != null && speed != null) {
       const proj = projectPosition(latitude, longitude, heading, speed, t, geoAlt, verticalSpeed);
@@ -135,19 +136,31 @@ const checkTransitsAt = (t) => {
     ) && (sep < marginToUse || closingIn);
 
 
-    if (isMatch) {
-      matches.push({
-        callsign,
-        azimuth: azimuth.toFixed(1),
-        altitudeAngle: elevationAngle.toFixed(1),
-        distance: distance.toFixed(1),
-        selectedBody,
-        matchInSeconds: t,
-        track: heading,
-        type: isMatch ? "match" : "early"
-      });
-      //matchedCallsigns.add(callsign);
-    }
+    const approachingSoon = (
+  !isMatch &&
+  prevSep !== undefined &&
+  sep < marginToUse + 2.5 &&
+  closingIn &&
+  prevSep > sep
+);
+
+if (isMatch || approachingSoon) {
+  matches.push({
+    callsign,
+    azimuth: azimuth.toFixed(1),
+    altitudeAngle: elevationAngle.toFixed(1),
+    distance: distance.toFixed(1),
+    selectedBody,
+    matchInSeconds: t,
+    track: heading,
+    type: isMatch ? "match" : "early"
+  });
+
+  if (isMatch) {
+    matchedCallsigns.add(callsign); // ✅ Only block confirmed matches
+  }
+}
+
   }
 };
 
