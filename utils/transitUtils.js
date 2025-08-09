@@ -54,7 +54,6 @@ export function detectTransits({
 }) {
   const matches = [];
   //const matchedCallsigns = new Set(); // ✅ Prevent duplicate alerts
-  const MIN_ALTITUDE_FEET = 50;
   const now = Date.now();
 
   const getBodyPositionAt = (secondsAhead) => {
@@ -72,6 +71,8 @@ export function detectTransits({
 // 🔁 PLACE THIS NEAR THE TOP OF detectTransits, BEFORE checkTransitsAt()
 const matchedCallsigns = new Set(); // ✅ Active now!
 const previousSeparation = new Map();
+  const closeStreak = new Map(); // callsign -> consecutive seconds of improving sep
+
 
 const checkTransitsAt = (t) => {
   const { az: futureBodyAz, alt: futureBodyAlt } = getBodyPositionAt(t);
@@ -88,26 +89,34 @@ const checkTransitsAt = (t) => {
     } = plane;
 
     if (geoAlt < 100) continue;
-    if (!latitude || !longitude || geoAlt < MIN_ALTITUDE_FEET || matchedCallsigns.has(callsign)) continue;
+    if (!latitude || !longitude || matchedCallsigns.has(callsign)) continue;
 
-    if (use3DHeading && t > 0 && heading != null && speed != null) {
-      const proj = projectPosition(latitude, longitude, heading, speed, t, geoAlt, verticalSpeed);
-      latitude = proj.lat;
-      longitude = proj.lon;
-      geoAlt = proj.alt;
+    
+    if (use3DHeading && heading != null && speed != null) {
+    const proj = projectPosition(latitude, longitude, heading, speed, t, geoAlt, verticalSpeed);
+    latitude = proj.lat;
+    longitude = proj.lon;
+    geoAlt = proj.alt;
     }
+
 
     let baseMargin = margin;
-    if (useZenithLogic && futureBodyAlt > 80) {
-      baseMargin *= 0.8;
-    }
+if (useZenithLogic && futureBodyAlt > 80) {
+  baseMargin *= 0.8;
+}
+
+// Low Sun only: give a tiny floor so we don't miss obvious shots
+if (selectedBody === 'sun' && futureBodyAlt < 10) { // Sun < 10° high
+  baseMargin = Math.max(baseMargin, 2.5);
+}
+
 
     let marginToUse = baseMargin;
     if (useDynamicMargin) {
       const altFt = geoAlt / 0.3048;
       const spdKts = speed / 0.514444;
       const dynamic = getDynamicMargin(baseMargin, altFt, spdKts);
-      marginToUse = Math.min(baseMargin, dynamic);
+      marginToUse = Math.max(baseMargin, dynamic);
     }
 
     const azimuth = calculateAzimuth(userLat, userLon, latitude, longitude);
@@ -130,19 +139,29 @@ const checkTransitsAt = (t) => {
     const prevSep = previousSeparation.get(callsign);
     previousSeparation.set(callsign, sep);
 
+    // Count consecutive seconds that separation is improving
+const wasImproving = (prevSep !== undefined) && (prevSep > sep);
+const streak = (closeStreak.get(callsign) || 0);
+const newStreak = wasImproving ? (streak + 1) : 0;
+closeStreak.set(callsign, newStreak);
+
+// Require >= 2 seconds of improvement before we call it "approaching"
+const sustainedClosing = newStreak >= 2;
+
+
     const isMatch = (
       (isZenith && sep < marginToUse) ||
       (!isZenith && azDiff < marginToUse && altDiff < marginToUse)
     ) && (sep < marginToUse || closingIn);
 
 
-    const approachingSoon = (
+  const approachingSoon = (
   !isMatch &&
-  prevSep !== undefined &&
-  sep < marginToUse + 2.5 &&
-  closingIn &&
-  prevSep > sep
+  sustainedClosing &&                 // ← require ≥2 consecutive improving seconds
+  sep < (marginToUse + 2.5) &&
+  closingIn
 );
+
 
 if (isMatch || approachingSoon) {
   matches.push({
@@ -310,22 +329,26 @@ export function detectPlaneOnPlane({
       // ⬇️ ✅ ADD THIS RIGHT HERE:
       if (alt1 < 100 || alt2 < 100) continue;
 
-      const [az1, el1] = getAzEl(f1.latitude, f1.longitude, alt1 * 0.3048);
-      const [az2, el2] = getAzEl(f2.latitude, f2.longitude, alt2 * 0.3048);
+      const [az1, el1] = getAzEl(f1.latitude, f1.longitude, alt1); // meters
+const [az2, el2] = getAzEl(f2.latitude, f2.longitude, alt2); // meters
 
-      const dAz = toRad(az1 - az2);
-      const el1r = toRad(el1), el2r = toRad(el2);
-      const cosSep = Math.sin(el1r) * Math.sin(el2r) + Math.cos(el1r) * Math.cos(el2r) * Math.cos(dAz);
-      const sep = toDeg(Math.acos(Math.max(-1, Math.min(1, cosSep))));
+const dAz = toRad(az1 - az2);
+const el1r = toRad(el1), el2r = toRad(el2);
+const cosSep = Math.sin(el1r) * Math.sin(el2r) + Math.cos(el1r) * Math.cos(el2r) * Math.cos(dAz);
+const sep = toDeg(Math.acos(Math.max(-1, Math.min(1, cosSep))));
 
-      const verticalSep = Math.abs(alt1 - alt2);
+const verticalSepMeters = Math.abs(alt1 - alt2);
+const VERT_SEP_M = 4000 * 0.3048; // 4000 ft in meters (~1219.2 m)
 
-      if (sep < margin && verticalSep < 4000) {
+if (sep < margin && verticalSepMeters < VERT_SEP_M) {
+
+  
         matches.push({
-          pair: [f1, f2],
-          angularSeparation: sep,
-          verticalSeparation: verticalSep
-        });
+  pair: [f1, f2],
+  angularSeparation: sep,
+  verticalSeparation: verticalSepMeters
+});
+
       }
     }
   }
