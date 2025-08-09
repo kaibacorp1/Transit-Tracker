@@ -374,34 +374,6 @@
     ">Got it</button>
   </div>
 </div>
-
-<!-- Sky Preview Controls -->
-<section id="skyAnimControls" style="margin-top:14px; border:1px solid #333; border-radius:8px; padding:10px;">
-  <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
-    <label style="display:flex; align-items:center; gap:6px;">
-      <input id="camFollowBody" type="checkbox" checked>
-      Follow Body
-    </label>
-
-    <label style="display:flex; align-items:center; gap:8px;">
-      FOV
-      <input id="camFov" type="range" min="6" max="35" step="1" value="20">
-      <span id="camFovVal">20°</span>
-    </label>
-
-    <label style="display:flex; align-items:center; gap:6px;">
-      <input id="camUseCompass" type="checkbox">
-      Use device compass
-    </label>
-    <button id="camCompassPerm" style="display:none;">Enable Compass</button>
-  </div>
-
-  <canvas id="skyAnim" width="560" height="360" style="width:100%; max-width:640px; height:auto; margin-top:10px; background:#000;"></canvas>
-</section>
-
-<!-- Load the animator AFTER your libs (SunCalc) and BEFORE script.js uses it -->
-<script src="/sky-anim.js"></script>
-
     
   </div>
 </body>
