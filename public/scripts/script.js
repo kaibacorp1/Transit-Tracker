@@ -363,6 +363,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize first tab
   showTab('adsboneTab');
 
+  // Read initial prediction setting from the dropdown
+  predictSeconds = parseInt(document.getElementById('predictToggle').value, 10) || 0;
+
   // ✅ NEW: Start session timer updates (moved inside the block)
 //  setInterval(updateSessionTimer, 1000);
 //  updateSessionTimer();
