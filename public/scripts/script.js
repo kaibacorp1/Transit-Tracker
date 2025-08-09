@@ -369,12 +369,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // ✅ NEW: Start session timer updates (moved inside the block)
 //  setInterval(updateSessionTimer, 1000);
 //  updateSessionTimer();
-
-    if (window.SkyAnim?.init) {
-  SkyAnim.init({ canvasId: 'skyAnim' });
-}
-
-
 });
 
 // --- UI Event Listeners ---
@@ -640,22 +634,6 @@ function getCelestialPosition(lat, lon, elev) {
 
   document.getElementById('moonAz').textContent = az.toFixed(2);
   document.getElementById('moonAlt').textContent = alt.toFixed(2);
-
-  // ⬇️ UPDATE the preview with body position (even if no planes yet)
-if (window.SkyAnim?.update) {
-  SkyAnim.update({
-    userLat: lat,
-    userLon: lon,
-    userElev: elev || 0,
-    selectedBody,
-    bodyAz: az,
-    bodyAlt: alt,
-    marginDeg: margin,
-    planes: []  // filled later in callTransitAPI after matches
-  });
-}
-
-
 
   checkNearbyFlights(lat, lon, elev, az, alt);
 }
