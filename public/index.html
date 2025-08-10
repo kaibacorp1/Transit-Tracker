@@ -515,10 +515,11 @@ It adds a toggleable visual panel and a tiny renderer that listens for your exis
 
   // zoom helpers (like adsb.lol)
   function setZoom(z){
-    state.zoom = Math.min(5, Math.max(0.5, z));
+    state.zoom = Math.min(10, Math.max(0.05, z)); // can zoom out to 5% scale
     zLabel.textContent = `${Math.round(state.zoom*100)}%`;
     draw();
-  }
+}
+
   setZoom(1.0);
   zInBtn.addEventListener('click', ()=> setZoom(state.zoom*1.2));
   zOutBtn.addEventListener('click', ()=> setZoom(state.zoom/1.2));
