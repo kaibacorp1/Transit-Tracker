@@ -858,7 +858,7 @@ const pauseBtn = `<button id="pauseResumeBtn" onclick="toggleAutoRefresh()" styl
   color: white;
   font-weight: bold;
   cursor: pointer;
-  background-color: ${autoRefresh ? '66252f' : '#285431'};
+  background-color: ${autoRefresh ? '#66252f' : '#285431'};
 ">
   ${autoRefresh ? '🔴 Pause' : '🟢 Resume'}
 </button>`;
