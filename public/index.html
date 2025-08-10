@@ -380,43 +380,6 @@ It adds a toggleable visual panel and a tiny renderer that listens for your exis
 `callTransitAPI` results via a custom event we’ll dispatch from script.js.
 -->
 
-<section id="skyviz-wrap" style="margin:14px 0 0 0">
-  <style>
-    #skyviz-wrap{border:1px solid #233044;border-radius:14px;overflow:hidden;background:#0b0f14}
-    #skyviz-head{display:flex;align-items:center;gap:12px;padding:10px 12px;background:#141a22;color:#c9d7ef;flex-wrap:wrap}
-    #skyviz-head .spacer{flex:1}
-    #skyviz{display:block;width:100%;height:360px;background:radial-gradient(900px 640px at 50% 70%,#0f1620,#0b0f14); cursor:crosshair}
-    #skyviz-panel{position:relative}
-    #skyviz-hud{position:absolute;left:12px;top:56px;padding:8px 10px;background:#0f1620cc;border:1px solid #203040;border-radius:10px;color:#8aa0b7}
-    .label{color:#8aa0b7}
-    .dot{display:inline-block;width:10px;height:10px;border-radius:50%}
-    .sun{background:#ffd166;box-shadow:0 0 12px 2px #ffd166,0 0 40px 10px #ffb70333}
-    .moon{background:#cdd5e0;box-shadow:0 0 10px 2px #cdd5e0,0 0 30px 8px #cdd5e044}
-    .btn{border:1px solid #2a3950;background:#182131;color:#c9d7ef;border-radius:6px;padding:4px 8px;cursor:pointer}
-    .btn:active{transform:scale(0.98)}
-  </style>
-
-  <div id="skyviz-head">
-    <label class="label" style="display:inline-flex;align-items:center;gap:6px">
-      <input type="checkbox" id="skyviz-enable" /> Enable visual panel
-    </label>
-
-    <div class="spacer"></div>
-
-    <div class="label" style="display:inline-flex;align-items:center;gap:8px">
-      Zoom
-      <button id="skyviz-zoom-out" class="btn">−</button>
-      <span id="skyviz-zoomval">100%</span>
-      <button id="skyviz-zoom-in" class="btn">+</button>
-    </div>
-  </div>
-
-  <div id="skyviz-panel">
-    <canvas id="skyviz" title="Scroll to zoom, double-click to reset"></canvas>
-    <div id="skyviz-hud"><div id="skyviz-readout" style="white-space:nowrap"></div></div>
-  </div>
-</section>
-
 <script>
 (function(){
   const enable = document.getElementById('skyviz-enable');
@@ -425,9 +388,31 @@ It adds a toggleable visual panel and a tiny renderer that listens for your exis
   const ctx    = canvas.getContext('2d');
   const readout= document.getElementById('skyviz-readout');
   const bodySel= document.getElementById('bodyToggle');
+
+  // Zoom controls (wheel, +/-, dblclick)
   const zInBtn = document.getElementById('skyviz-zoom-in');
   const zOutBtn= document.getElementById('skyviz-zoom-out');
   const zLabel = document.getElementById('skyviz-zoomval');
+
+  // Margin slider inside the Viz (optional, will sync with main)
+  let vizMargin = document.getElementById('skyviz-margin');
+  if (!vizMargin) {
+    const bar = document.querySelector('#skyviz-head');
+    const wrap = document.createElement('div');
+    wrap.className = 'label';
+    wrap.style.display = 'inline-flex';
+    wrap.style.alignItems = 'center';
+    wrap.style.gap = '8px';
+    wrap.style.marginLeft = '12px';
+    wrap.innerHTML = `
+      Margin
+      <input id="skyviz-margin" type="range" min="0.5" max="30" step="0.5" value="2.5" style="width:140px" />
+      <span id="skyviz-margin-val">2.5°</span>
+    `;
+    bar.appendChild(wrap);
+  }
+  vizMargin = document.getElementById('skyviz-margin');
+  const vizMarginVal = document.getElementById('skyviz-margin-val');
 
   // persist on/off
   const KEY = 'skyviz_enabled';
@@ -448,60 +433,107 @@ It adds a toggleable visual panel and a tiny renderer that listens for your exis
   window.addEventListener('resize', size, {passive:true});
   size();
 
+  // === Accurate scale ===
+  // Sun/Moon apparent radius ≈ 0.25°, so 1° ≈ 4 * body radii
+  const ANGULAR_RADIUS_DEG = 0.25;
+
   // State
   const state = {
     bodyKind: (bodySel?.value === 'moon') ? 'moon' : 'sun',
-    pxPerDeg: 8,            // baseline pixels per degree (separation scale)
+    zoom: 1.0,                 // scales whole scene
     marginDeg: 2.5,
-    // zoom scales the WHOLE scene (like adsb.lol): 1.0 = 100%
-    zoom: 1.0,
-    // interpolation (RELATIVE azimuth = planeAz - bodyAz) and separation
+    // interpolation / dead-reckoning in RELATIVE azimuth (planeAz - bodyAz) and separation (deg)
     cur:  { relAz: 0, sep: 10, hasData:false },
     next: { relAz: 0, sep: 10 },
     t0: performance.now(),
-    t1: performance.now()
+    t1: performance.now(),
+    // angular velocity (deg/s) used after interpolation finishes
+    relAzRate: 0,
+    sepRate: 0,
+    lastUpdateMs: performance.now()
   };
 
-  // hook body selector (Sun/Moon)
+  // link to main margin slider both ways
+  const mainMargin = document.getElementById('marginSlider');
+  function setMarginDeg(v){
+    state.marginDeg = v;
+    vizMargin.value = String(v);
+    vizMarginVal.textContent = `${v.toFixed(1)}°`;
+    if (mainMargin && Math.abs(mainMargin.value - v) > 0.001) {
+      mainMargin.value = String(v);
+      // trigger main UI feedback if needed
+      mainMargin.dispatchEvent(new Event('input', {bubbles:true}));
+    }
+    draw();
+  }
+  if (mainMargin) setMarginDeg(parseFloat(mainMargin.value)||2.5);
+  vizMargin.addEventListener('input', ()=> setMarginDeg(parseFloat(vizMargin.value)||2.5));
+  mainMargin?.addEventListener('input', ()=> setMarginDeg(parseFloat(mainMargin.value)||2.5));
+
+  // body toggle
   bodySel?.addEventListener('change', ()=>{
     state.bodyKind = (bodySel.value === 'moon') ? 'moon' : 'sun';
     draw();
   });
 
-  // hook detection margin slider
-  const marginSlider = document.getElementById('marginSlider');
-  if (marginSlider){
-    state.marginDeg = parseFloat(marginSlider.value)||2.5;
-    marginSlider.addEventListener('input', ()=>{
-      state.marginDeg = parseFloat(marginSlider.value)||2.5;
-      draw();
-    });
-  }
-
-  // zoom helpers
+  // zoom helpers (like adsb.lol)
   function setZoom(z){
-    state.zoom = Math.min(5, Math.max(0.6, z));
+    state.zoom = Math.min(5, Math.max(0.5, z));
     zLabel.textContent = `${Math.round(state.zoom*100)}%`;
     draw();
   }
+  setZoom(1.0);
   zInBtn.addEventListener('click', ()=> setZoom(state.zoom*1.2));
   zOutBtn.addEventListener('click', ()=> setZoom(state.zoom/1.2));
-
-  // mouse wheel zoom (like adsb.lol)
   canvas.addEventListener('wheel', (e)=>{
     e.preventDefault();
-    const dir = e.deltaY < 0 ? 1 : -1; // up = zoom in
+    const dir = e.deltaY < 0 ? 1 : -1;
     setZoom(state.zoom * (1 + dir*0.12));
   }, {passive:false});
-
-  // double click to reset zoom
   canvas.addEventListener('dblclick', ()=> setZoom(1.0));
 
   // layout helpers
   function center(){ return { cx: Math.round(canvas.clientWidth*0.5), cy: Math.round(canvas.clientHeight*0.62) }; }
   function bodyRadius(){ return (state.bodyKind==='sun' ? 56 : 36); }
 
-  // draw layers (apply zoom to the whole scene, centered on the body)
+  // px per degree based on true angular size (in body radii)
+  function pxPerDeg(){
+    const r = bodyRadius();
+    return (r / ANGULAR_RADIUS_DEG); // px = bodyRadius * (sepDeg / 0.25)
+  }
+
+  // angle utils
+  const wrap = d => ((d+540)%360)-180;
+  const lerp = (a,b,t)=> a+(b-a)*t;
+  function lerpDeg(a0,a1,t){ const d = wrap(a1-a0); return a0 + d*t; }
+
+  function refreshSeconds(){
+    const el = document.getElementById('refreshIntervalInput');
+    const v = parseFloat(el && el.value);
+    return (!isNaN(v) && v >= 1) ? v : 5;
+  }
+
+  function currentInterpolated(){
+    const now = performance.now();
+    state.lastUpdateMs = now;
+
+    if(!state.cur.hasData) return { relAz: state.next.relAz, sep: state.next.sep };
+
+    if (now <= state.t1) {
+      const t = (state.t1===state.t0) ? 1 : Math.min(1, Math.max(0, (now - state.t0)/(state.t1 - state.t0)));
+      return { relAz: lerpDeg(state.cur.relAz, state.next.relAz, t), sep: lerp(state.cur.sep, state.next.sep, t) };
+    }
+
+    // === Dead-reckon after interpolation finishes (keeps moving) ===
+    // Cap at ~2× the refresh interval to avoid drifting forever
+    const capMs = refreshSeconds()*2000;
+    const dt = Math.min(capMs, now - state.t1) / 1000;
+    return {
+      relAz: state.next.relAz + state.relAzRate * dt,
+      sep:   Math.max(0, state.next.sep   + state.sepRate   * dt)
+    };
+  }
+
   function drawBackdrop(){
     ctx.globalAlpha = 0.2;
     for(let i=0;i<24;i++){
@@ -525,38 +557,19 @@ It adds a toggleable visual panel and a tiny renderer that listens for your exis
       for(let i=0;i<5;i++){ const a=Math.random()*Math.PI*2, rr=3+Math.random()*5; ctx.beginPath(); ctx.arc(Math.cos(a)*r*0.6, Math.sin(a)*r*0.6, rr, 0, Math.PI*2); ctx.fill(); }
       ctx.globalAlpha=1;
     }
-    // margin ring (deg → px)
-    const ringR = r + state.marginDeg * state.pxPerDeg;
+    // margin ring at true degrees
+    const ringR = r + state.marginDeg * pxPerDeg();
     ctx.save(); ctx.setLineDash([6,6]); ctx.lineWidth = 2; ctx.strokeStyle = '#375a8a';
     ctx.beginPath(); ctx.arc(0,0, ringR, 0, Math.PI*2); ctx.stroke(); ctx.restore();
   }
 
-  // angle utils
-  const wrap = d => ((d+540)%360)-180;
-  const lerp = (a,b,t)=> a+(b-a)*t;
-  function lerpDeg(a0,a1,t){ const d = wrap(a1-a0); return a0 + d*t; }
-
-  function refreshSeconds(){
-    const el = document.getElementById('refreshIntervalInput');
-    const v = parseFloat(el && el.value);
-    return (!isNaN(v) && v >= 1) ? v : 5;
-  }
-
-  function currentInterpolated(){
-    if(!state.cur.hasData) return { relAz: state.next.relAz, sep: state.next.sep };
-    const now = performance.now();
-    const t = (state.t1===state.t0) ? 1 : Math.min(1, Math.max(0, (now - state.t0)/(state.t1 - state.t0)));
-    return { relAz: lerpDeg(state.cur.relAz, state.next.relAz, t), sep: lerp(state.cur.sep, state.next.sep, t) };
-  }
-
   function drawPlane(relAzDeg, sepDeg){
     const rBody = bodyRadius();
-    const a = relAzDeg * Math.PI/180;  // 0° = right, +90° = up
-    const rad = rBody + Math.max(0, sepDeg) * state.pxPerDeg;
+    const a = relAzDeg * Math.PI/180;               // 0° right, +90° up
+    const rad = rBody + Math.max(0, sepDeg) * pxPerDeg();
     const x = Math.cos(a) * rad;
     const y = Math.sin(a) * rad;
 
-    // plane icon (optionally rotate by track later)
     ctx.save(); ctx.translate(x, y);
     ctx.fillStyle = '#9bd7ff';
     const s = 12;
@@ -567,13 +580,13 @@ It adds a toggleable visual panel and a tiny renderer that listens for your exis
   function draw(){
     if(panel.style.display === 'none') return;
 
-    // clear
+    // clear + backdrop
     ctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeight);
     drawBackdrop();
 
     const { cx, cy } = center();
 
-    // zoom: draw everything in a local space centered on the body
+    // zoom the entire scene about the body center
     ctx.save();
     ctx.translate(cx, cy);
     ctx.scale(state.zoom, state.zoom);
@@ -585,7 +598,6 @@ It adds a toggleable visual panel and a tiny renderer that listens for your exis
 
     ctx.restore();
 
-    // HUD
     const inside = v.sep <= state.marginDeg;
     readout.innerHTML = `${state.bodyKind==='moon'?'🌙':'☀️'} Sep ≈ <b>${v.sep.toFixed(1)}°</b> ${inside? '· <span style="color:#5ee27b">inside margin</span>':''}`;
   }
@@ -593,9 +605,10 @@ It adds a toggleable visual panel and a tiny renderer that listens for your exis
   function frame(){ if(enable.checked) draw(); requestAnimationFrame(frame); }
   requestAnimationFrame(frame);
 
-  // Handle detections: use RELATIVE azimuth so left/right tracks look real
+  // Handle detections → compute relative azimuth and set velocities for dead-reckon
   window.addEventListener('transit:matches', (e)=>{
     if(panel.style.display === 'none' || !enable.checked) return;
+
     const d = e.detail || {};
     state.bodyKind = (d.selectedBody === 'moon') ? 'moon' : 'sun';
 
@@ -605,26 +618,35 @@ It adds a toggleable visual panel and a tiny renderer that listens for your exis
 
     const planeAz = Number(m.azimuth)||0;
     const sepDeg  = Number(m.angularSeparation ?? m.separation ?? 6);
+    const relAz   = wrap(planeAz - bodyAz);
 
-    const relAz = wrap(planeAz - bodyAz);   // plane around the Moon/Sun
     const now = performance.now();
-    const cur = currentInterpolated();
+    const curV = currentInterpolated();
 
-    state.cur.relAz = cur.relAz;
-    state.cur.sep   = cur.sep;
+    // store current “visual” pos as start
+    state.cur.relAz = curV.relAz;
+    state.cur.sep   = curV.sep;
     state.cur.hasData = true;
 
+    // next measured
     state.next.relAz = relAz;
     state.next.sep   = Math.max(0, sepDeg);
 
+    // interpolation times
+    const dur = refreshSeconds()*1000;
     state.t0 = now;
-    state.t1 = now + refreshSeconds()*1000; // animate across your poll interval
+    state.t1 = now + dur;
+
+    // angular rate for dead-reckon after interpolation (deg/s)
+    state.relAzRate = wrap(state.next.relAz - state.cur.relAz) / (dur/1000 || 1);
+    state.sepRate   = (state.next.sep - state.cur.sep) / (dur/1000 || 1);
   });
 
-  // initial draw
+  // initial paint
   draw();
 })();
 </script>
+
 
   
 
