@@ -418,21 +418,32 @@ It adds a toggleable visual panel and a tiny renderer that listens for your exis
 (function(){
   const panelWrap = document.getElementById('skyviz-wrap');
   const enable = document.getElementById('skyviz-enable');
+  const panel  = document.getElementById('skyviz-panel');
   const canvas = document.getElementById('skyviz');
-  const ctx = canvas.getContext('2d');
-  const readout = document.getElementById('skyviz-readout');
-  const panel = document.getElementById('skyviz-panel');
+  const ctx    = canvas.getContext('2d');
+  const readout= document.getElementById('skyviz-readout');
 
-  // Always show header; only hide canvas when disabled
+  // Always show header; only hide canvas panel when disabled
   const KEY = 'skyviz_enabled';
   enable.checked = localStorage.getItem(KEY) === '1';
   panel.style.display = enable.checked ? 'block' : 'none';
   enable.addEventListener('change', ()=>{
     localStorage.setItem(KEY, enable.checked ? '1' : '0');
     panel.style.display = enable.checked ? 'block' : 'none';
-    size();
-    draw(); // clear when toggled
+    size(); draw();
   });
+
+  // === Wire to your Sun/Moon selector ===
+  const bodySel = document.getElementById('bodyToggle');
+  // Fallback to existing selection if present
+  let selectedBody = bodySel ? bodySel.value : 'moon';
+  if (bodySel) {
+    bodySel.addEventListener('change', ()=>{
+      selectedBody = bodySel.value;
+      state.body.kind = (selectedBody === 'moon') ? 'moon' : 'sun';
+      draw(); // redraw immediately when user flips Sun/Moon
+    });
+  }
 
   function size(){
     const dpr = Math.max(1, window.devicePixelRatio||1);
@@ -443,15 +454,19 @@ It adds a toggleable visual panel and a tiny renderer that listens for your exis
   window.addEventListener('resize', size, {passive:true});
   size();
 
+  // === State with interpolation between detections ===
   const state = {
-    body: { kind: 'sun', x: 0, y: 0, r: 56 },
-    plane: { x: 0, y: 0, label: '', hasData:false },
-    sepDeg: null,
+    body: { kind:'sun', x:0, y:0, r:56 },
     pxPerDeg: 6,
-    marginDeg: 2.5, // will sync from #marginSlider if present
+    marginDeg: 2.5,
+    // interpolation (degrees)
+    cur:   { az: 0, sep: 8, hasData:false },
+    next:  { az: 0, sep: 8 },
+    t0: performance.now(), // start time
+    t1: performance.now(), // end time (t0 + refresh interval)
   };
 
-  // Sync margin ring with your existing slider
+  // Sync margin with your existing slider
   const marginSlider = document.getElementById('marginSlider');
   if (marginSlider){
     state.marginDeg = parseFloat(marginSlider.value)||2.5;
@@ -461,8 +476,16 @@ It adds a toggleable visual panel and a tiny renderer that listens for your exis
     });
   }
 
+  // Read refresh interval (sec) to time the interpolation
+  function refreshSeconds(){
+    const el = document.getElementById('refreshIntervalInput');
+    const v = parseFloat(el && el.value);
+    return (!isNaN(v) && v >= 1) ? v : 5;
+  }
+
   function placeBody(){
     const W = canvas.clientWidth, H = canvas.clientHeight;
+    state.body.kind = (selectedBody === 'moon') ? 'moon' : 'sun';
     state.body.x = Math.round(W*0.5);
     state.body.y = Math.round(H*0.62);
     state.body.r = (state.body.kind === 'sun') ? 56 : 36;
@@ -470,7 +493,7 @@ It adds a toggleable visual panel and a tiny renderer that listens for your exis
 
   function drawBackdrop(){
     ctx.globalAlpha = 0.22;
-    for(let i=0;i<24;i++){
+    for(let i=0;i<20;i++){
       const x=Math.random()*canvas.clientWidth, y=40+Math.random()*(canvas.clientHeight-40);
       ctx.fillStyle='#93a7bd'; ctx.fillRect(x,y,1,1);
     }
@@ -488,86 +511,102 @@ It adds a toggleable visual panel and a tiny renderer that listens for your exis
     } else {
       ctx.fillStyle = '#cfd7e3'; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
       ctx.fillStyle = '#b9c3d1'; ctx.globalAlpha=0.4;
-      for(let i=0;i<5;i++){ const a=Math.random()*Math.PI*2, rr=3+Math.random()*5; ctx.beginPath(); ctx.arc(x+Math.cos(a)*r*0.6, y+Math.sin(a)*r*0.6, rr, 0, Math.PI*2); ctx.fill(); }
+      for(let i=0;i<4;i++){ const a=Math.random()*Math.PI*2, rr=3+Math.random()*5; ctx.beginPath(); ctx.arc(x+Math.cos(a)*r*0.6, y+Math.sin(a)*r*0.6, rr, 0, Math.PI*2); ctx.fill(); }
       ctx.globalAlpha=1;
     }
-
-    // margin ring (visualizes your detection margin)
+    // margin ring
     const ringR = r + state.marginDeg * state.pxPerDeg;
     ctx.save();
-    ctx.setLineDash([6,6]);
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = '#375a8a';
+    ctx.setLineDash([6,6]); ctx.lineWidth = 2; ctx.strokeStyle = '#375a8a';
     ctx.beginPath(); ctx.arc(x,y, ringR, 0, Math.PI*2); ctx.stroke();
     ctx.restore();
   }
 
-  function drawPlane(){
-    if(!state.plane.hasData) return;
-    const p = state.plane;
-    ctx.save(); ctx.translate(p.x, p.y);
+  // Shortest-path interpolation for circular angles (degrees)
+  function lerpAngleDeg(a0, a1, t){
+    // wrap to [-180,180]
+    let d = ((a1 - a0 + 540) % 360) - 180;
+    return a0 + d * t;
+  }
+  function lerp(a,b,t){ return a + (b-a)*t; }
+
+  function currentInterpolated(){
+    if(!state.cur.hasData) return { az: state.next.az, sep: state.next.sep };
+    const now = performance.now();
+    const t = (state.t1 === state.t0) ? 1 : Math.min(1, Math.max(0, (now - state.t0) / (state.t1 - state.t0)));
+    return {
+      az:  lerpAngleDeg(state.cur.az,  state.next.az,  t),
+      sep: lerp(state.cur.sep, state.next.sep, t)
+    };
+  }
+
+  function drawPlane(azDeg, sepDeg){
+    const a = (azDeg * Math.PI / 180);
+    const r = state.body.r + Math.max(0, sepDeg) * state.pxPerDeg;
+    const x = state.body.x + Math.cos(a) * r;
+    const y = state.body.y + Math.sin(a) * r;
+
+    ctx.save(); ctx.translate(x, y);
     ctx.fillStyle = '#9bd7ff';
     const s = 12;
     ctx.beginPath(); ctx.moveTo(-s*0.8, -s*0.45); ctx.lineTo(s,0); ctx.lineTo(-s*0.8, s*0.45); ctx.closePath(); ctx.fill();
     ctx.restore();
   }
 
-  function drawHUD(){
-    if(!state.plane.hasData){
-      readout.textContent = 'Waiting for a detection…';
-      return;
-    }
-    const sep = (state.sepDeg!=null) ? state.sepDeg.toFixed(1) : '—';
-    const inside = (state.sepDeg!=null) && (state.sepDeg <= state.marginDeg);
-    readout.innerHTML = `${state.body.kind==='moon'?'🌙':'☀️'} Sep ≈ <b>${sep}°</b> ${inside? '· <span style="color:#5ee27b">inside margin</span>':''}${state.plane.label?` · ${state.plane.label}`:''}`;
+  function drawHUD(azDeg, sepDeg){
+    if(!state.cur.hasData){ readout.textContent = 'Waiting for a detection…'; return; }
+    const inside = sepDeg <= state.marginDeg;
+    readout.innerHTML = `${state.body.kind==='moon'?'🌙':'☀️'} Sep ≈ <b>${sepDeg.toFixed(1)}°</b> ${inside? '· <span style="color:#5ee27b">inside margin</span>':''}`;
   }
 
   function draw(){
     if(panel.style.display === 'none') return;
-    ctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeight);
     placeBody();
+    ctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeight);
     drawBackdrop();
     drawBody();
-    drawPlane();
-    drawHUD();
+
+    const v = currentInterpolated();
+    drawPlane(v.az, v.sep);
+    drawHUD(v.az, v.sep);
   }
 
-  // Listen for your app’s detection results
+  // Animation loop: smooth motion between detections
+  function frame(){
+    if(enable.checked) draw();
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // Listen for detection results and schedule new interpolation
   window.addEventListener('transit:matches', (e)=>{
     if(panel.style.display === 'none' || !enable.checked) return;
+
     const detail = e.detail || {};
+    if (detail.selectedBody) {
+      selectedBody = detail.selectedBody; // keep in sync with backend events
+    }
     const matches = detail.matches || [];
-    if (!matches.length){ state.plane.hasData=false; draw(); return; }
+    if(!matches.length){ state.cur.hasData=false; draw(); return; }
 
-    // Use first match for the visual
     const m = matches[0];
+    const nextAz  = Number(m.azimuth) || 0;
+    const nextSep = Number(m.angularSeparation ?? m.separation ?? 6);
 
-    // Body kind
-    state.body.kind = (detail.selectedBody === 'moon') ? 'moon' : 'sun';
-
-    // Separation in degrees: prefer angularSeparation, fallback to m.separation
-    const sepDeg = Number(m.angularSeparation ?? m.separation ?? 6);
-    state.sepDeg = Math.max(0, sepDeg);
-
-    // Map azimuth to screen angle: 0° = right, clockwise
-    const a = ((Number(m.azimuth)||0) * Math.PI/180);
-    placeBody();
-    const r = state.body.r + state.sepDeg * state.pxPerDeg;
-    const dx = Math.cos(a) * r;
-    const dy = Math.sin(a) * r;
-
-    state.plane.x = state.body.x + dx;
-    state.plane.y = state.body.y + dy;
-    state.plane.label = m.callsign || '';
-    state.plane.hasData = true;
-
-    draw();
+    // Start new interpolation from current visual position to the new measurement
+    const now = performance.now();
+    const curV = currentInterpolated();
+    state.cur.az  = curV.az;  state.cur.sep  = curV.sep;  state.cur.hasData = true;
+    state.next.az = nextAz;   state.next.sep = Math.max(0, nextSep);
+    state.t0 = now;
+    state.t1 = now + refreshSeconds()*1000; // animate over next polling interval
   });
 
-  // First paint
+  // Initial paint
   draw();
 })();
 </script>
+
 
   
 
