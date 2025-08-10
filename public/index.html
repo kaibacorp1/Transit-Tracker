@@ -374,7 +374,192 @@
     ">Got it</button>
   </div>
 </div>
-    
+    <!--
+Drop this whole chunk near the bottom of your existing index.html (above your closing </body>)
+It adds a toggleable visual panel and a tiny renderer that listens for your existing
+`callTransitAPI` results via a custom event we’ll dispatch from script.js.
+-->
+<section id="skyviz-wrap" style="display:none;margin:14px 0 0 0">
+  <style>
+    #skyviz-wrap{border:1px solid #233044;border-radius:14px;overflow:hidden;background:#0b0f14}
+    #skyviz-head{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#141a22;color:#c9d7ef}
+    #skyviz-head h3{margin:0;font:600 14px/1.2 system-ui,-apple-system,Segoe UI,Roboto}
+    #skyviz-head .spacer{flex:1}
+    #skyviz{display:block;width:100%;height:280px;background:radial-gradient(900px 520px at 50% 70%,#0f1620,#0b0f14)}
+    #skyviz-hud{position:absolute;left:12px;top:52px;padding:8px 10px;background:#0f1620cc;border:1px solid #203040;border-radius:10px;color:#8aa0b7}
+    #skyviz-panel{position:relative}
+    .label{color:#8aa0b7}
+    .dot{display:inline-block;width:10px;height:10px;border-radius:50%}
+    .sun{background:#ffd166;box-shadow:0 0 12px 2px #ffd166,0 0 40px 10px #ffb70333}
+    .moon{background:#cdd5e0;box-shadow:0 0 10px 2px #cdd5e0,0 0 30px 8px #cdd5e044}
+    .legend{display:flex;gap:12px;align-items:center}
+  </style>
+  <div id="skyviz-head">
+    <label class="label" style="display:inline-flex;align-items:center;gap:6px">
+      <input type="checkbox" id="skyviz-enable" /> Enable visual panel
+    </label>
+    <div class="spacer"></div>
+    <label class="label">Sim speed
+      <input id="skyviz-speed" type="range" min="0.3" max="3" step="0.1" value="1" />
+      <span id="skyviz-speedval">1.0×</span>
+    </label>
+  </div>
+  <div id="skyviz-panel">
+    <canvas id="skyviz"></canvas>
+    <div id="skyviz-hud">
+      <div class="legend">
+        <span class="dot sun"></span><span class="label">Sun</span>
+        <span class="dot moon"></span><span class="label">Moon</span>
+      </div>
+      <div id="skyviz-readout" style="margin-top:6px;white-space:nowrap"></div>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  const panelWrap = document.getElementById('skyviz-wrap');
+  const enable = document.getElementById('skyviz-enable');
+  const speed = document.getElementById('skyviz-speed');
+  const speedVal = document.getElementById('skyviz-speedval');
+  const canvas = document.getElementById('skyviz');
+  const ctx = canvas.getContext('2d');
+  const hud = document.getElementById('skyviz-hud');
+  const readout = document.getElementById('skyviz-readout');
+
+  // open/remember state
+  const KEY = 'skyviz_enabled';
+  enable.checked = localStorage.getItem(KEY) === '1';
+  enable.addEventListener('change', ()=>{
+    localStorage.setItem(KEY, enable.checked ? '1':'0');
+    panelWrap.style.display = enable.checked ? 'block' : 'none';
+    size();
+  });
+  panelWrap.style.display = enable.checked ? 'block' : 'none';
+
+  // canvas sizing
+  function size(){
+    if(!enable.checked) return;
+    const dpr = Math.max(1, window.devicePixelRatio||1);
+    canvas.width = Math.floor(canvas.clientWidth * dpr);
+    canvas.height = Math.floor(280 * dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  window.addEventListener('resize', size, {passive:true});
+  size();
+
+  // simple renderer state
+  const state = {
+    running: true,
+    plane: { x: -120, y: 180, vx: 120, vy: -18, size: 12, label: '' },
+    body: { kind: 'sun', x: 0, y: 0, r: 56 },
+    lastStamp: performance.now(),
+    haveTarget: false,
+  };
+
+  speed.addEventListener('input', ()=>{
+    speedVal.textContent = `${Number(speed.value).toFixed(1)}×`;
+  });
+
+  function drawBody(){
+    const {x,y,r,kind} = state.body;
+    if(kind==='sun'){
+      const grad = ctx.createRadialGradient(x,y, r*0.2, x,y, r);
+      grad.addColorStop(0,'#fff3b0'); grad.addColorStop(1,'#e5a93b');
+      ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+      ctx.shadowColor = '#ffd166'; ctx.shadowBlur = 18; ctx.globalAlpha = 0.55;
+      ctx.beginPath(); ctx.arc(x,y,r*1.25,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1; ctx.shadowBlur=0;
+    } else {
+      ctx.fillStyle = '#cfd7e3'; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#b9c3d1'; ctx.globalAlpha=0.4;
+      for(let i=0;i<5;i++){ const a=Math.random()*Math.PI*2, rr=3+Math.random()*5; ctx.beginPath(); ctx.arc(x+Math.cos(a)*r*0.6, y+Math.sin(a)*r*0.6, rr, 0, Math.PI*2); ctx.fill(); }
+      ctx.globalAlpha=1;
+    }
+  }
+
+  function drawPlane(){
+    const p = state.plane;
+    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(Math.atan2(p.vy,p.vx));
+    ctx.fillStyle = '#9bd7ff';
+    const s = p.size;
+    ctx.beginPath(); ctx.moveTo(-s*0.8, -s*0.45); ctx.lineTo(s,0); ctx.lineTo(-s*0.8, s*0.45); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawBackdrop(){
+    // subtle stars
+    ctx.globalAlpha = 0.25;
+    for(let i=0;i<28;i++){ const x=Math.random()*canvas.clientWidth, y=40+Math.random()*(canvas.clientHeight-40); ctx.fillStyle='#93a7bd'; ctx.fillRect(x,y,1,1);} ctx.globalAlpha=1;
+  }
+
+  function setTargetFromMatch(detail){
+    // detail: { selectedBody, user:{lat,lon,elev}, matches:[{callsign, azimuth, altitudeAngle, angularSeparation}] }
+    if(!enable.checked) return;
+    const m = detail.matches && detail.matches[0]; // first match for demo
+    if(!m) return;
+
+    // center the body, map deg separation to pixels, keep perspective from user location implicitly
+    const W = canvas.clientWidth, H = canvas.clientHeight;
+    state.body.kind = (detail.selectedBody === 'moon') ? 'moon' : 'sun';
+    state.body.r = (state.body.kind==='sun') ? 56 : 36;
+    state.body.x = Math.round(W*0.5); state.body.y = Math.round(H*0.62);
+
+    // place plane at a polar offset from body based on azimuth difference
+    const pxPerDeg = 6; // purely visual scale
+    const sepDeg = Math.max(0, Number(m.angularSeparation ?? 6));
+    const r = state.body.r + sepDeg * pxPerDeg;
+
+    // angle around the body: use plane azimuth (screen 0° to the right)
+    const a = ((Number(m.azimuth)||0) * Math.PI/180);
+    const dx = Math.cos(a) * r;
+    const dy = Math.sin(a) * r;
+
+    state.plane.x = state.body.x + dx;
+    state.plane.y = state.body.y + dy;
+
+    // give it a velocity that slowly moves toward the body center visually
+    const toCx = state.body.x - state.plane.x;
+    const toCy = state.body.y - state.plane.y;
+    const L = Math.hypot(toCx,toCy) || 1;
+    state.plane.vx = (toCx/L) * 120; // px/s base
+    state.plane.vy = (toCy/L) * 120;
+    state.plane.label = m.callsign || '';
+    state.haveTarget = true;
+  }
+
+  // Public event API — LISTEN for matches from your existing code
+  window.addEventListener('transit:matches', (e)=> setTargetFromMatch(e.detail));
+
+  function drawHUD(){
+    if(!state.haveTarget){ readout.textContent = 'Waiting for a detection…'; return; }
+    // approximate degrees from pixel distance
+    const pxPerDeg = 6, bodyR = state.body.r;
+    const dx = state.body.x - state.plane.x; const dy = state.body.y - state.plane.y;
+    const sepPx = Math.hypot(dx,dy);
+    const sepDeg = Math.max(0, (sepPx - bodyR)/pxPerDeg).toFixed(1);
+    readout.innerHTML = `${state.body.kind==='moon'?'🌙':'☀️'} Sep ≈ <b>${sepDeg}°</b>${state.plane.label?` · ${state.plane.label}`:''}`;
+  }
+
+  function frame(now){
+    const dt = Math.min(60, now - state.lastStamp)/1000 * Number(speed.value || 1);
+    state.lastStamp = now;
+    if(enable.checked){
+      // update motion
+      state.plane.x += state.plane.vx*dt; state.plane.y += state.plane.vy*dt;
+
+      // clear
+      ctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeight);
+      drawBackdrop();
+      drawBody();
+      drawPlane();
+      drawHUD();
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+
   </div>
 </body>
 </html>
