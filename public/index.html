@@ -380,6 +380,43 @@ It adds a toggleable visual panel and a tiny renderer that listens for your exis
 `callTransitAPI` results via a custom event we’ll dispatch from script.js.
 -->
 
+<section id="skyviz-wrap" style="margin:14px 0 0 0">
+  <style>
+    #skyviz-wrap{border:1px solid #233044;border-radius:14px;overflow:hidden;background:#0b0f14}
+    #skyviz-head{display:flex;align-items:center;gap:12px;padding:10px 12px;background:#141a22;color:#c9d7ef;flex-wrap:wrap}
+    #skyviz-head .spacer{flex:1}
+    #skyviz{display:block;width:100%;height:360px;background:radial-gradient(900px 640px at 50% 70%,#0f1620,#0b0f14); cursor:crosshair}
+    #skyviz-panel{position:relative}
+    #skyviz-hud{position:absolute;left:12px;top:56px;padding:8px 10px;background:#0f1620cc;border:1px solid #203040;border-radius:10px;color:#8aa0b7}
+    .label{color:#8aa0b7}
+    .dot{display:inline-block;width:10px;height:10px;border-radius:50%}
+    .sun{background:#ffd166;box-shadow:0 0 12px 2px #ffd166,0 0 40px 10px #ffb70333}
+    .moon{background:#cdd5e0;box-shadow:0 0 10px 2px #cdd5e0,0 0 30px 8px #cdd5e044}
+    .btn{border:1px solid #2a3950;background:#182131;color:#c9d7ef;border-radius:6px;padding:4px 8px;cursor:pointer}
+    .btn:active{transform:scale(0.98)}
+  </style>
+
+  <div id="skyviz-head">
+    <label class="label" style="display:inline-flex;align-items:center;gap:6px">
+      <input type="checkbox" id="skyviz-enable" /> Enable visual panel
+    </label>
+
+    <div class="spacer"></div>
+
+    <div class="label" style="display:inline-flex;align-items:center;gap:8px">
+      Zoom
+      <button id="skyviz-zoom-out" class="btn">−</button>
+      <span id="skyviz-zoomval">100%</span>
+      <button id="skyviz-zoom-in" class="btn">+</button>
+    </div>
+  </div>
+
+  <div id="skyviz-panel">
+    <canvas id="skyviz" title="Scroll to zoom, double-click to reset"></canvas>
+    <div id="skyviz-hud"><div id="skyviz-readout" style="white-space:nowrap"></div></div>
+  </div>
+</section>
+
 <script>
 (function(){
   const enable = document.getElementById('skyviz-enable');
@@ -647,8 +684,6 @@ It adds a toggleable visual panel and a tiny renderer that listens for your exis
 })();
 </script>
 
-
-  
 
   </div>
 </body>
