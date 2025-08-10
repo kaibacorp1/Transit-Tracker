@@ -381,6 +381,7 @@ It adds a toggleable visual panel and a tiny renderer that listens for your exis
 -->
 
 <!-- SKYVIZ (no changes to script.js needed) -->
+<!-- SKYVIZ (real sky view; no changes to script.js needed) -->
 <section id="skyviz-wrap" style="margin:14px 0 0 0">
   <style>
     #skyviz-wrap{border:1px solid #233044;border-radius:14px;overflow:hidden;background:#0b0f14}
@@ -430,20 +431,20 @@ It adds a toggleable visual panel and a tiny renderer that listens for your exis
 
 <script>
 (function(){
-  // DOM
+  // --- DOM
   const enable = document.getElementById('skyviz-enable');
   const panel  = document.getElementById('skyviz-panel');
   const canvas = document.getElementById('skyviz');
   const ctx    = canvas.getContext('2d');
   const readout= document.getElementById('skyviz-readout');
-  const bodySel= document.getElementById('bodyToggle'); // uses your existing selector
+  const bodySel= document.getElementById('bodyToggle');    // your existing selector (moon/sun)
   const zInBtn = document.getElementById('skyviz-zoom-in');
   const zOutBtn= document.getElementById('skyviz-zoom-out');
   const zLabel = document.getElementById('skyviz-zoomval');
-  const marginIn= document.getElementById('skyviz-margin');
-  const marginVal= document.getElementById('skyviz-margin-val');
   const targetSel= document.getElementById('skyviz-target');
-  const mainMargin = document.getElementById('marginSlider');
+  const vizMarginIn = document.getElementById('skyviz-margin');
+  const vizMarginVal= document.getElementById('skyviz-margin-val');
+  const mainMargin  = document.getElementById('marginSlider');
 
   // Persist on/off
   const KEY = 'skyviz_enabled';
@@ -465,27 +466,26 @@ It adds a toggleable visual panel and a tiny renderer that listens for your exis
   window.addEventListener('resize', size, {passive:true});
   size();
 
-  // Apparent radius of Sun/Moon ~0.25°
+  // Apparent radius of Sun/Moon ~0.25° (so 1° ≈ 4 radii)
   const ANGULAR_RADIUS_DEG = 0.25;
 
-  // State
+  // --- State
   const state = {
     bodyKind: (bodySel?.value === 'moon') ? 'moon' : 'sun',
     zoom: 1.0,                          // 0.05–10
     marginDeg: parseFloat(mainMargin?.value) || 2.5,
-    pxPerDegBase: 1,                    // computed from body radius
     matches: [],
     selectedId: "",                     // "" = auto
-    // interpolation & dead-reckon (relative azimuth + separation)
-    cur:  { relAz: 0, sep: 10, hasData:false },
-    next: { relAz: 0, sep: 10 },
+    // interpolation & dead-reckon in 2D (Δaz, Δalt)
+    cur:  { relAz: 0, relAlt: 0, hasData:false },
+    next: { relAz: 0, relAlt: 0 },
     t0: performance.now(),
     t1: performance.now(),
-    relAzRate: 0,  // deg/s
-    sepRate: 0     // deg/s
+    relAzRate: 0,   // deg/s
+    relAltRate: 0   // deg/s
   };
 
-  // Helpers
+  // --- Helpers
   const wrap = d => ((d+540)%360)-180;
   const lerp = (a,b,t)=> a+(b-a)*t;
   const lerpDeg = (a0,a1,t)=> a0 + wrap(a1-a0)*t;
@@ -516,11 +516,11 @@ It adds a toggleable visual panel and a tiny renderer that listens for your exis
   }, {passive:false});
   canvas.addEventListener('dblclick', ()=> setZoom(1.0));
 
-  // Margin sync both ways (SkyViz slider <-> main slider)
+  // Margin sync both ways (Viz <-> main)
   function setMargin(v){
     state.marginDeg = v;
-    marginIn.value = String(v);
-    marginVal.textContent = `${v.toFixed(1)}°`;
+    vizMarginIn.value = String(v);
+    vizMarginVal.textContent = `${v.toFixed(1)}°`;
     if (mainMargin && Math.abs(parseFloat(mainMargin.value)-v)>0.001){
       mainMargin.value = String(v);
       mainMargin.dispatchEvent(new Event('input',{bubbles:true}));
@@ -528,7 +528,7 @@ It adds a toggleable visual panel and a tiny renderer that listens for your exis
     draw();
   }
   setMargin(state.marginDeg);
-  marginIn.addEventListener('input', ()=> setMargin(parseFloat(marginIn.value)||2.5));
+  vizMarginIn.addEventListener('input', ()=> setMargin(parseFloat(vizMarginIn.value)||2.5));
   mainMargin?.addEventListener('input', ()=> setMargin(parseFloat(mainMargin.value)||2.5));
 
   // Body toggle
@@ -537,37 +537,43 @@ It adds a toggleable visual panel and a tiny renderer that listens for your exis
     draw();
   });
 
-  // Compute current body azimuth ourselves (no script.js change needed)
-  function currentBodyAz(){
-    try{
-      const u = window.userCoords;
-      if (!u) return 0;
+  // Sun/Moon az & alt from SunCalc (viewer perspective)
+  function currentBodyAzAlt(){
+    try {
+      const u = window.userCoords; if (!u) return {az:0, alt:0};
       const now = new Date();
       const pos = (state.bodyKind==='moon')
         ? SunCalc.getMoonPosition(now, u.lat, u.lon)
         : SunCalc.getPosition(now, u.lat, u.lon);
-      // match your app’s convention
-      return (pos.azimuth * 180 / Math.PI) + 180; // [0,360)
-    }catch{ return 0; }
+      return {
+        az:  (pos.azimuth * 180/Math.PI) + 180, // [0..360)
+        alt:  pos.altitude * 180/Math.PI        // degrees
+      };
+    } catch {
+      return {az:0, alt:0};
+    }
   }
 
-  function currentInterpolated(){
+  // Interpolation / dead-reckon in 2D (relAz, relAlt)
+  function currentInterpolatedSky(){
     const now = performance.now();
-    if(!state.cur.hasData) return { relAz: state.next.relAz, sep: state.next.sep };
+    if(!state.cur.hasData) return { relAz: state.next.relAz || 0, relAlt: state.next.relAlt || 0 };
     if (now <= state.t1){
       const t = (state.t1===state.t0) ? 1 : Math.min(1, Math.max(0,(now-state.t0)/(state.t1-state.t0)));
-      return { relAz: lerpDeg(state.cur.relAz, state.next.relAz, t), sep: lerp(state.cur.sep, state.next.sep, t) };
+      return {
+        relAz:  lerpDeg(state.cur.relAz,  state.next.relAz,  t),
+        relAlt: lerp(   state.cur.relAlt, state.next.relAlt, t)
+      };
     }
-    // dead-reckon for up to 2× refresh
-    const capMs = refreshSeconds()*2000;
-    const dt = Math.min(capMs, now - state.t1)/1000;
+    // dead-reckon (cap ~2× refresh)
+    const dt = Math.min(refreshSeconds()*2000, now - state.t1)/1000;
     return {
-      relAz: state.next.relAz + state.relAzRate*dt,
-      sep:   Math.max(0, state.next.sep + state.sepRate*dt)
+      relAz:  state.next.relAz  + state.relAzRate*dt,
+      relAlt: state.next.relAlt + state.relAltRate*dt
     };
   }
 
-  // Drawing
+  // Backdrop + body + margin ring
   function drawBackdrop(){
     ctx.globalAlpha = 0.2;
     for(let i=0;i<24;i++){
@@ -576,7 +582,6 @@ It adds a toggleable visual panel and a tiny renderer that listens for your exis
     }
     ctx.globalAlpha = 1;
   }
-
   function drawBody(){
     const r = bodyRadiusPx();
     if(state.bodyKind==='sun'){
@@ -597,25 +602,18 @@ It adds a toggleable visual panel and a tiny renderer that listens for your exis
     ctx.beginPath(); ctx.arc(0,0, ringR, 0, Math.PI*2); ctx.stroke(); ctx.restore();
   }
 
-  function drawPlane(relAzDeg, sepDeg){
-    const rBody = bodyRadiusPx();
-    const a0   = relAzDeg * Math.PI/180; // 0 right, +90 up
-    const rad0 = rBody + Math.max(0, sepDeg) * pxPerDeg();
-    const x0   = Math.cos(a0)*rad0;
-    const y0   = Math.sin(a0)*rad0;
+  // Plane drawing (uses Δaz, Δalt → screen X/Y)
+  function drawPlaneSky(relAzDeg, relAltDeg){
+    const x =  relAzDeg * pxPerDeg();  // right is +az
+    const y = -relAltDeg * pxPerDeg(); // up is +alt → negative y
 
-    // lookahead for orientation
+    // look-ahead for nose direction
     const dt = 0.30;
-    const relAz1 = relAzDeg + state.relAzRate*dt;
-    const sep1   = Math.max(0, sepDeg + state.sepRate*dt);
-    const a1     = relAz1 * Math.PI/180;
-    const rad1   = rBody + sep1 * pxPerDeg();
-    const x1     = Math.cos(a1)*rad1;
-    const y1     = Math.sin(a1)*rad1;
+    const x2 = (relAzDeg + state.relAzRate*dt)  * pxPerDeg();
+    const y2 =-(relAltDeg + state.relAltRate*dt)* pxPerDeg();
+    const ang = Math.atan2(y2 - y, x2 - x);
 
-    const ang = Math.atan2(y1-y0, x1-x0);
-
-    ctx.save(); ctx.translate(x0, y0); ctx.rotate(ang);
+    ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
 
     // airplane silhouette
     const s = 12;
@@ -653,6 +651,7 @@ It adds a toggleable visual panel and a tiny renderer that listens for your exis
     ctx.restore();
   }
 
+  // Main draw
   function draw(){
     if(panel.style.display === 'none') return;
 
@@ -666,31 +665,40 @@ It adds a toggleable visual panel and a tiny renderer that listens for your exis
 
     drawBody();
 
-    const v = currentInterpolated();
-    drawPlane(v.relAz, v.sep);
+    const v = currentInterpolatedSky();
+    drawPlaneSky(v.relAz, v.relAlt);
 
     ctx.restore();
 
-    const inside = v.sep <= state.marginDeg;
-    readout.innerHTML = `${state.bodyKind==='moon'?'🌙':'☀️'} Sep ≈ <b>${v.sep.toFixed(1)}°</b> ${inside? '· <span style="color:#5ee27b">inside margin</span>':''}`;
+    const sepNow = Math.hypot(v.relAz, v.relAlt);
+    const inside = sepNow <= state.marginDeg;
+    readout.innerHTML = `${state.bodyKind==='moon'?'🌙':'☀️'} Sep ≈ <b>${sepNow.toFixed(1)}°</b> ${inside? '· <span style="color:#5ee27b">inside margin</span>':''}`;
   }
   function frame(){ if(enable.checked) draw(); requestAnimationFrame(frame); }
   requestAnimationFrame(frame);
 
-  // Target dropdown utils
+  // Target dropdown helpers
   function mId(m){ return (m.callsign?.trim() || m.hex?.trim() || `${m.azimuth||''}/${m.latitude||''}/${m.longitude||''}`); }
   function mLabel(m){
-    const sep = Number(m.angularSeparation ?? m.separation ?? NaN);
-    const t = isNaN(sep) ? '' : ` · ${sep.toFixed(1)}°`;
-    return `${(m.callsign || m.hex || 'UNKNOWN')}${t}`;
+    const az  = Number(m.azimuth)||0;
+    const alt = Number(m.altitudeAngle ?? m.altitude ?? m.elevationAngle ?? 0);
+    return `${(m.callsign || m.hex || 'UNKNOWN')} · az ${az.toFixed(0)}° · alt ${alt.toFixed(0)}°`;
   }
   function rebuildTargetDropdown(){
     const prev = state.selectedId || targetSel.value || "";
     targetSel.innerHTML = '<option value="">Auto (closest)</option>';
-    const sorted = state.matches
-      .map(mm => ({ mm, sep: Number(mm.angularSeparation ?? mm.separation ?? Infinity) }))
-      .sort((a,b)=> a.sep - b.sep);
-    for (const { mm } of sorted) {
+    // Sort by smallest true separation (Δaz, Δalt) if we can; fall back to provided separation
+    const body = currentBodyAzAlt();
+    const scored = state.matches.map(mm=>{
+      const paz = Number(mm.azimuth)||0;
+      const pal = Number(mm.altitudeAngle ?? mm.altitude ?? mm.elevationAngle ?? 0);
+      const relAz = Math.abs(wrap(paz - body.az));
+      const relAlt= Math.abs(pal - body.alt);
+      const sep = Math.hypot(relAz, relAlt);
+      return { mm, sep };
+    }).sort((a,b)=> a.sep - b.sep);
+
+    for (const { mm } of scored) {
       const id = mId(mm);
       const opt = document.createElement('option');
       opt.value = id; opt.textContent = mLabel(mm);
@@ -703,8 +711,8 @@ It adds a toggleable visual panel and a tiny renderer that listens for your exis
   targetSel.addEventListener('change', ()=>{
     state.selectedId = targetSel.value; // "" = auto
     // soft snap from current visual pos
-    const curV = currentInterpolated();
-    state.cur.relAz = curV.relAz; state.cur.sep = curV.sep; state.cur.hasData = true;
+    const curV = currentInterpolatedSky();
+    state.cur.relAz = curV.relAz; state.cur.relAlt = curV.relAlt; state.cur.hasData = true;
     state.t0 = performance.now(); state.t1 = state.t0 + refreshSeconds()*1000;
   });
 
@@ -717,44 +725,54 @@ It adds a toggleable visual panel and a tiny renderer that listens for your exis
     state.matches = Array.isArray(d.matches) ? d.matches.slice() : [];
     rebuildTargetDropdown();
 
-    // pick chosen or closest
+    // choose selected or auto-closest (by true angular sep using body az/alt now)
+    const body = currentBodyAzAlt();
     let chosen = null;
-    if (state.selectedId) chosen = state.matches.find(mm => mId(mm) === state.selectedId) || null;
+    if (state.selectedId) {
+      chosen = state.matches.find(mm => mId(mm) === state.selectedId) || null;
+    }
     if (!chosen){
       chosen = state.matches
-        .map(mm => ({ mm, sep: Number(mm.angularSeparation ?? mm.separation ?? Infinity) }))
+        .map(mm => {
+          const paz = Number(mm.azimuth)||0;
+          const pal = Number(mm.altitudeAngle ?? mm.altitude ?? mm.elevationAngle ?? 0);
+          const relAz = wrap(paz - body.az);
+          const relAlt= pal - body.alt;
+          return { mm: mm, sep: Math.hypot(relAz, relAlt), relAz, relAlt };
+        })
         .sort((a,b)=> a.sep - b.sep)[0]?.mm || null;
     }
     if(!chosen){ state.cur.hasData=false; draw(); return; }
 
-    // Compute body azimuth here (no need to pass it)
-    const bodyAz = currentBodyAz();
+    // compute relAz/relAlt for the chosen plane
+    const planeAz  = Number(chosen.azimuth)||0;
+    const planeAlt = Number(chosen.altitudeAngle ?? chosen.altitude ?? chosen.elevationAngle ?? 0);
+    const relAz    = wrap(planeAz - body.az);
+    const relAlt   = planeAlt - body.alt;
 
-    const planeAz = Number(chosen.azimuth)||0;
-    const sepDeg  = Number(chosen.angularSeparation ?? chosen.separation ?? 6);
-    const relAz   = wrap(planeAz - bodyAz);
-
+    // smooth transition & dead-reckon setup
     const now = performance.now();
-    const curV = currentInterpolated();
+    const curV = currentInterpolatedSky();
 
-    state.cur.relAz = curV.relAz;
-    state.cur.sep   = curV.sep;
+    state.cur.relAz  = curV.relAz;
+    state.cur.relAlt = curV.relAlt;
     state.cur.hasData = true;
 
-    state.next.relAz = relAz;
-    state.next.sep   = Math.max(0, sepDeg);
+    state.next.relAz  = relAz;
+    state.next.relAlt = relAlt;
 
     const dur = refreshSeconds()*1000;
     state.t0 = now; state.t1 = now + dur;
 
-    state.relAzRate = wrap(state.next.relAz - state.cur.relAz) / (dur/1000 || 1);
-    state.sepRate   = (state.next.sep - state.cur.sep) / (dur/1000 || 1);
+    state.relAzRate  = wrap(state.next.relAz - state.cur.relAz) / (dur/1000 || 1);
+    state.relAltRate = (state.next.relAlt - state.cur.relAlt) / (dur/1000 || 1);
   });
 
   // Initial draw
   draw();
 })();
 </script>
+
 
 
   </div>
