@@ -804,6 +804,7 @@ window.dispatchEvent(new CustomEvent('transit:matches', {
   detail: {
     selectedBody,
     user: window.userCoords, // your location {lat, lon, elev}
+    bodyAz,            // 👈 add this
     matches // the filtered list you're about to display
   }
 }));
