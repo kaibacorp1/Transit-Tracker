@@ -380,7 +380,6 @@ It adds a toggleable visual panel and a tiny renderer that listens for your exis
 `callTransitAPI` results via a custom event we’ll dispatch from script.js.
 -->
 <section id="skyviz-wrap" style="margin:14px 0 0 0">
-
   <style>
     #skyviz-wrap{border:1px solid #233044;border-radius:14px;overflow:hidden;background:#0b0f14}
     #skyviz-head{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#141a22;color:#c9d7ef}
@@ -395,24 +394,22 @@ It adds a toggleable visual panel and a tiny renderer that listens for your exis
     .moon{background:#cdd5e0;box-shadow:0 0 10px 2px #cdd5e0,0 0 30px 8px #cdd5e044}
     .legend{display:flex;gap:12px;align-items:center}
   </style>
+
   <div id="skyviz-head">
     <label class="label" style="display:inline-flex;align-items:center;gap:6px">
       <input type="checkbox" id="skyviz-enable" /> Enable visual panel
     </label>
     <div class="spacer"></div>
-    <label class="label">Sim speed
-      <input id="skyviz-speed" type="range" min="0.3" max="3" step="0.1" value="1" />
-      <span id="skyviz-speedval">1.0×</span>
-    </label>
+    <div class="legend">
+      <span class="dot sun"></span><span class="label">Sun</span>
+      <span class="dot moon"></span><span class="label">Moon</span>
+    </div>
   </div>
+
   <div id="skyviz-panel">
     <canvas id="skyviz"></canvas>
     <div id="skyviz-hud">
-      <div class="legend">
-        <span class="dot sun"></span><span class="label">Sun</span>
-        <span class="dot moon"></span><span class="label">Moon</span>
-      </div>
-      <div id="skyviz-readout" style="margin-top:6px;white-space:nowrap"></div>
+      <div id="skyviz-readout" style="white-space:nowrap"></div>
     </div>
   </div>
 </section>
@@ -421,29 +418,23 @@ It adds a toggleable visual panel and a tiny renderer that listens for your exis
 (function(){
   const panelWrap = document.getElementById('skyviz-wrap');
   const enable = document.getElementById('skyviz-enable');
-  const speed = document.getElementById('skyviz-speed');
-  const speedVal = document.getElementById('skyviz-speedval');
   const canvas = document.getElementById('skyviz');
   const ctx = canvas.getContext('2d');
-  const hud = document.getElementById('skyviz-hud');
   const readout = document.getElementById('skyviz-readout');
+  const panel = document.getElementById('skyviz-panel');
 
-  // open/remember state
+  // Always show header; only hide canvas when disabled
   const KEY = 'skyviz_enabled';
   enable.checked = localStorage.getItem(KEY) === '1';
+  panel.style.display = enable.checked ? 'block' : 'none';
   enable.addEventListener('change', ()=>{
-  localStorage.setItem(KEY, enable.checked ? '1':'0');
-  document.getElementById('skyviz-panel').style.display = enable.checked ? 'block' : 'none';
-  size();
-});
+    localStorage.setItem(KEY, enable.checked ? '1' : '0');
+    panel.style.display = enable.checked ? 'block' : 'none';
+    size();
+    draw(); // clear when toggled
+  });
 
-  panelWrap.style.display = 'block'; // always show header + checkbox
-document.getElementById('skyviz-panel').style.display = enable.checked ? 'block' : 'none';
-
-
-  // canvas sizing
   function size(){
-    if(!enable.checked) return;
     const dpr = Math.max(1, window.devicePixelRatio||1);
     canvas.width = Math.floor(canvas.clientWidth * dpr);
     canvas.height = Math.floor(280 * dpr);
@@ -452,18 +443,39 @@ document.getElementById('skyviz-panel').style.display = enable.checked ? 'block'
   window.addEventListener('resize', size, {passive:true});
   size();
 
-  // simple renderer state
   const state = {
-    running: true,
-    plane: { x: -120, y: 180, vx: 120, vy: -18, size: 12, label: '' },
     body: { kind: 'sun', x: 0, y: 0, r: 56 },
-    lastStamp: performance.now(),
-    haveTarget: false,
+    plane: { x: 0, y: 0, label: '', hasData:false },
+    sepDeg: null,
+    pxPerDeg: 6,
+    marginDeg: 2.5, // will sync from #marginSlider if present
   };
 
-  speed.addEventListener('input', ()=>{
-    speedVal.textContent = `${Number(speed.value).toFixed(1)}×`;
-  });
+  // Sync margin ring with your existing slider
+  const marginSlider = document.getElementById('marginSlider');
+  if (marginSlider){
+    state.marginDeg = parseFloat(marginSlider.value)||2.5;
+    marginSlider.addEventListener('input', ()=>{
+      state.marginDeg = parseFloat(marginSlider.value)||2.5;
+      draw();
+    });
+  }
+
+  function placeBody(){
+    const W = canvas.clientWidth, H = canvas.clientHeight;
+    state.body.x = Math.round(W*0.5);
+    state.body.y = Math.round(H*0.62);
+    state.body.r = (state.body.kind === 'sun') ? 56 : 36;
+  }
+
+  function drawBackdrop(){
+    ctx.globalAlpha = 0.22;
+    for(let i=0;i<24;i++){
+      const x=Math.random()*canvas.clientWidth, y=40+Math.random()*(canvas.clientHeight-40);
+      ctx.fillStyle='#93a7bd'; ctx.fillRect(x,y,1,1);
+    }
+    ctx.globalAlpha = 1;
+  }
 
   function drawBody(){
     const {x,y,r,kind} = state.body;
@@ -479,90 +491,85 @@ document.getElementById('skyviz-panel').style.display = enable.checked ? 'block'
       for(let i=0;i<5;i++){ const a=Math.random()*Math.PI*2, rr=3+Math.random()*5; ctx.beginPath(); ctx.arc(x+Math.cos(a)*r*0.6, y+Math.sin(a)*r*0.6, rr, 0, Math.PI*2); ctx.fill(); }
       ctx.globalAlpha=1;
     }
+
+    // margin ring (visualizes your detection margin)
+    const ringR = r + state.marginDeg * state.pxPerDeg;
+    ctx.save();
+    ctx.setLineDash([6,6]);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#375a8a';
+    ctx.beginPath(); ctx.arc(x,y, ringR, 0, Math.PI*2); ctx.stroke();
+    ctx.restore();
   }
 
   function drawPlane(){
+    if(!state.plane.hasData) return;
     const p = state.plane;
-    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(Math.atan2(p.vy,p.vx));
+    ctx.save(); ctx.translate(p.x, p.y);
     ctx.fillStyle = '#9bd7ff';
-    const s = p.size;
+    const s = 12;
     ctx.beginPath(); ctx.moveTo(-s*0.8, -s*0.45); ctx.lineTo(s,0); ctx.lineTo(-s*0.8, s*0.45); ctx.closePath(); ctx.fill();
     ctx.restore();
   }
 
-  function drawBackdrop(){
-    // subtle stars
-    ctx.globalAlpha = 0.25;
-    for(let i=0;i<28;i++){ const x=Math.random()*canvas.clientWidth, y=40+Math.random()*(canvas.clientHeight-40); ctx.fillStyle='#93a7bd'; ctx.fillRect(x,y,1,1);} ctx.globalAlpha=1;
+  function drawHUD(){
+    if(!state.plane.hasData){
+      readout.textContent = 'Waiting for a detection…';
+      return;
+    }
+    const sep = (state.sepDeg!=null) ? state.sepDeg.toFixed(1) : '—';
+    const inside = (state.sepDeg!=null) && (state.sepDeg <= state.marginDeg);
+    readout.innerHTML = `${state.body.kind==='moon'?'🌙':'☀️'} Sep ≈ <b>${sep}°</b> ${inside? '· <span style="color:#5ee27b">inside margin</span>':''}${state.plane.label?` · ${state.plane.label}`:''}`;
   }
 
-  function setTargetFromMatch(detail){
-    // detail: { selectedBody, user:{lat,lon,elev}, matches:[{callsign, azimuth, altitudeAngle, angularSeparation}] }
-    if(!enable.checked) return;
-    const m = detail.matches && detail.matches[0]; // first match for demo
-    if(!m) return;
+  function draw(){
+    if(panel.style.display === 'none') return;
+    ctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeight);
+    placeBody();
+    drawBackdrop();
+    drawBody();
+    drawPlane();
+    drawHUD();
+  }
 
-    // center the body, map deg separation to pixels, keep perspective from user location implicitly
-    const W = canvas.clientWidth, H = canvas.clientHeight;
+  // Listen for your app’s detection results
+  window.addEventListener('transit:matches', (e)=>{
+    if(panel.style.display === 'none' || !enable.checked) return;
+    const detail = e.detail || {};
+    const matches = detail.matches || [];
+    if (!matches.length){ state.plane.hasData=false; draw(); return; }
+
+    // Use first match for the visual
+    const m = matches[0];
+
+    // Body kind
     state.body.kind = (detail.selectedBody === 'moon') ? 'moon' : 'sun';
-    state.body.r = (state.body.kind==='sun') ? 56 : 36;
-    state.body.x = Math.round(W*0.5); state.body.y = Math.round(H*0.62);
 
-    // place plane at a polar offset from body based on azimuth difference
-    const pxPerDeg = 6; // purely visual scale
-    const sepDeg = Math.max(0, Number(m.angularSeparation ?? 6));
-    const r = state.body.r + sepDeg * pxPerDeg;
+    // Separation in degrees: prefer angularSeparation, fallback to m.separation
+    const sepDeg = Number(m.angularSeparation ?? m.separation ?? 6);
+    state.sepDeg = Math.max(0, sepDeg);
 
-    // angle around the body: use plane azimuth (screen 0° to the right)
+    // Map azimuth to screen angle: 0° = right, clockwise
     const a = ((Number(m.azimuth)||0) * Math.PI/180);
+    placeBody();
+    const r = state.body.r + state.sepDeg * state.pxPerDeg;
     const dx = Math.cos(a) * r;
     const dy = Math.sin(a) * r;
 
     state.plane.x = state.body.x + dx;
     state.plane.y = state.body.y + dy;
-
-    // give it a velocity that slowly moves toward the body center visually
-    const toCx = state.body.x - state.plane.x;
-    const toCy = state.body.y - state.plane.y;
-    const L = Math.hypot(toCx,toCy) || 1;
-    state.plane.vx = (toCx/L) * 120; // px/s base
-    state.plane.vy = (toCy/L) * 120;
     state.plane.label = m.callsign || '';
-    state.haveTarget = true;
-  }
+    state.plane.hasData = true;
 
-  // Public event API — LISTEN for matches from your existing code
-  window.addEventListener('transit:matches', (e)=> setTargetFromMatch(e.detail));
+    draw();
+  });
 
-  function drawHUD(){
-    if(!state.haveTarget){ readout.textContent = 'Waiting for a detection…'; return; }
-    // approximate degrees from pixel distance
-    const pxPerDeg = 6, bodyR = state.body.r;
-    const dx = state.body.x - state.plane.x; const dy = state.body.y - state.plane.y;
-    const sepPx = Math.hypot(dx,dy);
-    const sepDeg = Math.max(0, (sepPx - bodyR)/pxPerDeg).toFixed(1);
-    readout.innerHTML = `${state.body.kind==='moon'?'🌙':'☀️'} Sep ≈ <b>${sepDeg}°</b>${state.plane.label?` · ${state.plane.label}`:''}`;
-  }
-
-  function frame(now){
-    const dt = Math.min(60, now - state.lastStamp)/1000 * Number(speed.value || 1);
-    state.lastStamp = now;
-    if(enable.checked){
-      // update motion
-      state.plane.x += state.plane.vx*dt; state.plane.y += state.plane.vy*dt;
-
-      // clear
-      ctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeight);
-      drawBackdrop();
-      drawBody();
-      drawPlane();
-      drawHUD();
-    }
-    requestAnimationFrame(frame);
-  }
-  requestAnimationFrame(frame);
+  // First paint
+  draw();
 })();
 </script>
+
+  
 
   </div>
 </body>
