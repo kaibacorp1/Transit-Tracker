@@ -379,7 +379,8 @@ Drop this whole chunk near the bottom of your existing index.html (above your cl
 It adds a toggleable visual panel and a tiny renderer that listens for your existing
 `callTransitAPI` results via a custom event we’ll dispatch from script.js.
 -->
-<section id="skyviz-wrap" style="display:none;margin:14px 0 0 0">
+<section id="skyviz-wrap" style="margin:14px 0 0 0">
+
   <style>
     #skyviz-wrap{border:1px solid #233044;border-radius:14px;overflow:hidden;background:#0b0f14}
     #skyviz-head{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#141a22;color:#c9d7ef}
@@ -431,11 +432,14 @@ It adds a toggleable visual panel and a tiny renderer that listens for your exis
   const KEY = 'skyviz_enabled';
   enable.checked = localStorage.getItem(KEY) === '1';
   enable.addEventListener('change', ()=>{
-    localStorage.setItem(KEY, enable.checked ? '1':'0');
-    panelWrap.style.display = enable.checked ? 'block' : 'none';
-    size();
-  });
-  panelWrap.style.display = enable.checked ? 'block' : 'none';
+  localStorage.setItem(KEY, enable.checked ? '1':'0');
+  document.getElementById('skyviz-panel').style.display = enable.checked ? 'block' : 'none';
+  size();
+});
+
+  panelWrap.style.display = 'block'; // always show header + checkbox
+document.getElementById('skyviz-panel').style.display = enable.checked ? 'block' : 'none';
+
 
   // canvas sizing
   function size(){
