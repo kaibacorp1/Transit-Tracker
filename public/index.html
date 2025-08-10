@@ -382,91 +382,104 @@ It adds a toggleable visual panel and a tiny renderer that listens for your exis
 <section id="skyviz-wrap" style="margin:14px 0 0 0">
   <style>
     #skyviz-wrap{border:1px solid #233044;border-radius:14px;overflow:hidden;background:#0b0f14}
-    #skyviz-head{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#141a22;color:#c9d7ef}
-    #skyviz-head h3{margin:0;font:600 14px/1.2 system-ui,-apple-system,Segoe UI,Roboto}
+    #skyviz-head{display:flex;align-items:center;gap:12px;padding:10px 12px;background:#141a22;color:#c9d7ef;flex-wrap:wrap}
     #skyviz-head .spacer{flex:1}
-    #skyviz{display:block;width:100%;height:280px;background:radial-gradient(900px 520px at 50% 70%,#0f1620,#0b0f14)}
-    #skyviz-hud{position:absolute;left:12px;top:52px;padding:8px 10px;background:#0f1620cc;border:1px solid #203040;border-radius:10px;color:#8aa0b7}
+    #skyviz{display:block;width:100%;height:320px;background:radial-gradient(900px 560px at 50% 70%,#0f1620,#0b0f14)}
     #skyviz-panel{position:relative}
+    #skyviz-hud{position:absolute;left:12px;top:56px;padding:8px 10px;background:#0f1620cc;border:1px solid #203040;border-radius:10px;color:#8aa0b7}
     .label{color:#8aa0b7}
     .dot{display:inline-block;width:10px;height:10px;border-radius:50%}
     .sun{background:#ffd166;box-shadow:0 0 12px 2px #ffd166,0 0 40px 10px #ffb70333}
     .moon{background:#cdd5e0;box-shadow:0 0 10px 2px #cdd5e0,0 0 30px 8px #cdd5e044}
-    .legend{display:flex;gap:12px;align-items:center}
   </style>
 
   <div id="skyviz-head">
     <label class="label" style="display:inline-flex;align-items:center;gap:6px">
       <input type="checkbox" id="skyviz-enable" /> Enable visual panel
     </label>
+
     <div class="spacer"></div>
-    <div class="legend">
-      <span class="dot sun"></span><span class="label">Sun</span>
-      <span class="dot moon"></span><span class="label">Moon</span>
-    </div>
+
+    <label class="label" style="display:inline-flex;align-items:center;gap:6px">
+      Zoom
+      <input id="skyviz-zoom" type="range" min="2" max="14" step="0.5" value="6" />
+      <span id="skyviz-zoomval">6°/px</span>
+    </label>
+
+    <label class="label" style="display:inline-flex;align-items:center;gap:6px">
+      Mirror (flip LR)
+      <input id="skyviz-flip" type="checkbox" />
+    </label>
   </div>
 
   <div id="skyviz-panel">
     <canvas id="skyviz"></canvas>
-    <div id="skyviz-hud">
-      <div id="skyviz-readout" style="white-space:nowrap"></div>
-    </div>
+    <div id="skyviz-hud"><div id="skyviz-readout" style="white-space:nowrap"></div></div>
   </div>
 </section>
 
 <script>
 (function(){
-  const panelWrap = document.getElementById('skyviz-wrap');
   const enable = document.getElementById('skyviz-enable');
   const panel  = document.getElementById('skyviz-panel');
   const canvas = document.getElementById('skyviz');
   const ctx    = canvas.getContext('2d');
   const readout= document.getElementById('skyviz-readout');
+  const zoomEl = document.getElementById('skyviz-zoom');
+  const zoomVal= document.getElementById('skyviz-zoomval');
+  const flipEl = document.getElementById('skyviz-flip');
+  const bodySel= document.getElementById('bodyToggle');
 
-  // Always show header; only hide canvas panel when disabled
+  // persistent on/off
   const KEY = 'skyviz_enabled';
   enable.checked = localStorage.getItem(KEY) === '1';
   panel.style.display = enable.checked ? 'block' : 'none';
   enable.addEventListener('change', ()=>{
     localStorage.setItem(KEY, enable.checked ? '1' : '0');
     panel.style.display = enable.checked ? 'block' : 'none';
-    size(); draw();
+    size(); draw(); // redraw
   });
-
-  // === Wire to your Sun/Moon selector ===
-  const bodySel = document.getElementById('bodyToggle');
-  // Fallback to existing selection if present
-  let selectedBody = bodySel ? bodySel.value : 'moon';
-  if (bodySel) {
-    bodySel.addEventListener('change', ()=>{
-      selectedBody = bodySel.value;
-      state.body.kind = (selectedBody === 'moon') ? 'moon' : 'sun';
-      draw(); // redraw immediately when user flips Sun/Moon
-    });
-  }
 
   function size(){
     const dpr = Math.max(1, window.devicePixelRatio||1);
     canvas.width = Math.floor(canvas.clientWidth * dpr);
-    canvas.height = Math.floor(280 * dpr);
+    canvas.height = Math.floor(320 * dpr);
     ctx.setTransform(dpr,0,0,dpr,0,0);
   }
   window.addEventListener('resize', size, {passive:true});
   size();
 
-  // === State with interpolation between detections ===
+  // State
   const state = {
-    body: { kind:'sun', x:0, y:0, r:56 },
-    pxPerDeg: 6,
+    bodyKind: 'moon',
+    bodyAz: 0,              // degrees true
+    pxPerDeg: 6,            // screen scale (higher = zoom in)
     marginDeg: 2.5,
-    // interpolation (degrees)
-    cur:   { az: 0, sep: 8, hasData:false },
-    next:  { az: 0, sep: 8 },
-    t0: performance.now(), // start time
-    t1: performance.now(), // end time (t0 + refresh interval)
+    flip: false,            // mirror horizontally
+    // interpolation buffers (relative azimuth & separation)
+    cur:  { relAz: 0, sep: 8, hasData:false },
+    next: { relAz: 0, sep: 8 },
+    t0: performance.now(),
+    t1: performance.now()
   };
 
-  // Sync margin with your existing slider
+  // hook zoom slider (degrees per pixel -> actually we use pixels per degree; expose nicely)
+  function syncZoomLabel(){
+    zoomVal.textContent = `${(state.pxPerDeg).toFixed(1)} px/°`;
+  }
+  state.pxPerDeg = Number(zoomEl.value) || 6;
+  syncZoomLabel();
+  zoomEl.addEventListener('input', ()=>{
+    state.pxPerDeg = Number(zoomEl.value)||6;
+    syncZoomLabel();
+    draw();
+  });
+
+  // mirror toggle
+  state.flip = !!flipEl.checked;
+  flipEl.addEventListener('change', ()=>{ state.flip = !!flipEl.checked; draw(); });
+
+  // tie to your existing Detection Margin slider
   const marginSlider = document.getElementById('marginSlider');
   if (marginSlider){
     state.marginDeg = parseFloat(marginSlider.value)||2.5;
@@ -476,75 +489,77 @@ It adds a toggleable visual panel and a tiny renderer that listens for your exis
     });
   }
 
-  // Read refresh interval (sec) to time the interpolation
-  function refreshSeconds(){
-    const el = document.getElementById('refreshIntervalInput');
-    const v = parseFloat(el && el.value);
-    return (!isNaN(v) && v >= 1) ? v : 5;
+  // tie to your Sun/Moon selector
+  function updateBodyKind(){
+    state.bodyKind = (bodySel && bodySel.value === 'moon') ? 'moon' : 'sun';
+    draw();
+  }
+  if (bodySel){
+    updateBodyKind();
+    bodySel.addEventListener('change', updateBodyKind);
   }
 
   function placeBody(){
     const W = canvas.clientWidth, H = canvas.clientHeight;
-    state.body.kind = (selectedBody === 'moon') ? 'moon' : 'sun';
-    state.body.x = Math.round(W*0.5);
-    state.body.y = Math.round(H*0.62);
-    state.body.r = (state.body.kind === 'sun') ? 56 : 36;
+    const cx = Math.round(W*0.5), cy = Math.round(H*0.62);
+    const r  = (state.bodyKind==='sun') ? 56 : 36;
+    return { cx, cy, r };
   }
 
   function drawBackdrop(){
-    ctx.globalAlpha = 0.22;
-    for(let i=0;i<20;i++){
+    ctx.globalAlpha = 0.2;
+    for(let i=0;i<24;i++){
       const x=Math.random()*canvas.clientWidth, y=40+Math.random()*(canvas.clientHeight-40);
       ctx.fillStyle='#93a7bd'; ctx.fillRect(x,y,1,1);
     }
     ctx.globalAlpha = 1;
   }
 
-  function drawBody(){
-    const {x,y,r,kind} = state.body;
-    if(kind==='sun'){
-      const grad = ctx.createRadialGradient(x,y, r*0.2, x,y, r);
+  function drawBody(cx,cy,r){
+    if(state.bodyKind==='sun'){
+      const grad = ctx.createRadialGradient(cx,cy, r*0.2, cx,cy, r);
       grad.addColorStop(0,'#fff3b0'); grad.addColorStop(1,'#e5a93b');
-      ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fill();
       ctx.shadowColor = '#ffd166'; ctx.shadowBlur = 18; ctx.globalAlpha = 0.55;
-      ctx.beginPath(); ctx.arc(x,y,r*1.25,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1; ctx.shadowBlur=0;
+      ctx.beginPath(); ctx.arc(cx,cy,r*1.25,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1; ctx.shadowBlur=0;
     } else {
-      ctx.fillStyle = '#cfd7e3'; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#cfd7e3'; ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fill();
       ctx.fillStyle = '#b9c3d1'; ctx.globalAlpha=0.4;
-      for(let i=0;i<4;i++){ const a=Math.random()*Math.PI*2, rr=3+Math.random()*5; ctx.beginPath(); ctx.arc(x+Math.cos(a)*r*0.6, y+Math.sin(a)*r*0.6, rr, 0, Math.PI*2); ctx.fill(); }
+      for(let i=0;i<5;i++){ const a=Math.random()*Math.PI*2, rr=3+Math.random()*5; ctx.beginPath(); ctx.arc(cx+Math.cos(a)*r*0.6, cy+Math.sin(a)*r*0.6, rr, 0, Math.PI*2); ctx.fill(); }
       ctx.globalAlpha=1;
     }
     // margin ring
     const ringR = r + state.marginDeg * state.pxPerDeg;
-    ctx.save();
-    ctx.setLineDash([6,6]); ctx.lineWidth = 2; ctx.strokeStyle = '#375a8a';
-    ctx.beginPath(); ctx.arc(x,y, ringR, 0, Math.PI*2); ctx.stroke();
-    ctx.restore();
+    ctx.save(); ctx.setLineDash([6,6]); ctx.lineWidth = 2; ctx.strokeStyle = '#375a8a';
+    ctx.beginPath(); ctx.arc(cx,cy, ringR, 0, Math.PI*2); ctx.stroke(); ctx.restore();
   }
 
-  // Shortest-path interpolation for circular angles (degrees)
-  function lerpAngleDeg(a0, a1, t){
-    // wrap to [-180,180]
-    let d = ((a1 - a0 + 540) % 360) - 180;
-    return a0 + d * t;
+  // angle helpers
+  const wrap = d => ((d+540)%360)-180;                 // -> [-180,180)
+  const lerp = (a,b,t)=> a+(b-a)*t;
+  function lerpDeg(a0,a1,t){ const d = wrap(a1-a0); return a0 + d*t; }
+
+  function refreshSeconds(){
+    const el = document.getElementById('refreshIntervalInput');
+    const v = parseFloat(el && el.value);
+    return (!isNaN(v) && v >= 1) ? v : 5;
   }
-  function lerp(a,b,t){ return a + (b-a)*t; }
 
   function currentInterpolated(){
-    if(!state.cur.hasData) return { az: state.next.az, sep: state.next.sep };
+    if(!state.cur.hasData) return { relAz: state.next.relAz, sep: state.next.sep };
     const now = performance.now();
-    const t = (state.t1 === state.t0) ? 1 : Math.min(1, Math.max(0, (now - state.t0) / (state.t1 - state.t0)));
-    return {
-      az:  lerpAngleDeg(state.cur.az,  state.next.az,  t),
-      sep: lerp(state.cur.sep, state.next.sep, t)
-    };
+    const t = (state.t1===state.t0) ? 1 : Math.min(1, Math.max(0, (now - state.t0)/(state.t1 - state.t0)));
+    return { relAz: lerpDeg(state.cur.relAz, state.next.relAz, t), sep: lerp(state.cur.sep, state.next.sep, t) };
   }
 
-  function drawPlane(azDeg, sepDeg){
-    const a = (azDeg * Math.PI / 180);
-    const r = state.body.r + Math.max(0, sepDeg) * state.pxPerDeg;
-    const x = state.body.x + Math.cos(a) * r;
-    const y = state.body.y + Math.sin(a) * r;
+  function drawPlane(cx,cy, relAzDeg, sepDeg){
+    // screen angle: 0° = right, +90° = up. Flip horizontally if requested.
+    let a = relAzDeg * Math.PI/180;
+    if (state.flip) a = -a;
+
+    const r = Math.max(0, sepDeg) * state.pxPerDeg;
+    const x = cx + Math.cos(a) * (r + (state.bodyKind==='sun'?56:36));
+    const y = cy + Math.sin(a) * (r + (state.bodyKind==='sun'?56:36));
 
     ctx.save(); ctx.translate(x, y);
     ctx.fillStyle = '#9bd7ff';
@@ -553,56 +568,50 @@ It adds a toggleable visual panel and a tiny renderer that listens for your exis
     ctx.restore();
   }
 
-  function drawHUD(azDeg, sepDeg){
-    if(!state.cur.hasData){ readout.textContent = 'Waiting for a detection…'; return; }
-    const inside = sepDeg <= state.marginDeg;
-    readout.innerHTML = `${state.body.kind==='moon'?'🌙':'☀️'} Sep ≈ <b>${sepDeg.toFixed(1)}°</b> ${inside? '· <span style="color:#5ee27b">inside margin</span>':''}`;
-  }
-
   function draw(){
     if(panel.style.display === 'none') return;
-    placeBody();
+    const {cx,cy,r} = placeBody();
     ctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeight);
     drawBackdrop();
-    drawBody();
+    drawBody(cx,cy,r);
 
     const v = currentInterpolated();
-    drawPlane(v.az, v.sep);
-    drawHUD(v.az, v.sep);
+    drawPlane(cx,cy, v.relAz, v.sep);
+
+    const inside = v.sep <= state.marginDeg;
+    readout.innerHTML = `${state.bodyKind==='moon'?'🌙':'☀️'} Sep ≈ <b>${v.sep.toFixed(1)}°</b> ${inside? '· <span style="color:#5ee27b">inside margin</span>':''}`;
   }
 
-  // Animation loop: smooth motion between detections
-  function frame(){
-    if(enable.checked) draw();
-    requestAnimationFrame(frame);
-  }
+  // smooth animation loop
+  function frame(){ if(enable.checked) draw(); requestAnimationFrame(frame); }
   requestAnimationFrame(frame);
 
-  // Listen for detection results and schedule new interpolation
+  // Handle detections: convert to RELATIVE azimuth = planeAz - bodyAz
   window.addEventListener('transit:matches', (e)=>{
     if(panel.style.display === 'none' || !enable.checked) return;
+    const d = e.detail || {};
+    // keep in sync with your UI/body
+    state.bodyKind = (d.selectedBody === 'moon') ? 'moon' : 'sun';
 
-    const detail = e.detail || {};
-    if (detail.selectedBody) {
-      selectedBody = detail.selectedBody; // keep in sync with backend events
-    }
-    const matches = detail.matches || [];
-    if(!matches.length){ state.cur.hasData=false; draw(); return; }
+    const bodyAz = (typeof d.bodyAz === 'number') ? d.bodyAz : 0;
+    const m = (d.matches && d.matches[0]) || null;
+    if(!m){ state.cur.hasData=false; draw(); return; }
 
-    const m = matches[0];
-    const nextAz  = Number(m.azimuth) || 0;
-    const nextSep = Number(m.angularSeparation ?? m.separation ?? 6);
+    const planeAz = Number(m.azimuth)||0;
+    const sepDeg  = Number(m.angularSeparation ?? m.separation ?? 6);
 
-    // Start new interpolation from current visual position to the new measurement
+    const relAz = wrap(planeAz - bodyAz);   // 👈 relative angle around the Moon/Sun
+
+    // start new interpolation from current to next
     const now = performance.now();
-    const curV = currentInterpolated();
-    state.cur.az  = curV.az;  state.cur.sep  = curV.sep;  state.cur.hasData = true;
-    state.next.az = nextAz;   state.next.sep = Math.max(0, nextSep);
+    const cur = currentInterpolated();
+    state.cur.relAz = cur.relAz; state.cur.sep = cur.sep; state.cur.hasData = true;
+    state.next.relAz = relAz;     state.next.sep = Math.max(0, sepDeg);
     state.t0 = now;
-    state.t1 = now + refreshSeconds()*1000; // animate over next polling interval
+    state.t1 = now + refreshSeconds()*1000;
   });
 
-  // Initial paint
+  // initial draw
   draw();
 })();
 </script>
