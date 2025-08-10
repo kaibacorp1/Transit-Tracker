@@ -799,6 +799,16 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
     return true;
   });
 
+    // 🔵 Send detection data to the visual panel
+window.dispatchEvent(new CustomEvent('transit:matches', {
+  detail: {
+    selectedBody,
+    user: window.userCoords, // your location {lat, lon, elev}
+    matches // the filtered list you're about to display
+  }
+}));
+
+
 
     const statusEl = document.getElementById('transitStatus');
     if (error) return statusEl.textContent = `❌ ${error}`;
