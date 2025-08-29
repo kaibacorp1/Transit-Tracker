@@ -344,15 +344,14 @@ export function detectPlaneOnPlane({
       const f2 = normalizeFlightUnits(flights[j] || {});
       if (!f1 || !f2) continue;
 
-      const rawAlt1 = f1.altitude || 0;
-      const rawAlt2 = f2.altitude || 0;
-      const a1 = rawAlt1 > 60000 ? rawAlt1 * 0.3048 : rawAlt1; // safety: feet→meters
-      const a2 = rawAlt2 > 60000 ? rawAlt2 * 0.3048 : rawAlt2;
+      const a1 = f1.altitude || 0;
+      const a2 = f2.altitude || 0;
 
       if (a1 < 100 || a2 < 100) continue; // ignore near-ground
 
-      const [az1, el1] = getAzEl(f1.latitude, f1.longitude, a1);
-      const [az2, el2] = getAzEl(f2.latitude, f2.longitude, a2);
+      const [az1, el1] = getAzEl(proj1.lat, proj1.lon, proj1.alt);
+      const [az2, el2] = getAzEl(proj2.lat, proj2.lon, proj2.alt);
+
 
       const dAz = toRad(az1 - az2);
       const el1r = toRad(el1), el2r = toRad(el2);
