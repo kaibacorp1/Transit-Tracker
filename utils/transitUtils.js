@@ -299,73 +299,61 @@ export function detectTransits({
    Plane-on-Plane Detection
    ========================= */
 
-export function detectPlaneOnPlane({
-  flights, userLat, userLon, userElev = 0, margin = 10, predictSeconds = 0
-}) {
+export function detectPlaneOnPlane({ flights, userLat, userLon, userElev = 0, margin = 10 }) {
   const R = 6371000;
-
-  function toCartesian(lat, lon, h) {
+  const toCartesian = (lat, lon, h) => {
     const φ = toRad(lat), λ = toRad(lon);
-    const x = (R + h) * Math.cos(φ) * Math.cos(λ);
-    const y = (R + h) * Math.cos(φ) * Math.sin(λ);
-    const z = (R + h) * Math.sin(φ);
-    return [x, y, z];
-  }
+    return [
+      (R + h) * Math.cos(φ) * Math.cos(λ),
+      (R + h) * Math.cos(φ) * Math.sin(λ),
+      (R + h) * Math.sin(φ)
+    ];
+  };
 
-  function enuFromCartesian(px, py, pz, ox, oy, oz) {
+  const enuFromCartesian = (px, py, pz, ox, oy, oz) => {
     const dx = px - ox, dy = py - oy, dz = pz - oz;
     const φ0 = toRad(userLat), λ0 = toRad(userLon);
-    const east  = [-Math.sin(λ0),  Math.cos(λ0), 0];
+    const east = [-Math.sin(λ0), Math.cos(λ0), 0];
     const north = [-Math.sin(φ0) * Math.cos(λ0), -Math.sin(φ0) * Math.sin(λ0), Math.cos(φ0)];
-    const up    = [ Math.cos(φ0) * Math.cos(λ0),  Math.cos(φ0) * Math.sin(λ0), Math.sin(φ0)];
-    const e = dx * east[0]  + dy * east[1]  + dz * east[2];
-    const n = dx * north[0] + dy * north[1] + dz * north[2];
-    const u = dx * up[0]    + dy * up[1]    + dz * up[2];
-    return [e, n, u];
-  }
+    const up = [Math.cos(φ0) * Math.cos(λ0), Math.cos(φ0) * Math.sin(λ0), Math.sin(φ0)];
+    return [
+      dx * east[0] + dy * east[1] + dz * east[2],
+      dx * north[0] + dy * north[1] + dz * north[2],
+      dx * up[0] + dy * up[1] + dz * up[2]
+    ];
+  };
 
-  function getAzEl(lat, lon, alt) {
+  const getAzEl = (lat, lon, alt) => {
     const [ox, oy, oz] = toCartesian(userLat, userLon, userElev);
     const [px, py, pz] = toCartesian(lat, lon, alt);
     const [e, n, u] = enuFromCartesian(px, py, pz, ox, oy, oz);
-    const az = (Math.atan2(e, n) * 180 / Math.PI + 360) % 360;
-    const el = Math.atan2(u, Math.sqrt(e * e + n * n)) * 180 / Math.PI;
-    return [az, el];
-  }
+    return [
+      (Math.atan2(e, n) * 180 / Math.PI + 360) % 360,
+      Math.atan2(u, Math.sqrt(e ** 2 + n ** 2)) * 180 / Math.PI
+    ];
+  };
 
   const matches = [];
+  const flightsNorm = flights.map(normalizeFlightUnits);
+  const VERT_SEP_M = 1219.2; // 4000 ft
 
-  // (Optional) simple projection loop for predictSeconds; for now use t=0 only
-  // You can expand to project each plane like detectTransits if desired.
+  for (let i = 0; i < flightsNorm.length; i++) {
+    for (let j = i + 1; j < flightsNorm.length; j++) {
+      const f1 = flightsNorm[i];
+      const f2 = flightsNorm[j];
+      const a1 = f1.altitude || 0, a2 = f2.altitude || 0;
+      if ((a1 - userElev) < 100 || (a2 - userElev) < 100) continue;
 
-  for (let i = 0; i < flights.length; i++) {
-    for (let j = i + 1; j < flights.length; j++) {
-      const f1 = normalizeFlightUnits(flights[i] || {});
-      const f2 = normalizeFlightUnits(flights[j] || {});
-      if (!f1 || !f2) continue;
+      const [az1, el1] = getAzEl(f1.latitude, f1.longitude, a1);
+      const [az2, el2] = getAzEl(f2.latitude, f2.longitude, a2);
+      const sep = sphericalSeparation(az1, el1, az2, el2);
+      const vertSep = Math.abs(a1 - a2);
 
-      const a1 = f1.altitude || 0;
-      const a2 = f2.altitude || 0;
-
-      if (a1 < 100 || a2 < 100) continue; // ignore near-ground
-
-      const [az1, el1] = getAzEl(proj1.lat, proj1.lon, proj1.alt);
-      const [az2, el2] = getAzEl(proj2.lat, proj2.lon, proj2.alt);
-
-
-      const dAz = toRad(az1 - az2);
-      const el1r = toRad(el1), el2r = toRad(el2);
-      const cosSep = Math.sin(el1r) * Math.sin(el2r) + Math.cos(el1r) * Math.cos(el2r) * Math.cos(dAz);
-      const sep = toDeg(Math.acos(Math.max(-1, Math.min(1, cosSep))));
-
-      const verticalSepMeters = Math.abs(a1 - a2);
-      const VERT_SEP_M = 4000 * 0.3048; // 4000 ft (~1219.2 m)
-
-      if (sep < margin && verticalSepMeters < VERT_SEP_M) {
+      if (sep < margin && vertSep < VERT_SEP_M) {
         matches.push({
           pair: [f1, f2],
           angularSeparation: sep,
-          verticalSeparation: verticalSepMeters
+          verticalSeparation: vertSep
         });
       }
     }
