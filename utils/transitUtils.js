@@ -209,7 +209,7 @@ export function detectTransits({
       let baseMargin = margin;
       if (useZenithLogic && futureBodyAlt > 80) baseMargin *= 0.8;     // tighter near zenith
       if (selectedBody === 'sun' && futureBodyAlt < 10) {               // Sun low: don't be too tight
-        baseMargin = Math.max(baseMargin, 2.5);
+        baseMargin = Math.max(baseMargin, 2.0);
       }
 
       let marginToUse = baseMargin;
@@ -260,13 +260,19 @@ export function detectTransits({
         ) &&
         (sep < marginToUse || closingIn);
 
-      const approachingSoon =
-        !isMatch &&
-        sustainedClosing &&
-        earlyEligibleHeight &&        // guard poor geometry
-        altOK_early &&                // must be close in height too
-        sep < (marginToUse + 2.0) &&  // slightly tighter early gate
-        closingIn;
+// NEW: when the body is low, require a tight vertical match too.
+// This respects your slider via marginToUse, but caps at ~±2° so sunset "lookalikes" don't ping.
+const lowSunVerticalOK =
+  (futureBodyAlt >= 35) || (Math.abs(elevationAngle - futureBodyAlt) <= Math.min(2, 0.5 * marginToUse));
+
+const approachingSoon =
+  !isMatch &&
+  sustainedClosing &&
+  earlyEligibleHeight &&
+  lowSunVerticalOK &&           // ← NEW line (the only functional change)
+  sep < (marginToUse + 2.0) &&
+  closingIn;
+
 
       if (isMatch || approachingSoon) {
         matches.push({
