@@ -1288,3 +1288,21 @@ muteBtn.addEventListener('click', () => {
   localStorage.setItem('muteAlerts', isMuted);
   updateMuteButton();
 });
+
+// --- TEST SOUND BUTTON --- //
+const testBtn = document.getElementById('testSoundBtn');
+
+if (testBtn && alertSound) {
+  testBtn.addEventListener('click', () => {
+    try {
+      alertSound.currentTime = 0;   // restart sound
+      alertSound.play().catch(err => {
+        console.warn("⚠️ Test sound blocked:", err);
+        alert("⚠️ Browser blocked the test sound. Try clicking again or adjust autoplay/media settings.");
+      });
+    } catch (e) {
+      console.error("Test sound error:", e);
+    }
+  });
+}
+
