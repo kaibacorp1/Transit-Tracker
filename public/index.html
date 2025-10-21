@@ -379,6 +379,49 @@
     ">Got it</button>
   </div>
 </div>
+<!-- Astro Competition Modal -->
+<div id="astroModal" style="
+  position: fixed;
+  z-index: 9999;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0,0,0,0.6);
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(2px);
+">
+  <div style="
+    background: rgb(60, 60, 60);
+    padding: 1.5rem 2rem;
+    max-width: 520px;
+    border-radius: 12px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.4);
+    text-align: center;
+    font-family: sans-serif;
+    color: #eee;
+  ">
+    <h2 style="margin-top: 0;">🌞 Vote for Transit Chaser!</h2>
+    <img src="Screenshot 2025-10-21 at 12.30.45 pm.png"
+         alt="Transit Chaser Competition Entry"
+         style="width:100%; border-radius:8px; margin-bottom:1rem;">
+    <p>
+      Every frame here was captured using <b>Transit Chaser</b>.<br>
+      It’s entered in the <b>2025 NZ Astro Competition</b>.<br>
+      If you like it, please give it a vote 👉 
+      <a href="https://nzastrocompetition.com/new-zealand-astrophotography-competition-2024/solar-system/?cid=179&cac=submission&ctx=page&sid=143894"
+         target="_blank"
+         style="color:#ffd166; font-weight:bold;">Here</a>
+    </p>
+    <button onclick="document.getElementById('astroModal').style.display='none'" style="
+      margin-top: 1rem;
+      padding: 0.5rem 1.2rem;
+      border: none;
+      background-color: #2b5127;
+      color: rgb(211, 211, 211);
+      border-radius: 6px;
+      cursor: pointer;
+    ">Close</button>
+  </div>
+</div>
 
    
   </div>
