@@ -142,6 +142,7 @@ function normalizeFlightUnits(f) {
 
 /**
  * Detects flights transiting (or near) a celestial body, now or within predictSeconds.
+ * Low-altitude strictness engages only when body alt <= ~10°, preserving high-alt behavior.
  */
 export function detectTransits({
   flights,
@@ -157,6 +158,15 @@ export function detectTransits({
   useZenithLogic = false,
   useDynamicMargin = false
 }) {
+  // ---- Low-altitude strictness knobs (per body) ----
+  const STRICT = { sun: true, moon: true };         // enable strict low-alt mode per body
+  const LOW_ALT_DEG = { sun: 10, moon: 10 };        // below this, be stricter
+  const SEP_CAP_LOW = { sun: 1.2, moon: 1.2 };      // max true separation for confirmed hit (deg)
+  const ALT_CAP_LOW = { sun: 1.0, moon: 1.0 };      // max vertical diff (deg) for confirmed hit
+  const EARLY_PAD_LOW = { sun: 0.5, moon: 0.5 };    // early-alert extra pad when low
+  const OFF_EARLY_BELOW = { sun: 4, moon: 6 };      // disable early pings entirely below this alt
+  const HEADING_GATE_LOW = { sun: 8, moon: 8 };     // tighter heading gate when low
+
   const matches = [];
   const now = Date.now();
 
@@ -181,6 +191,8 @@ export function detectTransits({
 
   const checkTransitsAt = (t) => {
     const { az: futureBodyAz, alt: futureBodyAlt } = getBodyPositionAt(t);
+    const target = (selectedBody === 'moon') ? 'moon' : 'sun';
+    const lowBodyActive = STRICT[target] && (futureBodyAlt <= LOW_ALT_DEG[target]);
 
     for (const plane of flightsNormalized) {
       let {
@@ -208,7 +220,7 @@ export function detectTransits({
       // Margin shaping
       let baseMargin = margin;
       if (useZenithLogic && futureBodyAlt > 80) baseMargin *= 0.8;     // tighter near zenith
-      if (selectedBody === 'sun' && futureBodyAlt < 10) {               // Sun low: don't be too tight
+      if (selectedBody === 'sun' && futureBodyAlt < 10) {               // keep your existing heuristic
         baseMargin = Math.max(baseMargin, 2.0);
       }
 
@@ -232,9 +244,10 @@ export function detectTransits({
 
       // Is the motion vector roughly toward the body?
       const headingToBody = Math.abs((((heading - futureBodyAz + 540) % 360) - 180));
+      const headingGate = lowBodyActive ? HEADING_GATE_LOW[target] : 12;
       const closingIn = (use3DHeading
         ? isHeadingTowardBody3D({ heading, verticalSpeed, speed }, futureBodyAz, futureBodyAlt, marginToUse)
-        : headingToBody < 12);
+        : headingToBody < headingGate);
 
       // Track trend of separation
       const prevSep = previousSeparation.get(callsign);
@@ -245,34 +258,44 @@ export function detectTransits({
       closeStreak.set(callsign, newStreak);
       const sustainedClosing = newStreak >= 3;  // require >=3 consecutive improving seconds
 
-      // New: altitude-axis agreement requirements
+      // Altitude-axis agreement requirements
       const altOK_match = altDiff < marginToUse;              // strict for confirmed matches
       const altOK_early = altDiff < (marginToUse + 1.0);      // slightly looser for early pings
 
-      // New: "don't bother" guard — common false-positive geometry (Sun high, plane very low)
+      // "don't bother" guard — common false-positive geometry (Sun high, plane very low)
       const earlyEligibleHeight = !(selectedBody === 'sun' && futureBodyAlt > 8 && elevationAngle < 4);
 
-      // Decision
+      // Body-agnostic low-alt vertical sanity (pre-existing idea, reused)
+      const lowBodyVerticalOK =
+        (futureBodyAlt >= 35) ||
+        (Math.abs(elevationAngle - futureBodyAlt) <= Math.min(2, 0.5 * marginToUse));
+
+      // Low-alt caps for confirmed matches
+      const confirmSepCap = lowBodyActive ? Math.min(marginToUse, SEP_CAP_LOW[target]) : marginToUse;
+      const altCap        = lowBodyActive ? Math.min(marginToUse, ALT_CAP_LOW[target]) : marginToUse;
+
+      // Decision: confirmed match
       const isMatch =
         (
-          (isZenith && sep < marginToUse) ||
-          (!isZenith && azDiff < marginToUse && altOK_match)
+          (isZenith && sep < confirmSepCap) ||
+          (!isZenith && azDiff < marginToUse && altDiff < altCap)
         ) &&
-        (sep < marginToUse || closingIn);
+        // when low: require actual sep inside the cap (no heading bypass here)
+        (lowBodyActive ? (sep < confirmSepCap) : (sep < marginToUse || closingIn));
 
-// NEW: when the body is low, require a tight vertical match too.
-// This respects your slider via marginToUse, but caps at ~±2° so sunset "lookalikes" don't ping.
-const lowSunVerticalOK =
-  (futureBodyAlt >= 35) || (Math.abs(elevationAngle - futureBodyAlt) <= Math.min(2, 0.5 * marginToUse));
+      // Decision: early alert (stricter when low, or disabled very low)
+      const earlySepPad = lowBodyActive ? EARLY_PAD_LOW[target] : 2.0;
+      const allowEarly  = !(STRICT[target] && futureBodyAlt < OFF_EARLY_BELOW[target]);
 
-const approachingSoon =
-  !isMatch &&
-  sustainedClosing &&
-  earlyEligibleHeight &&
-  lowSunVerticalOK &&           // ← NEW line (the only functional change)
-  sep < (marginToUse + 2.0) &&
-  closingIn;
-
+      const approachingSoon =
+        allowEarly &&
+        !isMatch &&
+        sustainedClosing &&
+        earlyEligibleHeight &&
+        altOK_early &&
+        lowBodyVerticalOK &&
+        sep < (marginToUse + earlySepPad) &&
+        closingIn;
 
       if (isMatch || approachingSoon) {
         matches.push({
