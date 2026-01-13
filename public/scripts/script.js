@@ -117,22 +117,27 @@ async function fetchAdsbOne({ lat, lon, radiusKm }) {
   lon = normalizeLongitude(lon);
   const radiusNm = (radiusKm / 1.852).toFixed(1);
   const res = await fetch(
-    `https://api.adsb.one/v2/point/${lat}/${lon}/${radiusNm}`
-  );
+  `/api/adsb-one?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}&radiusNm=${encodeURIComponent(radiusNm)}`
+);
   if (!res.ok) throw new Error(`ADSB-One ${res.status}`);
   const json = await res.json();
 
   // Use json.ac (not json.data.ac)
   const acList = Array.isArray(json.ac) ? json.ac : [];
 
- return acList.map(f => ({
-  latitude:  f.lat       || 0,
-  longitude: f.lon       || 0,
-  altitude:  (f.alt_geom || 0) * 0.3048,     // feet ➝ meters
-  heading:   f.track     || 0,
-  speed:     (f.gs       || 0) * 0.5144,     // knots ➝ m/s
-  callsign:  (f.flight || '').trim()
-}));
+return acList.map(f => {
+  const altFt = (f.alt_geom ?? f.alt_baro ?? f.alt ?? 0); // fallback fields
+
+  return {
+    latitude:  f.lat || 0,
+    longitude: f.lon || 0,
+    altitude:  altFt * 0.3048,          // feet -> meters
+    heading:   f.track || 0,
+    speed:     (f.gs || 0) * 0.5144,    // knots -> m/s
+    callsign:  (f.flight || '').trim()
+  };
+});
+
 }
 
 //_----------- FOR CONTRAILS_______///
