@@ -144,7 +144,7 @@ function normalizeFlightUnits(f) {
  * Detects flights transiting (or near) a celestial body, now or within predictSeconds.
  * Low-altitude strictness engages only when body alt <= ~10°, preserving high-alt behavior.
  */
-export function detectTransits({
+export function detectTransitsV1({
   flights,
   bodyAz,           // optional if you always call with SunCalc; kept for compatibility
   bodyAlt,          // idem
@@ -389,4 +389,19 @@ export function detectPlaneOnPlane({ flights, userLat, userLon, userElev = 0, ma
   }
 
   return matches;
+}
+
+
+
+// =========================
+// Version 2 (Experimental)
+// =========================
+
+// IMPORTANT:
+// For now, V2 is an exact copy of V1.
+// We will improve it later, step by step.
+
+export function detectTransitsV2(options) {
+  // Call V1 for now so behavior is IDENTICAL
+  return detectTransitsV1(options);
 }
