@@ -52,8 +52,6 @@ function toggleAutoRefresh() {
 
 //________ennaced ________
 
-const enhancedPredictionEnabled = document.getElementById('enhancedPrediction')?.checked || false;
-
 
 // --- Mode Flags ---
 window.useAdsbexchange = false;
@@ -782,7 +780,8 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ flights: flightObjs, userLat: uLat, userLon: uLon, userElev: uElev, bodyAz, bodyAlt, margin, predictSeconds, selectedBody, 
                           use3DHeading: document.getElementById('toggle3DCheck')?.checked || false,
-                          enhancedPrediction: document.getElementById('enhancedPrediction')?.checked
+                          enhancedPrediction: document.getElementById('enhancedPrediction')?.checked,
+                          version: localStorage.getItem('engineVersion') || 'v1'
  })
   })
   .then(res => { if (!res.ok) throw new Error(res.status); return res.json(); })
@@ -823,8 +822,6 @@ window.dispatchEvent(new CustomEvent('transit:matches', {
 
 //If you'd like to auto-toggle use3DHeading and useZenithLogic when Enhanced Prediction is checked//
       
-document.getElementById('enhancedPrediction').addEventListener('change', (e) => {
-});
 
 
       
@@ -1311,3 +1308,41 @@ if (testBtn && alertSound) {
   });
 }
 
+// =========================
+// Engine Version UI Toggle
+// =========================
+
+document.addEventListener('DOMContentLoaded', () => {
+  const btn   = document.getElementById('engineToggleBtn');
+  const label = document.getElementById('engineLabel');
+
+  if (!btn || !label) return;
+
+  // Read saved version (default v1)
+  let engineVersion = localStorage.getItem('engineVersion') || 'v1';
+
+  function updateEngineUI() {
+    if (engineVersion === 'v2') {
+      label.textContent = 'Engine: V2 (Experimental)';
+      btn.textContent = 'Switch to V1';
+      btn.style.backgroundColor = '#8b5a2b'; // amber
+    } else {
+      label.textContent = 'Engine: V1 (Stable)';
+      btn.textContent = 'Switch to V2';
+      btn.style.backgroundColor = '#444'; // neutral
+    }
+  }
+
+  updateEngineUI();
+
+  btn.addEventListener('click', () => {
+    engineVersion = engineVersion === 'v1' ? 'v2' : 'v1';
+    localStorage.setItem('engineVersion', engineVersion);
+    updateEngineUI();
+
+    // Optional: force immediate refresh so user sees effect
+    if (typeof getCurrentLocationAndRun === 'function') {
+      getCurrentLocationAndRun();
+    }
+  });
+});
