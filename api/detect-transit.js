@@ -6,7 +6,11 @@ export default async function handler(req, res) {
   }
 
   // dynamic import to pick up our updated detectTransits()
-  const { detectTransits, detectPlaneOnPlane } = await import('../utils/transitUtils.js');
+  const {
+  detectTransitsV1,
+  detectTransitsV2,
+  detectPlaneOnPlane
+} = await import('../utils/transitUtils.js');
 
   try {
     const {
@@ -23,6 +27,7 @@ export default async function handler(req, res) {
       useZenithLogic = false,
       enhancedPrediction = false,
     } = req.body;
+    const engineVersion = (req.body?.version || 'v1').toLowerCase();
 
     // Normalize longitude if it's over 180 (convert from 0–360 to -180 to 180)
 let normalizedLon = userLon;
@@ -60,22 +65,30 @@ if (normalizedLon > 180) {
 
     
     // run the hybrid box + spherical‐separation detector
-    const matches = detectTransits({
-      flights,
-      userLat,
-      userLon: normalizedLon,
-      userElev,
-      bodyAz,
-      bodyAlt,
-      margin,
-      predictSeconds,
-      selectedBody,
-      use3DHeading: enhancedPrediction || predictSeconds > 0 || use3DHeading,
-      useZenithLogic: enhancedPrediction || useZenithLogic,
-      useDynamicMargin: enhancedPrediction
-    });
+    const detectFn =
+  engineVersion === 'v2' ? detectTransitsV2 : detectTransitsV1;
 
-    return res.status(200).json({ matches });
+const matches = detectFn({
+  flights,
+  userLat,
+  userLon: normalizedLon,
+  userElev,
+  bodyAz,
+  bodyAlt,
+  margin,
+  predictSeconds,
+  selectedBody,
+  use3DHeading: enhancedPrediction || predictSeconds > 0 || use3DHeading,
+  useZenithLogic: enhancedPrediction || useZenithLogic,
+  useDynamicMargin: enhancedPrediction
+});
+
+
+    return res.status(200).json({
+  matches,
+  engineVersionUsed: engineVersion
+});
+
   } catch (err) {
     console.error('detect-transit error:', err);
     return res.status(500).json({ error: 'Internal server error' });
