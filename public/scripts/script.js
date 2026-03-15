@@ -811,6 +811,11 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
   });
 
 // console.log("✅ Enhanced Prediction value:", document.getElementById('enhancedPrediction').checked);
+
+  if (selectedBody === 'plane watch') {
+    runPlaneWatch(flightObjs, uLat, uLon);
+    return;
+  }
   
   // ── Send the normalized array instead of the raw one ──
   fetch('/api/detect-transit', {
@@ -1234,6 +1239,42 @@ function getSelectedValues(selectEl) {
   return Array.from(selectEl?.selectedOptions || []).map(opt => opt.value);
 }
 
+const aircraftTypeAliases = {
+  A380: ['A380', 'A388'],
+  A388: ['A388', 'A380'],
+  A330: ['A330', 'A332', 'A333', 'A338', 'A339'],
+  A332: ['A332', 'A330'],
+  A333: ['A333', 'A330'],
+  A339: ['A339', 'A330'],
+  A350: ['A350', 'A359', 'A35K'],
+  B747: ['B747', 'B744', 'B748'],
+  B787: ['B787', 'B788', 'B789', 'B78X'],
+  A320: ['A318', 'A319', 'A320', 'A321', 'A20N', 'A21N'],
+  B737: ['B733', 'B734', 'B735', 'B736', 'B737', 'B738', 'B739', 'B38M']
+};
+
+function normalizeAircraftTypeCode(value) {
+  return (value || '').toString().trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+}
+
+function syncCompassButtons() {
+  document.querySelectorAll('.watch-dir-btn').forEach(btn => {
+    const dir = btn.dataset.dir;
+    const checkbox = document.querySelector(`.watch-direction[value="${dir}"]`);
+    btn.classList.toggle('active', !!checkbox?.checked);
+  });
+}
+
+function setWatchDirections(directions) {
+  const wanted = new Set(directions);
+  document.querySelectorAll('.watch-direction').forEach(el => {
+    el.checked = wanted.has(el.value);
+  });
+  syncCompassButtons();
+  readPlaneWatchConfig();
+  if (selectedBody === 'plane watch') getCurrentLocationAndRun();
+}
+
 function readPlaneWatchConfig() {
   const minAlt = parseFloat(document.getElementById('watchMinAltitude')?.value || '0');
   const maxAlt = parseFloat(document.getElementById('watchMaxAltitude')?.value || '10000');
@@ -1266,9 +1307,14 @@ function maybeRequestPlaneWatchNotificationPermission() {
 
 function matchesAircraftType(flightType, selectedTypes = []) {
   if (!selectedTypes.length) return true;
-  const normType = (flightType || '').toString().trim().toUpperCase();
+  const normType = normalizeAircraftTypeCode(flightType);
   if (!normType) return false;
-  return selectedTypes.some(sel => normType === sel || normType.startsWith(sel) || sel.startsWith(normType));
+
+  return selectedTypes.some(sel => {
+    const normSel = normalizeAircraftTypeCode(sel);
+    const aliases = aircraftTypeAliases[normSel] || [normSel];
+    return aliases.some(alias => normType === alias || normType.startsWith(alias) || alias.startsWith(normType));
+  });
 }
 
 function getWatchDirection(azimuth) {
@@ -1311,6 +1357,8 @@ function runPlaneWatch(flights, userLat, userLon) {
 
   const statusEl = document.getElementById('transitStatus');
   const selectedDirections = new Set(planeWatchConfig.selectedDirections);
+  const radiusKm = parseInt(document.getElementById('radiusSelect')?.value || '30', 10);
+  const maxDistanceMeters = radiusKm * 1000;
   const matches = flights
     .map(f => {
       const azimuth = calculateAzimuth(userLat, userLon, f.latitude, f.longitude);
@@ -1327,6 +1375,7 @@ function runPlaneWatch(flights, userLat, userLon) {
       };
     })
     .filter(f => !ignoredFlights.has(f.callsign))
+    .filter(f => Number.isFinite(f.distanceMeters) && f.distanceMeters <= maxDistanceMeters)
     .filter(f => matchesAircraftType(f.aircraftType, planeWatchConfig.selectedTypes))
     .filter(f => altitudeFtIsInRange(f.altitudeFt))
     .filter(f => !selectedDirections.size || selectedDirections.has(f.direction))
@@ -1335,7 +1384,7 @@ function runPlaneWatch(flights, userLat, userLon) {
   const freshMatches = matches.filter(f => shouldNotifyPlaneWatch(`${f.callsign || 'unknown'}|${f.aircraftType || 'unknown'}|${f.direction}`));
 
   if (!matches.length) {
-    statusEl.textContent = 'No watchlist aircraft found in your selected area.';
+    statusEl.textContent = 'No watchlist aircraft found in your selected area. Try widening the radius, altitude, or direction sectors.';
     return;
   }
 
@@ -1383,7 +1432,7 @@ function runPlaneWatch(flights, userLat, userLon) {
       <a href="https://www.flightradar24.com/${f.callsign}" target="_blank">${f.callsign || 'Unknown callsign'}</a>
       — ${f.aircraftType || 'Unknown type'} ${Math.round(f.altitudeFt).toLocaleString()} ft ${((f.distanceMeters || 0) / 1000).toFixed(1)} km ${f.directionFull} (${timeStr})
     `;
-    logListEl.prepend(li);
+    transitLog.unshift(li);
 
     logDetectionLocally(`Plane Watch: ${f.callsign || 'Unknown callsign'}`, {
       callsign: f.callsign || '',
@@ -1396,10 +1445,17 @@ function runPlaneWatch(flights, userLat, userLon) {
   });
 
   if (freshMatches.length) {
+    logListEl.innerHTML = '';
+    transitLog.slice(0, 5).forEach(el => logListEl.appendChild(el));
+    const extraItems = transitLog.slice(5);
+    document.getElementById('extraLogList').innerHTML = '';
+    extraItems.forEach(el => document.getElementById('extraLogList').appendChild(el));
+    document.getElementById('readMoreBtn').style.display = extraItems.length > 0 ? 'inline-block' : 'none';
     logContainer.style.display = 'block';
     notifyPlaneWatch(freshMatches);
   }
 }
+
 
 function altitudeFtIsInRange(altitudeFt) {
   return altitudeFt >= planeWatchConfig.minAltitudeFt && altitudeFt <= planeWatchConfig.maxAltitudeFt;
@@ -1425,31 +1481,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.querySelectorAll('.watch-direction').forEach(el => {
     el.addEventListener('change', () => {
+      syncCompassButtons();
+      readPlaneWatchConfig();
+      if (selectedBody === 'plane watch') getCurrentLocationAndRun();
+    });
+  });
+
+  document.querySelectorAll('.watch-dir-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const dir = btn.dataset.dir;
+      const checkbox = document.querySelector(`.watch-direction[value="${dir}"]`);
+      if (!checkbox) return;
+      checkbox.checked = !checkbox.checked;
+      syncCompassButtons();
       readPlaneWatchConfig();
       if (selectedBody === 'plane watch') getCurrentLocationAndRun();
     });
   });
 
   document.getElementById('watchSelectAllDirsBtn')?.addEventListener('click', () => {
-    document.querySelectorAll('.watch-direction').forEach(el => { el.checked = true; });
-    readPlaneWatchConfig();
-    if (selectedBody === 'plane watch') getCurrentLocationAndRun();
+    setWatchDirections(['N','NE','E','SE','S','SW','W','NW']);
   });
 
   document.getElementById('watchClearDirsBtn')?.addEventListener('click', () => {
-    document.querySelectorAll('.watch-direction').forEach(el => { el.checked = false; });
-    readPlaneWatchConfig();
-    if (selectedBody === 'plane watch') getCurrentLocationAndRun();
+    setWatchDirections([]);
   });
 
   document.getElementById('watchPresetWestBtn')?.addEventListener('click', () => {
-    const wanted = new Set(['NW', 'W', 'SW']);
-    document.querySelectorAll('.watch-direction').forEach(el => { el.checked = wanted.has(el.value); });
-    readPlaneWatchConfig();
-    if (selectedBody === 'plane watch') getCurrentLocationAndRun();
+    setWatchDirections(['NW', 'W', 'SW']);
   });
 
   readPlaneWatchConfig();
+  syncCompassButtons();
 });
 
 //____________for the world map 
