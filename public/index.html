@@ -230,6 +230,7 @@
         <select id="bodyToggle">
           <option value="moon">🌙 Moon</option>
           <option value="sun">☀️ Sun</option>
+          <option value="plane watch">👀 Plane Watch</option>
           <option value="plane on plane">✈️ on ✈️</option>
           <option value="plane contrails">✈️💨💨</option>
         </select>
@@ -260,6 +261,61 @@
   <span id="countdownTimer">Next check in: 5s</span>
 </div>
     </div>
+
+
+<div class="data" id="planeWatchControls" style="display:none;">
+  <details open>
+    <summary><strong>👀 Plane Watch Filters</strong></summary>
+    <div style="margin-top:0.75rem;">
+      <label><strong>Aircraft Types:</strong></label><br />
+      <select id="watchAircraftTypes" multiple size="6" style="width:100%; max-width:320px;">
+        <option value="A380">Airbus A380</option>
+        <option value="A388">Airbus A380 (A388)</option>
+        <option value="B747">Boeing 747</option>
+        <option value="A350">Airbus A350</option>
+        <option value="B787">Boeing 787</option>
+        <option value="A330">Airbus A330</option>
+        <option value="A320">Airbus A320 family</option>
+        <option value="B737">Boeing 737 family</option>
+      </select>
+      <div style="font-size:0.85rem; color:#ccc; margin-top:0.35rem;">
+        Hold Ctrl / Cmd to select more than one. Matching is prefix-based, so A380 also matches A388.
+      </div>
+
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:0.75rem; margin-top:1rem;">
+        <label><strong>Min Altitude (ft):</strong><br />
+          <input id="watchMinAltitude" type="number" min="0" step="100" value="0" style="width:100%;" />
+        </label>
+        <label><strong>Max Altitude (ft):</strong><br />
+          <input id="watchMaxAltitude" type="number" min="0" step="100" value="10000" style="width:100%;" />
+        </label>
+      </div>
+
+      <div style="margin-top:1rem;">
+        <strong>Directions from you:</strong>
+        <div id="watchDirectionGrid" style="display:grid; grid-template-columns: repeat(4, minmax(70px, 1fr)); gap:0.5rem; margin-top:0.5rem;">
+          <label><input type="checkbox" class="watch-direction" value="N" /> N</label>
+          <label><input type="checkbox" class="watch-direction" value="NE" /> NE</label>
+          <label><input type="checkbox" class="watch-direction" value="E" /> E</label>
+          <label><input type="checkbox" class="watch-direction" value="SE" /> SE</label>
+          <label><input type="checkbox" class="watch-direction" value="S" /> S</label>
+          <label><input type="checkbox" class="watch-direction" value="SW" /> SW</label>
+          <label><input type="checkbox" class="watch-direction" value="W" /> W</label>
+          <label><input type="checkbox" class="watch-direction" value="NW" /> NW</label>
+        </div>
+        <div style="display:flex; gap:0.5rem; margin-top:0.75rem; flex-wrap:wrap;">
+          <button id="watchSelectAllDirsBtn" type="button">Select all</button>
+          <button id="watchClearDirsBtn" type="button">Clear all</button>
+          <button id="watchPresetWestBtn" type="button">W / NW / SW</button>
+        </div>
+      </div>
+
+      <div style="margin-top:1rem;">
+        <label><input id="watchBrowserNotifications" type="checkbox" checked /> Browser notifications</label>
+      </div>
+    </div>
+  </details>
+</div>
 
 <div class="data">
   <label style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
