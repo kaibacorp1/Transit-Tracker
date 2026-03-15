@@ -96,6 +96,104 @@
     .small-link:hover {
       text-decoration: underline;
     }
+  
+    .watch-type-select {
+      width: 100%;
+      max-width: 360px;
+      min-height: 12rem;
+    }
+    .watch-compass-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+    }
+    .watch-compass {
+      position: relative;
+      width: 240px;
+      height: 240px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.18);
+      background: radial-gradient(circle at center, rgba(255,255,255,0.14) 0 20%, rgba(255,255,255,0.06) 20% 58%, rgba(255,255,255,0.03) 58% 100%);
+      box-shadow: inset 0 0 24px rgba(0,0,0,0.28);
+    }
+    .watch-compass::before,
+    .watch-compass::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255,255,255,0.14);
+    }
+    .watch-compass::before { width: 2px; height: 86%; }
+    .watch-compass::after { width: 86%; height: 2px; }
+    .watch-compass-center {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(12,16,26,0.92);
+      border: 1px solid rgba(255,255,255,0.12);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #dce8ff;
+      box-shadow: 0 0 18px rgba(0,0,0,0.2);
+      pointer-events: none;
+    }
+    .watch-dir-btn {
+      position: absolute;
+      width: 56px;
+      height: 56px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(29, 41, 63, 0.9);
+      color: #e9eefc;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.18);
+    }
+    .watch-dir-btn:hover {
+      transform: translate(-50%, -50%) scale(1.05);
+      border-color: rgba(255,255,255,0.32);
+    }
+    .watch-dir-btn.active {
+      background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
+      border-color: rgba(255,255,255,0.48);
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.18), 0 8px 18px rgba(0,0,0,0.28);
+    }
+    .watch-dir-btn[data-dir="N"]  { left: 50%; top: 12%; transform: translate(-50%, -50%); }
+    .watch-dir-btn[data-dir="NE"] { left: 78%; top: 22%; transform: translate(-50%, -50%); }
+    .watch-dir-btn[data-dir="E"]  { left: 88%; top: 50%; transform: translate(-50%, -50%); }
+    .watch-dir-btn[data-dir="SE"] { left: 78%; top: 78%; transform: translate(-50%, -50%); }
+    .watch-dir-btn[data-dir="S"]  { left: 50%; top: 88%; transform: translate(-50%, -50%); }
+    .watch-dir-btn[data-dir="SW"] { left: 22%; top: 78%; transform: translate(-50%, -50%); }
+    .watch-dir-btn[data-dir="W"]  { left: 12%; top: 50%; transform: translate(-50%, -50%); }
+    .watch-dir-btn[data-dir="NW"] { left: 22%; top: 22%; transform: translate(-50%, -50%); }
+    .watch-direction-checkboxes {
+      display: none;
+    }
+    .watch-quick-actions {
+      display:flex;
+      gap:0.5rem;
+      margin-top:0.25rem;
+      flex-wrap:wrap;
+      justify-content:center;
+    }
+    .watch-help-text {
+      font-size:0.85rem;
+      color:#ccc;
+      margin-top:0.35rem;
+    }
+
   </style>
 </head>
 <body>
@@ -268,18 +366,21 @@
     <summary><strong>👀 Plane Watch Filters</strong></summary>
     <div style="margin-top:0.75rem;">
       <label><strong>Aircraft Types:</strong></label><br />
-      <select id="watchAircraftTypes" multiple size="6" style="width:100%; max-width:320px;">
-        <option value="A380">Airbus A380</option>
-        <option value="A388">Airbus A380 (A388)</option>
-        <option value="B747">Boeing 747</option>
-        <option value="A350">Airbus A350</option>
-        <option value="B787">Boeing 787</option>
-        <option value="A330">Airbus A330</option>
+      <select id="watchAircraftTypes" class="watch-type-select" multiple size="10">
+        <option value="A380">Airbus A380 family</option>
+        <option value="A388">Airbus A380-800 (A388)</option>
+        <option value="A330">Airbus A330 family</option>
+        <option value="A332">Airbus A330-200 (A332)</option>
+        <option value="A333">Airbus A330-300 (A333)</option>
+        <option value="A339">Airbus A330-900neo (A339)</option>
+        <option value="A350">Airbus A350 family</option>
+        <option value="B747">Boeing 747 family</option>
+        <option value="B787">Boeing 787 family</option>
         <option value="A320">Airbus A320 family</option>
         <option value="B737">Boeing 737 family</option>
       </select>
-      <div style="font-size:0.85rem; color:#ccc; margin-top:0.35rem;">
-        Hold Ctrl / Cmd to select more than one. Matching is prefix-based, so A380 also matches A388.
+      <div class="watch-help-text">
+        Hold Ctrl / Cmd to select more than one. Family options also match common subtype ICAO codes.
       </div>
 
       <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:0.75rem; margin-top:1rem;">
@@ -291,19 +392,31 @@
         </label>
       </div>
 
-      <div style="margin-top:1rem;">
+      <div class="watch-compass-wrap">
         <strong>Directions from you:</strong>
-        <div id="watchDirectionGrid" style="display:grid; grid-template-columns: repeat(4, minmax(70px, 1fr)); gap:0.5rem; margin-top:0.5rem;">
-          <label><input type="checkbox" class="watch-direction" value="N" /> N</label>
-          <label><input type="checkbox" class="watch-direction" value="NE" /> NE</label>
-          <label><input type="checkbox" class="watch-direction" value="E" /> E</label>
-          <label><input type="checkbox" class="watch-direction" value="SE" /> SE</label>
-          <label><input type="checkbox" class="watch-direction" value="S" /> S</label>
-          <label><input type="checkbox" class="watch-direction" value="SW" /> SW</label>
-          <label><input type="checkbox" class="watch-direction" value="W" /> W</label>
-          <label><input type="checkbox" class="watch-direction" value="NW" /> NW</label>
+        <div class="watch-help-text">Tap the compass sectors you want to monitor.</div>
+        <div class="watch-compass" id="watchCompass" aria-label="Direction selector">
+          <button class="watch-dir-btn" type="button" data-dir="N">N</button>
+          <button class="watch-dir-btn" type="button" data-dir="NE">NE</button>
+          <button class="watch-dir-btn" type="button" data-dir="E">E</button>
+          <button class="watch-dir-btn" type="button" data-dir="SE">SE</button>
+          <button class="watch-dir-btn" type="button" data-dir="S">S</button>
+          <button class="watch-dir-btn" type="button" data-dir="SW">SW</button>
+          <button class="watch-dir-btn" type="button" data-dir="W">W</button>
+          <button class="watch-dir-btn" type="button" data-dir="NW">NW</button>
+          <div class="watch-compass-center">YOU</div>
         </div>
-        <div style="display:flex; gap:0.5rem; margin-top:0.75rem; flex-wrap:wrap;">
+        <div class="watch-direction-checkboxes" aria-hidden="true">
+          <input type="checkbox" class="watch-direction" value="N" />
+          <input type="checkbox" class="watch-direction" value="NE" />
+          <input type="checkbox" class="watch-direction" value="E" />
+          <input type="checkbox" class="watch-direction" value="SE" />
+          <input type="checkbox" class="watch-direction" value="S" />
+          <input type="checkbox" class="watch-direction" value="SW" />
+          <input type="checkbox" class="watch-direction" value="W" />
+          <input type="checkbox" class="watch-direction" value="NW" />
+        </div>
+        <div class="watch-quick-actions">
           <button id="watchSelectAllDirsBtn" type="button">Select all</button>
           <button id="watchClearDirsBtn" type="button">Clear all</button>
           <button id="watchPresetWestBtn" type="button">W / NW / SW</button>
