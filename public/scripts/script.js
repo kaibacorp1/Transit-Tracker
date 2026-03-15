@@ -70,6 +70,15 @@ let lastStatusRender = null;
 
 // ✅ Add this here:
 const ignoredFlights = new Set();
+const watchNotifiedFlights = new Map();
+
+const planeWatchConfig = {
+  minAltitudeFt: 0,
+  maxAltitudeFt: 10000,
+  selectedTypes: [],
+  selectedDirections: [],
+  browserNotifications: true
+};
 
 // --- Utility & Storage Helpers ---
 function getAviationstackKey() {
@@ -130,9 +139,13 @@ return acList.map(f => {
     latitude:  f.lat || 0,
     longitude: f.lon || 0,
     altitude:  altFt * 0.3048,          // feet -> meters
+    altitudeFt: altFt,
     heading:   f.track || 0,
     speed:     (f.gs || 0) * 0.5144,    // knots -> m/s
-    callsign:  (f.flight || '').trim()
+    callsign:  (f.flight || '').trim(),
+    registration: f.r || f.reg || '',
+    aircraftType: (f.t || f.type || f.aircraft_type || f.icao_type || f.dbFlags || '').toString().trim().toUpperCase(),
+    provider: 'adsb-one'
   };
 });
 
@@ -293,7 +306,7 @@ function setInitialStatus() {
     const user = sessionStorage.getItem('osUser');
     const pass = sessionStorage.getItem('osPass');
     statusEl.textContent = user && pass
-      ? 'Ready — click “Check” to fetch flights'
+      ? (selectedBody === 'plane watch' ? 'Ready — Plane Watch will alert on matching aircraft' : 'Ready — click “Check” to fetch flights')
       : '❌ Missing OpenSky login.';
   }
 }
@@ -351,9 +364,13 @@ async function fetchRadarBox({ minLat, maxLat, minLon, maxLon }) {
     latitude:  f.latitude,
     longitude: f.longitude,
     altitude:  (f.altitude_ft  || 0) * 0.3048,
+    altitudeFt: (f.altitude_ft || 0),
     heading:   f.heading_deg    || 0,
     speed:     (f.speed_kt      || 0) * 0.514444,
-    callsign:  f.callsign        || ''
+    callsign:  f.callsign        || '',
+    registration: f.registration || f.reg || '',
+    aircraftType: (f.aircraft_type || f.type || f.icao_type || '').toString().trim().toUpperCase(),
+    provider: 'radarbox'
   }));
 }
 // ─────────────────────────────────────────────────────────────────────────
@@ -372,6 +389,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // ✅ NEW: Start session timer updates (moved inside the block)
 //  setInterval(updateSessionTimer, 1000);
 //  updateSessionTimer();
+
+  updateContrailModeUI();
+  readPlaneWatchConfig();
 });
 
 // --- UI Event Listeners ---
@@ -387,6 +407,9 @@ document.getElementById('bodyToggle').addEventListener('change', e => {
 } else if (selectedBody === 'sun') {
   title.textContent = '☀️ Sun';
   label.textContent = 'Sun';
+} else if (selectedBody === 'plane watch') {
+  title.textContent = '👀 Plane Watch';
+  label.textContent = 'Plane Watch';
 } else if (selectedBody === 'plane contrails') {
   title.textContent = '✈️ Contrail';
   label.textContent = 'Contrails';
@@ -622,7 +645,11 @@ function getCelestialPosition(lat, lon, elev) {
     checkContrailFlights(lat, lon, elev);
     return;
   }
-    if (selectedBody === 'plane on plane') {
+  if (selectedBody === 'plane watch') {
+    checkNearbyFlights(lat, lon, elev, 0, 0);  // bodyAz, bodyAlt not needed
+    return;
+  }
+  if (selectedBody === 'plane on plane') {
     checkNearbyFlights(lat, lon, elev, 0, 0);  // bodyAz, bodyAlt not needed
     return;
   }
@@ -645,7 +672,9 @@ function getCelestialPosition(lat, lon, elev) {
 // --- Flight Fetching & Backend Detection ---
   function checkNearbyFlights(uLat, uLon, uElev, bodyAz, bodyAlt) {
   const statusEl = document.getElementById('transitStatus');
-  statusEl.textContent = `Checking flights near the ${selectedBody}...`;
+  statusEl.textContent = selectedBody === 'plane watch'
+    ? 'Checking watchlist flights near you...'
+    : `Checking flights near the ${selectedBody}...`;
   const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
 
   // ─── RadarBox mode ─────────────────────────────────────────────────
@@ -748,13 +777,17 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
   latitude:  f[6],
   longitude: f[5],
   altitude:  isOpenSky ? rawAlt : rawAlt * 0.3048,
+  altitudeFt: isOpenSky ? ((rawAlt || 0) / 0.3048) : rawAlt,
   heading:   f[10] || 0,
   track:     f[10] || 0,
   speed:     (f[9] || 0) * 0.5144,
   verticalSpeed: isOpenSky
     ? (f[11] || 0) // OpenSky vertical rate is in m/s
     : ((f[12] || 0) * 0.00508), // ADS-B Exchange feet/min ➝ m/s
-  callsign:  f[1] || ''
+  callsign:  f[1] || '',
+  aircraftType: (f[2] || f[17] || '').toString().trim().toUpperCase(),
+  registration: (f[3] || f[18] || '').toString().trim(),
+  provider: isOpenSky ? 'opensky' : 'adsb-exchange'
 };
 }
 
@@ -764,10 +797,15 @@ function callTransitAPI(flights, uLat, uLon, uElev, bodyAz, bodyAlt) {
         latitude:  f.latitude  || f.lat  || 0,
         longitude: f.longitude || f.lon  || 0,
         altitude:  f.altitude  || f.baro_altitude || 0,
+        altitudeFt: f.altitudeFt || (((f.altitude  || f.baro_altitude || 0) || 0) / 0.3048),
         heading:   f.heading   || f.track || 0,
-        track:     f.heading   || f.track || 0,  // ← and here
+        track:     f.heading   || f.track || 0,
         speed:     f.speed     || f.velocity || 0,
-        callsign:  f.callsign  || f.flight || ''
+        verticalSpeed: f.verticalSpeed || f.vertical_speed || 0,
+        callsign:  f.callsign  || f.flight || '',
+        aircraftType: (f.aircraftType || f.type || f.icao_type || f.aircraft_type || '').toString().trim().toUpperCase(),
+        registration: (f.registration || f.reg || '').toString().trim(),
+        provider: f.provider || 'object'
       };
     }
   });
@@ -1166,29 +1204,253 @@ function getMarginFeedback(value) {
 }
 
 function updateContrailModeUI() {
-  const isContrail    = selectedBody === 'plane contrails';
+  const isContrail     = selectedBody === 'plane contrails';
   const isPlaneOnPlane = selectedBody === 'plane on plane';
+  const isPlaneWatch   = selectedBody === 'plane watch';
 
-  // ---- disable controls in contrail OR plane-on-plane modes ----
-  document.getElementById('predictToggle').disabled       = isContrail;
-  document.getElementById('marginSlider').disabled       = isContrail;
-  document.getElementById('enhancedPrediction').disabled = isContrail || isPlaneOnPlane;
+  document.getElementById('predictToggle').disabled        = isContrail || isPlaneWatch;
+  document.getElementById('marginSlider').disabled         = isContrail || isPlaneWatch;
+  document.getElementById('enhancedPrediction').disabled   = isContrail || isPlaneOnPlane || isPlaneWatch;
+  document.getElementById('planeWatchControls').style.display = isPlaneWatch ? 'block' : 'none';
 
-  // fade the Enhanced button
   const btn = document.getElementById('enhancedPredictionBtn');
   if (btn) {
-    btn.style.opacity = (isContrail || isPlaneOnPlane) ? 0.5 : 1;
+    btn.style.opacity = (isContrail || isPlaneOnPlane || isPlaneWatch) ? 0.5 : 1;
   }
 
-  // update the margin feedback text
   document.getElementById('marginFeedback').textContent = isContrail
     ? '🛑 Not applicable in contrail mode.'
     : isPlaneOnPlane
       ? '🔭 Only angular margin matters here.'
-      : getMarginFeedback(margin);
+      : isPlaneWatch
+        ? '👀 Plane Watch uses radius, altitude, type, and direction filters.'
+        : getMarginFeedback(margin);
 }
 
 
+
+
+function getSelectedValues(selectEl) {
+  return Array.from(selectEl?.selectedOptions || []).map(opt => opt.value);
+}
+
+function readPlaneWatchConfig() {
+  const minAlt = parseFloat(document.getElementById('watchMinAltitude')?.value || '0');
+  const maxAlt = parseFloat(document.getElementById('watchMaxAltitude')?.value || '10000');
+
+  planeWatchConfig.minAltitudeFt = Number.isFinite(minAlt) ? minAlt : 0;
+  planeWatchConfig.maxAltitudeFt = Number.isFinite(maxAlt) ? maxAlt : 10000;
+  planeWatchConfig.selectedTypes = getSelectedValues(document.getElementById('watchAircraftTypes'))
+    .map(v => v.trim().toUpperCase())
+    .filter(Boolean);
+  planeWatchConfig.selectedDirections = Array.from(document.querySelectorAll('.watch-direction:checked'))
+    .map(el => el.value);
+  planeWatchConfig.browserNotifications = !!document.getElementById('watchBrowserNotifications')?.checked;
+
+  if (planeWatchConfig.maxAltitudeFt < planeWatchConfig.minAltitudeFt) {
+    const tmp = planeWatchConfig.maxAltitudeFt;
+    planeWatchConfig.maxAltitudeFt = planeWatchConfig.minAltitudeFt;
+    planeWatchConfig.minAltitudeFt = tmp;
+  }
+
+  return planeWatchConfig;
+}
+
+function maybeRequestPlaneWatchNotificationPermission() {
+  if (!('Notification' in window)) return;
+  if (!document.getElementById('watchBrowserNotifications')?.checked) return;
+  if (Notification.permission === 'default') {
+    Notification.requestPermission().catch(() => {});
+  }
+}
+
+function matchesAircraftType(flightType, selectedTypes = []) {
+  if (!selectedTypes.length) return true;
+  const normType = (flightType || '').toString().trim().toUpperCase();
+  if (!normType) return false;
+  return selectedTypes.some(sel => normType === sel || normType.startsWith(sel) || sel.startsWith(normType));
+}
+
+function getWatchDirection(azimuth) {
+  return toCardinal(azimuth);
+}
+
+function shouldNotifyPlaneWatch(flightKey) {
+  const now = Date.now();
+  const cooldownMs = 2 * 60 * 1000;
+  const last = watchNotifiedFlights.get(flightKey) || 0;
+  if (now - last < cooldownMs) return false;
+  watchNotifiedFlights.set(flightKey, now);
+  return true;
+}
+
+function notifyPlaneWatch(matches) {
+  if (!matches.length) return;
+  if (!isMuted) {
+    document.getElementById('alertSound')?.play().catch(() => {});
+  }
+
+  if (!planeWatchConfig.browserNotifications) return;
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+  matches.forEach(f => {
+    const distanceKm = (f.distanceMeters / 1000).toFixed(1);
+    const altFt = Math.round(f.altitudeFt || 0);
+    const typeLabel = f.aircraftType || 'Unknown type';
+    const body = `${typeLabel} ${f.callsign || ''} ${distanceKm} km ${f.directionFull}, ${altFt.toLocaleString()} ft`;
+    try {
+      new Notification('Plane Watch alert', { body });
+    } catch (err) {
+      console.warn('Notification failed:', err);
+    }
+  });
+}
+
+function runPlaneWatch(flights, userLat, userLon) {
+  readPlaneWatchConfig();
+
+  const statusEl = document.getElementById('transitStatus');
+  const selectedDirections = new Set(planeWatchConfig.selectedDirections);
+  const matches = flights
+    .map(f => {
+      const azimuth = calculateAzimuth(userLat, userLon, f.latitude, f.longitude);
+      const distanceMeters = haversine(userLat, userLon, f.latitude, f.longitude);
+      const direction = getWatchDirection(azimuth);
+      const altitudeFt = f.altitudeFt || ((f.altitude || 0) / 0.3048);
+      return {
+        ...f,
+        azimuth,
+        altitudeFt,
+        distanceMeters,
+        direction,
+        directionFull: verbalizeCardinal(direction)
+      };
+    })
+    .filter(f => !ignoredFlights.has(f.callsign))
+    .filter(f => matchesAircraftType(f.aircraftType, planeWatchConfig.selectedTypes))
+    .filter(f => altitudeFtIsInRange(f.altitudeFt))
+    .filter(f => !selectedDirections.size || selectedDirections.has(f.direction))
+    .sort((a, b) => a.distanceMeters - b.distanceMeters);
+
+  const freshMatches = matches.filter(f => shouldNotifyPlaneWatch(`${f.callsign || 'unknown'}|${f.aircraftType || 'unknown'}|${f.direction}`));
+
+  if (!matches.length) {
+    statusEl.textContent = 'No watchlist aircraft found in your selected area.';
+    return;
+  }
+
+  const pauseBtn = `<button id="pauseResumeBtn" onclick="toggleAutoRefresh()" style="
+    float: right;
+    margin-left: 10px;
+    font-size: 0.75em;
+    padding: 3px 6px;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    background-color: ${autoRefresh ? '#66252f' : '#285431'};
+  ">
+    ${autoRefresh ? '🔴 Pause' : '🟢 Resume'}
+  </button>`;
+
+  const statusLines = matches.slice(0, 8).map(f => {
+    const distanceKm = (f.distanceMeters / 1000).toFixed(1);
+    const headingText = verbalizeCardinal(toCardinal(f.track || f.heading || 0));
+    const typeText = f.aircraftType || 'Unknown type';
+    return `
+      <a href="https://www.flightradar24.com/${f.callsign}" target="_blank" style="color:orange;font-weight:bold;text-decoration:none;">
+        ${f.callsign || 'Unknown callsign'}
+      </a>
+      <span style="font-size:0.75em; font-weight:normal;">
+        — ${typeText}, ${distanceKm} km ${f.directionFull}, ${Math.round(f.altitudeFt).toLocaleString()} ft, heading ${headingText}
+      </span>
+      <span onclick="ignoreFlight('${f.callsign}')" style="color:rgb(171, 57, 57);cursor:pointer;font-size:0.45em; margin-left:6px;">
+        Ignore
+      </span>
+    `;
+  }).join('<br>');
+
+  lastStatusRender = () => {
+    statusEl.innerHTML = `👀 Plane Watch matches: ${pauseBtn}<br>${statusLines}`;
+  };
+  lastStatusRender();
+
+  const timeStr = new Date().toLocaleTimeString('en-GB', { hour12: false });
+  freshMatches.forEach(f => {
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <a href="https://www.flightradar24.com/${f.callsign}" target="_blank">${f.callsign || 'Unknown callsign'}</a>
+      — ${f.aircraftType || 'Unknown type'} ${Math.round(f.altitudeFt).toLocaleString()} ft ${((f.distanceMeters || 0) / 1000).toFixed(1)} km ${f.directionFull} (${timeStr})
+    `;
+    logListEl.prepend(li);
+
+    logDetectionLocally(`Plane Watch: ${f.callsign || 'Unknown callsign'}`, {
+      callsign: f.callsign || '',
+      aircraftType: f.aircraftType || '',
+      altitudeFt: Math.round(f.altitudeFt || 0),
+      direction: f.direction,
+      distanceKm: +(((f.distanceMeters || 0) / 1000).toFixed(1)),
+      body: 'plane watch'
+    });
+  });
+
+  if (freshMatches.length) {
+    logContainer.style.display = 'block';
+    notifyPlaneWatch(freshMatches);
+  }
+}
+
+function altitudeFtIsInRange(altitudeFt) {
+  return altitudeFt >= planeWatchConfig.minAltitudeFt && altitudeFt <= planeWatchConfig.maxAltitudeFt;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const watchInputs = [
+    'watchAircraftTypes',
+    'watchMinAltitude',
+    'watchMaxAltitude',
+    'watchBrowserNotifications'
+  ];
+
+  watchInputs.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('change', () => {
+      readPlaneWatchConfig();
+      if (selectedBody === 'plane watch') getCurrentLocationAndRun();
+      if (id === 'watchBrowserNotifications') maybeRequestPlaneWatchNotificationPermission();
+    });
+  });
+
+  document.querySelectorAll('.watch-direction').forEach(el => {
+    el.addEventListener('change', () => {
+      readPlaneWatchConfig();
+      if (selectedBody === 'plane watch') getCurrentLocationAndRun();
+    });
+  });
+
+  document.getElementById('watchSelectAllDirsBtn')?.addEventListener('click', () => {
+    document.querySelectorAll('.watch-direction').forEach(el => { el.checked = true; });
+    readPlaneWatchConfig();
+    if (selectedBody === 'plane watch') getCurrentLocationAndRun();
+  });
+
+  document.getElementById('watchClearDirsBtn')?.addEventListener('click', () => {
+    document.querySelectorAll('.watch-direction').forEach(el => { el.checked = false; });
+    readPlaneWatchConfig();
+    if (selectedBody === 'plane watch') getCurrentLocationAndRun();
+  });
+
+  document.getElementById('watchPresetWestBtn')?.addEventListener('click', () => {
+    const wanted = new Set(['NW', 'W', 'SW']);
+    document.querySelectorAll('.watch-direction').forEach(el => { el.checked = wanted.has(el.value); });
+    readPlaneWatchConfig();
+    if (selectedBody === 'plane watch') getCurrentLocationAndRun();
+  });
+
+  readPlaneWatchConfig();
+});
 
 //____________for the world map 
 
