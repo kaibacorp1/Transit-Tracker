@@ -1317,7 +1317,7 @@ function readPlaneWatchConfig() {
 
   planeWatchConfig.minAltitudeFt = Number.isFinite(minAlt) ? minAlt : 0;
   planeWatchConfig.maxAltitudeFt = Number.isFinite(maxAlt) ? maxAlt : 10000;
-  planeWatchConfig.selectedTypes = getCheckedValues('.watch-aircraft-type')
+  planeWatchConfig.selectedTypes = getSelectedValues(document.getElementById('watchTypeSelect'))
     .map(v => v.trim().toUpperCase())
     .filter(Boolean);
   planeWatchConfig.callsignQuery = (document.getElementById('watchCallsignInput')?.value || '')
@@ -1568,11 +1568,9 @@ document.addEventListener('DOMContentLoaded', () => {
     setWatchDirections(['WNW', 'NW', 'W', 'SW']);
   });
 
-  document.querySelectorAll('.watch-aircraft-type').forEach(el => {
-    el.addEventListener('change', () => {
-      readPlaneWatchConfig();
-      if (selectedBody === 'plane watch') getCurrentLocationAndRun();
-    });
+  document.getElementById('watchTypeSelect')?.addEventListener('change', () => {
+    readPlaneWatchConfig();
+    if (selectedBody === 'plane watch') getCurrentLocationAndRun();
   });
 
   readPlaneWatchConfig();
