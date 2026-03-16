@@ -76,7 +76,6 @@ const planeWatchConfig = {
   minAltitudeFt: 0,
   maxAltitudeFt: 10000,
   selectedTypes: [],
-  callsignQuery: '',
   selectedDirections: [],
   browserNotifications: true
 };
@@ -269,35 +268,22 @@ lastStatusRender();  // draw it
 
 // ——————————————————————————
 
-function toCardinal(deg, points = 8) {
-  const angle = ((Number(deg) % 360) + 360) % 360;
-  if (points === 16) {
-    const dirs16 = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
-    return dirs16[Math.round(angle / 22.5) % 16];
-  }
-  const dirs8 = ['N','NE','E','SE','S','SW','W','NW'];
-  return dirs8[Math.round(angle / 45) % 8];
+function toCardinal(deg) {
+  const dirs = ['N','NE','E','SE','S','SW','W','NW','N'];
+  return dirs[Math.round(deg / 45) % 8];
 }
 
 // expand "N"/"NE"/… into full words
 function verbalizeCardinal(abbr) {
   const map = {
-    N:   "North",
-    NNE: "North North East",
-    NE:  "North East",
-    ENE: "East North East",
-    E:   "East",
-    ESE: "East South East",
-    SE:  "South East",
-    SSE: "South South East",
-    S:   "South",
-    SSW: "South South West",
-    SW:  "South West",
-    WSW: "West South West",
-    W:   "West",
-    WNW: "West North West",
-    NW:  "North West",
-    NNW: "North North West"
+    N:  "North",
+    NE: "North East",
+    E:  "East",
+    SE: "South East",
+    S:  "South",
+    SW: "South West",
+    W:  "West",
+    NW: "North West"
   };
   return map[abbr] || abbr;
 }
@@ -1231,7 +1217,6 @@ function updateContrailModeUI() {
   document.getElementById('marginSlider').disabled         = isContrail || isPlaneWatch;
   document.getElementById('enhancedPrediction').disabled   = isContrail || isPlaneOnPlane || isPlaneWatch;
   document.getElementById('planeWatchControls').style.display = isPlaneWatch ? 'block' : 'none';
-  document.getElementById('detectionMarginSection').style.display = isPlaneWatch ? 'none' : 'block';
 
   const btn = document.getElementById('enhancedPredictionBtn');
   if (btn) {
@@ -1254,27 +1239,6 @@ function getSelectedValues(selectEl) {
   return Array.from(selectEl?.selectedOptions || []).map(opt => opt.value);
 }
 
-function getCheckedValues(selector) {
-  return Array.from(document.querySelectorAll(selector))
-    .filter(el => el.checked)
-    .map(el => el.value);
-}
-
-function updatePlaneWatchSummary() {
-  const summaryEl = document.getElementById('watchSelectionSummary');
-  if (!summaryEl) return;
-
-  const types = planeWatchConfig.selectedTypes.length
-    ? planeWatchConfig.selectedTypes.join(', ')
-    : 'none';
-  const callsign = planeWatchConfig.callsignQuery || 'none';
-  const directions = planeWatchConfig.selectedDirections.length
-    ? planeWatchConfig.selectedDirections.join(', ')
-    : 'all directions';
-
-  summaryEl.innerHTML = `<strong>Watching:</strong> Types: ${types} • Callsign: ${callsign} • Directions: ${directions}`;
-}
-
 const aircraftTypeAliases = {
   A380: ['A380', 'A388'],
   A388: ['A388', 'A380'],
@@ -1291,26 +1255,6 @@ const aircraftTypeAliases = {
 
 function normalizeAircraftTypeCode(value) {
   return (value || '').toString().trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-}
-
-
-function matchesPlaneWatchCallsign(flight, query = '') {
-  const q = (query || '').toString().trim().toUpperCase();
-  if (!q) return false;
-
-  const candidates = [
-    flight?.callsign,
-    flight?.flight,
-    flight?.registration,
-    flight?.reg,
-    flight?.aircraftType,
-    flight?.icao24,
-    flight?.hex
-  ]
-    .filter(Boolean)
-    .map(value => value.toString().trim().toUpperCase());
-
-  return candidates.some(value => value.includes(q));
 }
 
 function syncCompassButtons() {
@@ -1337,13 +1281,9 @@ function readPlaneWatchConfig() {
 
   planeWatchConfig.minAltitudeFt = Number.isFinite(minAlt) ? minAlt : 0;
   planeWatchConfig.maxAltitudeFt = Number.isFinite(maxAlt) ? maxAlt : 10000;
-  planeWatchConfig.selectedTypes = getSelectedValues(document.getElementById('watchTypeSelect'))
+  planeWatchConfig.selectedTypes = getSelectedValues(document.getElementById('watchAircraftTypes'))
     .map(v => v.trim().toUpperCase())
     .filter(Boolean);
-  planeWatchConfig.callsignQuery = (document.getElementById('watchCallsignInput')?.value || '')
-    .toString()
-    .trim()
-    .toUpperCase();
   planeWatchConfig.selectedDirections = Array.from(document.querySelectorAll('.watch-direction:checked'))
     .map(el => el.value);
   planeWatchConfig.browserNotifications = !!document.getElementById('watchBrowserNotifications')?.checked;
@@ -1354,7 +1294,6 @@ function readPlaneWatchConfig() {
     planeWatchConfig.minAltitudeFt = tmp;
   }
 
-  updatePlaneWatchSummary();
   return planeWatchConfig;
 }
 
@@ -1379,7 +1318,7 @@ function matchesAircraftType(flightType, selectedTypes = []) {
 }
 
 function getWatchDirection(azimuth) {
-  return toCardinal(azimuth, 16);
+  return toCardinal(azimuth);
 }
 
 function shouldNotifyPlaneWatch(flightKey) {
@@ -1420,13 +1359,6 @@ function runPlaneWatch(flights, userLat, userLon) {
   const selectedDirections = new Set(planeWatchConfig.selectedDirections);
   const radiusKm = parseInt(document.getElementById('radiusSelect')?.value || '30', 10);
   const maxDistanceMeters = radiusKm * 1000;
-
-  const hasWatchTarget = planeWatchConfig.selectedTypes.length || planeWatchConfig.callsignQuery;
-  if (!hasWatchTarget) {
-    statusEl.textContent = '👀 Plane Watch is armed but waiting. Select at least one aircraft type or enter a callsign to start showing matches.';
-    return;
-  }
-
   const matches = flights
     .map(f => {
       const azimuth = calculateAzimuth(userLat, userLon, f.latitude, f.longitude);
@@ -1444,15 +1376,7 @@ function runPlaneWatch(flights, userLat, userLon) {
     })
     .filter(f => !ignoredFlights.has(f.callsign))
     .filter(f => Number.isFinite(f.distanceMeters) && f.distanceMeters <= maxDistanceMeters)
-    .filter(f => {
-      const typeMatch = planeWatchConfig.selectedTypes.length
-        ? matchesAircraftType(f.aircraftType, planeWatchConfig.selectedTypes)
-        : false;
-      const callsignMatch = planeWatchConfig.callsignQuery
-        ? matchesPlaneWatchCallsign(f, planeWatchConfig.callsignQuery)
-        : false;
-      return typeMatch || callsignMatch;
-    })
+    .filter(f => matchesAircraftType(f.aircraftType, planeWatchConfig.selectedTypes))
     .filter(f => altitudeFtIsInRange(f.altitudeFt))
     .filter(f => !selectedDirections.size || selectedDirections.has(f.direction))
     .sort((a, b) => a.distanceMeters - b.distanceMeters);
@@ -1539,7 +1463,7 @@ function altitudeFtIsInRange(altitudeFt) {
 
 document.addEventListener('DOMContentLoaded', () => {
   const watchInputs = [
-    'watchCallsignInput',
+    'watchAircraftTypes',
     'watchMinAltitude',
     'watchMaxAltitude',
     'watchBrowserNotifications'
@@ -1548,8 +1472,7 @@ document.addEventListener('DOMContentLoaded', () => {
   watchInputs.forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
-    const eventName = id === 'watchCallsignInput' ? 'input' : 'change';
-    el.addEventListener(eventName, () => {
+    el.addEventListener('change', () => {
       readPlaneWatchConfig();
       if (selectedBody === 'plane watch') getCurrentLocationAndRun();
       if (id === 'watchBrowserNotifications') maybeRequestPlaneWatchNotificationPermission();
@@ -1577,7 +1500,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('watchSelectAllDirsBtn')?.addEventListener('click', () => {
-    setWatchDirections(['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW']);
+    setWatchDirections(['N','NE','E','SE','S','SW','W','NW']);
   });
 
   document.getElementById('watchClearDirsBtn')?.addEventListener('click', () => {
@@ -1585,12 +1508,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('watchPresetWestBtn')?.addEventListener('click', () => {
-    setWatchDirections(['WNW', 'NW', 'W', 'SW']);
-  });
-
-  document.getElementById('watchTypeSelect')?.addEventListener('change', () => {
-    readPlaneWatchConfig();
-    if (selectedBody === 'plane watch') getCurrentLocationAndRun();
+    setWatchDirections(['NW', 'W', 'SW']);
   });
 
   readPlaneWatchConfig();
