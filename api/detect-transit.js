@@ -8,7 +8,6 @@ export default async function handler(req, res) {
   // dynamic import to pick up our updated detectTransits()
   const {
   detectTransitsV1,
-  detectTransitsV2,
   detectPlaneOnPlane
 } = await import('../utils/transitUtils.js');
 
