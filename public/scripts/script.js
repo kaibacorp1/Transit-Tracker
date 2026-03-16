@@ -1293,6 +1293,26 @@ function normalizeAircraftTypeCode(value) {
   return (value || '').toString().trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
 }
 
+
+function matchesPlaneWatchCallsign(flight, query = '') {
+  const q = (query || '').toString().trim().toUpperCase();
+  if (!q) return false;
+
+  const candidates = [
+    flight?.callsign,
+    flight?.flight,
+    flight?.registration,
+    flight?.reg,
+    flight?.aircraftType,
+    flight?.icao24,
+    flight?.hex
+  ]
+    .filter(Boolean)
+    .map(value => value.toString().trim().toUpperCase());
+
+  return candidates.some(value => value.includes(q));
+}
+
 function syncCompassButtons() {
   document.querySelectorAll('.watch-dir-btn').forEach(btn => {
     const dir = btn.dataset.dir;
