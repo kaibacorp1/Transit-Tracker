@@ -7,9 +7,9 @@ export default async function handler(req, res) {
 
   // dynamic import to pick up our updated detectTransits()
   const {
-  detectTransitsV1,
-  detectPlaneOnPlane
-} = await import('../utils/transitUtils.js');
+    detectTransitsV1,
+    detectPlaneOnPlane
+  } = await import('../utils/transitUtils.js');
 
   try {
     const {
@@ -26,8 +26,6 @@ export default async function handler(req, res) {
       useZenithLogic = false,
       enhancedPrediction = false,
     } = req.body;
-    const engineVersion = (req.body?.version || 'v1').toLowerCase();
-
     // Normalize longitude if it's over 180 (convert from 0–360 to -180 to 180)
 let normalizedLon = userLon;
 if (normalizedLon > 180) {
@@ -64,10 +62,7 @@ if (normalizedLon > 180) {
 
     
     // run the hybrid box + spherical‐separation detector
-    const detectFn =
-  engineVersion === 'v2' ? detectTransitsV2 : detectTransitsV1;
-
-const matches = detectFn({
+    const matches = detectTransitsV1({
   flights,
   userLat,
   userLon: normalizedLon,
@@ -83,10 +78,7 @@ const matches = detectFn({
 });
 
 
-    return res.status(200).json({
-  matches,
-  engineVersionUsed: engineVersion
-});
+    return res.status(200).json({ matches });
 
   } catch (err) {
     console.error('detect-transit error:', err);
