@@ -1,598 +1,404 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="icon" type="image/png" sizes="512x512" href="/public/favicon.png" />
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-7QETEVHGSJ"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+  <link rel="icon" type="image/png" sizes="512x512" href="/public/favicon.png" />
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-7QETEVHGSJ"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-7QETEVHGSJ');
+  </script>
 
-  gtag('config', 'G-7QETEVHGSJ');
-</script>
-  
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- SEO Essentials -->
-<title>Transit Chaser – Predict & Capture Aircraft Transits of the Sun, Moon, and Sky</title>
-<meta name="description" content="Transit Chaser helps you capture aircraft transits of the Sun, Moon, contrails, and even plane-on-plane events. Powered by real-time ADS-B data and precise celestial calculations. Free and browser-based.">
-<meta name="keywords" content="aircraft transit, sun transit photography, moon plane crossing, ADS-B tracker, contrail tracker, solar transit, lunar transit, plane-on-plane, flight tracking photography, transit chaser app, celestial transit prediction">
-<meta name="author" content="Rey Sandu Godakumbura">
-<meta name="robots" content="index, follow">
-<link rel="canonical" href="https://transitchaser.com/" />
+  <title>Transit Chaser – Predict & Capture Aircraft Transits of the Sun, Moon, and Sky</title>
+  <meta name="description" content="Transit Chaser helps you capture aircraft transits of the Sun, Moon, contrails, and even plane-on-plane events. Powered by real-time ADS-B data and precise celestial calculations. Free and browser-based.">
+  <meta name="keywords" content="aircraft transit, sun transit photography, moon plane crossing, ADS-B tracker, contrail tracker, solar transit, lunar transit, plane-on-plane, flight tracking photography, transit chaser app, celestial transit prediction">
+  <meta name="author" content="Rey Sandu Godakumbura">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://transitchaser.com/" />
 
   <link rel="stylesheet" href="style.css" />
-  <!-- Leaflet Map CSS & JS -->
-<link
-  rel="stylesheet"
-  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-/>
-<script
-  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-></script>
-  <style>
-    /* Nav button styling */
-    .nav-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      background-color: #f0f0f0;
-      color: #333;
-      padding: 0.4rem 0.8rem;
-      border: 1px solid #000;
-      border-radius: 4px;
-      text-decoration: none;
-      font-size: 0.9rem;
-      transition: background-color 0.2s;
-      line-height: 1;
-      cursor: pointer;
-      margin: 0;
-    }
-    .nav-btn:hover {
-      background-color: #e0e0e0;
-    }
-    /* Donate button override */
-    .donate-btn {
-      background-color: #1a8837;
-      color: #fff;
-    }
-    .donate-btn:hover {
-      background-color: #166e2f;
-    }
-    /* Theme toggle override */
-    .theme-toggle {
-      background-color: #303d5c;
-    }
-    .theme-toggle:hover {
-      background-color: #b0b0b0;
-    }
-    /* Header link styling for Upload & Gallery */
-    .header-link {
-      color: #666;
-      text-decoration: none;
-      font-size: 0.9rem;
-      padding: 0.4rem 0.8rem;
-      border-radius: 4px;
-      background-color: #161d2e;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      transition: background-color 0.2s, color 0.2s;
-      cursor: pointer;
-    }
-    .header-link:hover {
-      background-color: #e0e0e0;
-      color: #333;
-    }
-    /* Small-link styling (optional) */
-    .small-link {
-      font-size: 0.9rem;
-      color: #8b7821;
-      text-decoration: none;
-      margin-bottom: 0.5rem;
-      display: inline-block;
-    }
-    .small-link:hover {
-      text-decoration: underline;
-    }
-  
-    .watch-type-select {
-      width: 100%;
-      max-width: 360px;
-      min-height: 12rem;
-    }
-    .watch-compass-wrap {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.75rem;
-      margin-top: 0.75rem;
-    }
-    .watch-compass {
-      position: relative;
-      width: 240px;
-      height: 240px;
-      border-radius: 50%;
-      border: 2px solid rgba(255,255,255,0.18);
-      background: radial-gradient(circle at center, rgba(255,255,255,0.14) 0 20%, rgba(255,255,255,0.06) 20% 58%, rgba(255,255,255,0.03) 58% 100%);
-      box-shadow: inset 0 0 24px rgba(0,0,0,0.28);
-    }
-    .watch-compass::before,
-    .watch-compass::after {
-      content: '';
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(255,255,255,0.14);
-    }
-    .watch-compass::before { width: 2px; height: 86%; }
-    .watch-compass::after { width: 86%; height: 2px; }
-    .watch-compass-center {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      width: 62px;
-      height: 62px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(12,16,26,0.92);
-      border: 1px solid rgba(255,255,255,0.12);
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      color: #dce8ff;
-      box-shadow: 0 0 18px rgba(0,0,0,0.2);
-      pointer-events: none;
-    }
-    .watch-dir-btn {
-      position: absolute;
-      width: 56px;
-      height: 56px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.16);
-      background: rgba(29, 41, 63, 0.9);
-      color: #e9eefc;
-      font-weight: 700;
-      cursor: pointer;
-      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.18);
-    }
-    .watch-dir-btn:hover {
-      transform: translate(-50%, -50%) scale(1.05);
-      border-color: rgba(255,255,255,0.32);
-    }
-    .watch-dir-btn.active {
-      background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
-      border-color: rgba(255,255,255,0.48);
-      box-shadow: 0 0 0 3px rgba(59,130,246,0.18), 0 8px 18px rgba(0,0,0,0.28);
-    }
-    .watch-dir-btn[data-dir="N"]  { left: 50%; top: 12%; transform: translate(-50%, -50%); }
-    .watch-dir-btn[data-dir="NE"] { left: 78%; top: 22%; transform: translate(-50%, -50%); }
-    .watch-dir-btn[data-dir="E"]  { left: 88%; top: 50%; transform: translate(-50%, -50%); }
-    .watch-dir-btn[data-dir="SE"] { left: 78%; top: 78%; transform: translate(-50%, -50%); }
-    .watch-dir-btn[data-dir="S"]  { left: 50%; top: 88%; transform: translate(-50%, -50%); }
-    .watch-dir-btn[data-dir="SW"] { left: 22%; top: 78%; transform: translate(-50%, -50%); }
-    .watch-dir-btn[data-dir="W"]  { left: 12%; top: 50%; transform: translate(-50%, -50%); }
-    .watch-dir-btn[data-dir="NW"] { left: 22%; top: 22%; transform: translate(-50%, -50%); }
-    .watch-direction-checkboxes {
-      display: none;
-    }
-    .watch-quick-actions {
-      display:flex;
-      gap:0.5rem;
-      margin-top:0.25rem;
-      flex-wrap:wrap;
-      justify-content:center;
-    }
-    .watch-help-text {
-      font-size:0.85rem;
-      color:#ccc;
-      margin-top:0.35rem;
-    }
-
-  </style>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
-  <div class="container">
-    <header style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
-      <h1 style="margin: 0;"><span id="trackerTitle">🌙 Moon</span> Transits</h1>
-      <div style="display: flex; gap: 0.5rem; align-items: center;">
-        <a href="https://youtu.be/JpSmjU9v5QA" target="_blank" class="header-link" style="background-color: #9c983d; padding: 0.25rem 0.5rem; border-radius: 4px;">How to Use</a>
-        <a href="/public/upload.html" class="header-link">Upload</a>
-        <a href="/public/gallery.html" class="header-link">Gallery</a>
-        <a href="https://buymeacoffee.com/transitchaser" target="_blank" class="nav-btn donate-btn">🫰Donate</a>
-        <button id="muteToggleBtn" class="nav-btn theme-toggle" aria-label="Mute/unmute alert sound">🔔</button>
-<button id="testSoundBtn" class="nav-btn theme-toggle" aria-label="Test alert sound" title="Test alert audio">🔊</button>
-        <button id="themeToggle" class="nav-btn theme-toggle" aria-label="Toggle light/dark mode">💡</button>
-      </div>
-    </header>
+  <div class="app-shell">
+    <div class="ambient ambient-a"></div>
+    <div class="ambient ambient-b"></div>
+    <div class="ambient ambient-c"></div>
 
-<!-- Add this right below -->
- TransitChaser.com 
-<span style="font-size: 0.7rem;">powered by</span>
-<a href="https://www.lifebeyondstars.com" class="small-link" target="_blank" rel="noopener noreferrer">
-  www.lifebeyondstars.com
-</a>
-
-
-    <div class="highlight" id="transitStatus" style="margin: 1rem 0; font-size: 1.4rem; font-weight: bold;">
-    Checking flights near the Moon...
-    </div>
-    <!-- Line 2: persistent transit log -->
-    <div id="transitLogContainer" style="display:none; margin-top:1em;">
-  <strong>Log:</strong>
-  <ul id="transitLogList" style="padding-left:1.2em;"></ul>
-
-  <!-- Hidden older logs -->
-  <div id="extraLogContainer" style="display:none;">
-    <ul id="extraLogList" style="padding-left:1.2em; opacity: 0.7;"></ul>
-  </div>
-
-  <!-- "Read More" button appears if there are more than 5 entries -->
-  <button id="readMoreBtn" style="display:none; margin-top: 0.5em;">🔽 Read More</button>
-
-  <!-- Existing dismiss button -->
-  <button id="dismissLogBtn" style="margin-top: 0.5em;">Dismiss</button>
-</div>
-
-
-    <details id="dataSourceToggle" open>
-    <summary>Data Source</summary>
-    <div class="data">
-      <!-- “What are these?” link inserted right above the tab buttons -->
-      <a href="public/providers.html" class="small-link">What are these?</a>
-
-      <div class="tab-buttons">
-        <button id="adsboneTabBtn" onclick="showTab('adsboneTab')">📡 ADSB-One</button>
-        <button onclick="showTab('openskyTab')" id="openskyTabBtn">✈️ OpenSky</button>
-        <button onclick="showTab('adsbexTab')" id="adsbexTabBtn">📡 ADS-B Exchange</button>
-        <button onclick="showTab('radarboxTab')" id="radarboxTabBtn">🛰️ RadarBox</button>
-      </div>
-
-             <div id="adsboneTab" style="display:none; padding:1rem;">
-       <h2>ADSB-One</h2>
-       <button onclick="useAdsbOneAPI()">📡 Use ADSB-One</button>
-       <div id="adsboneApiNotice" style="margin-top:0.5rem;"></div>
-       </div>
-
-      <div id="openskyTab">
-        <details open>
-          <summary><strong>OpenSky Login</strong></summary>
-          <p style="font-size: 0.9rem; color: #ccc;">
-            You need an account with <a href="https://opensky-network.org/" target="_blank" style="color:#00bfff;">OpenSky Network</a>. Only works with accounts made before 03/2025<br>
-            New accounts cannot authenticate via the old Basic-Auth method right now, We’re in the process of adding OAuth2 support. Please bear with us!
-          </p>
-          <label>Username: <input type="text" id="osUsername" /></label><br>
-          <label>Password: <input type="password" id="osPassword" /></label><br>
-          <button onclick="saveCredentials()">🔐 Save Credentials</button>
-          <small>We do not store your credentials. Used only this session.</small>
-        </details>
-      </div>
-
-      <div id="adsbexTab" style="display:none;">
-        <details open>
-          <summary><strong>ADS-B Exchange</strong></summary>
-          You need an account with <a href="https://rapidapi.com/hub" target="_blank" style="color:#00bfff;">Rapidapi.com</a>.<br>
-          <label>🔑 RapidAPI Key:</label>
-          <input type="text" id="adsbApiKey" placeholder="Enter your RapidAPI Key" style="width:100%;" />
-          <label>🌐 API Host:</label>
-          <input type="text" id="adsbApiHost" value="adsbexchange-com1.p.rapidapi.com" style="width:100%;" />
-          <button onclick="saveAdsbExSettings()">💾 Save Settings</button>
-          <button onclick="useAdsbExchangeAPI()" style="margin-top:0.5rem;">📡 Use ADS-B Exchange</button>
-          <div id="adsbApiNotice"></div>
-        </details>
-      </div>
-
-       <div id="radarboxTab" style="display:none; padding:1rem">
-       <h2>Coming soon </h2>
-       <label for="radarboxKeyInput">API Token:</label>
-       <input id="radarboxKeyInput" type="text" placeholder="Enter your RadarBox token" />
-      <button onclick="saveRadarboxKey()">💾 Save Token</button>
-      <span id="radarboxApiNotice" style="margin-left:1rem"></span>
-       <hr style="margin:1rem 0" />
-       <button onclick="useRadarboxAPI()">🛰️ Use RadarBox</button>
-      </div>
-    </div>
-      </details>
-
-    <details id="locationModeToggle" open>
-  <summary><strong>📍</strong></summary>
-  <div class="data">
-    <label><strong>Location Mode:</strong></label>
-    <select id="locationMode">
-      <option value="auto" selected>Auto (GPS)</option>
-      <option value="manual">Manual</option>
-    </select>
-    <button id="refreshBtn" style="margin-left:1rem;">🔄 Refresh</button>
-    <div id="manualLocationFields" style="display:none; margin-top:0.5rem;">
-      <br />
-      <button onclick="showMap()" style="margin-top: 0.5rem;">🗺️ Select from Map</button>
-      <div id="locationErrorMsg" style="display:none; color: orange; font-size: 0.85em; margin-top: 5px;"></div>
-      <div id="mapContainer" style="height: 300px; margin-top: 1rem; display: none; border: 1px solid #444;"></div><br />
-      <label>Latitude: <input id="manualLat" type="number" step="0.000001" /></label><br />
-      <label>Longitude: <input id="manualLon" type="number" step="0.000001" /></label><br />
-      <label>Elevation (m): <input id="manualElev" type="number" value="10" /></label>
-    </div>
-  </div>
-</details>
-
-
-
-        <div class="data">
-      <div class="controls">
-        <label><strong>Transit Mode:</strong></label>
-        <select id="bodyToggle">
-          <option value="moon">🌙 Moon</option>
-          <option value="sun">☀️ Sun</option>
-          <option value="plane watch">👀 Plane Watch</option>
-          <option value="plane on plane">✈️ on ✈️</option>
-          <option value="plane contrails">✈️💨💨</option>
-        </select>
-        <label><strong>Search Radius:</strong></label>
-        <select id="radiusSelect">
-          <option value="10">10 km</option>
-          <option value="20">20 km</option>
-          <option value="30" selected>30 km</option>
-          <option value="40">40 km</option>
-          <option value="50">50 km</option>
-          <option value="60">60 km</option>
-        </select>
-        <label><strong>Prediction:</strong></label>
-        <select id="predictToggle">
-          <option value="0">Off</option>
-          <option value="30">30 sec</option>
-          <option value="60">60 sec</option>
-          <option value="120" selected>120 sec</option>
-          <option value="180">180 sec</option>
-        </select>
-        <label><strong>Auto Refresh:</strong></label>
-        <select id="autoRefreshToggle">
-          <option value="on" selected>On</option>
-          <option value="off">Off</option>
-        </select>
-      </div>
-      <div style="margin-top: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
-  <span id="countdownTimer">Next check in: 5s</span>
-</div>
-    </div>
-
-
-<div class="data" id="planeWatchControls" style="display:none;">
-  <details open>
-    <summary><strong>👀 Plane Watch Filters</strong></summary>
-    <div style="margin-top:0.75rem;">
-      <label><strong>Aircraft Types:</strong></label><br />
-      <select id="watchAircraftTypes" class="watch-type-select" multiple size="10">
-        <option value="A380">Airbus A380 family</option>
-        <option value="A388">Airbus A380-800 (A388)</option>
-        <option value="A330">Airbus A330 family</option>
-        <option value="A332">Airbus A330-200 (A332)</option>
-        <option value="A333">Airbus A330-300 (A333)</option>
-        <option value="A339">Airbus A330-900neo (A339)</option>
-        <option value="A350">Airbus A350 family</option>
-        <option value="B747">Boeing 747 family</option>
-        <option value="B787">Boeing 787 family</option>
-        <option value="A320">Airbus A320 family</option>
-        <option value="B737">Boeing 737 family</option>
-      </select>
-      <div class="watch-help-text">
-        Hold Ctrl / Cmd to select more than one. Family options also match common subtype ICAO codes.
-      </div>
-
-      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:0.75rem; margin-top:1rem;">
-        <label><strong>Min Altitude (ft):</strong><br />
-          <input id="watchMinAltitude" type="number" min="0" step="100" value="0" style="width:100%;" />
-        </label>
-        <label><strong>Max Altitude (ft):</strong><br />
-          <input id="watchMaxAltitude" type="number" min="0" step="100" value="10000" style="width:100%;" />
-        </label>
-      </div>
-
-      <div class="watch-compass-wrap">
-        <strong>Directions from you:</strong>
-        <div class="watch-help-text">Tap the compass sectors you want to monitor.</div>
-        <div class="watch-compass" id="watchCompass" aria-label="Direction selector">
-          <button class="watch-dir-btn" type="button" data-dir="N">N</button>
-          <button class="watch-dir-btn" type="button" data-dir="NE">NE</button>
-          <button class="watch-dir-btn" type="button" data-dir="E">E</button>
-          <button class="watch-dir-btn" type="button" data-dir="SE">SE</button>
-          <button class="watch-dir-btn" type="button" data-dir="S">S</button>
-          <button class="watch-dir-btn" type="button" data-dir="SW">SW</button>
-          <button class="watch-dir-btn" type="button" data-dir="W">W</button>
-          <button class="watch-dir-btn" type="button" data-dir="NW">NW</button>
-          <div class="watch-compass-center">YOU</div>
-        </div>
-        <div class="watch-direction-checkboxes" aria-hidden="true">
-          <input type="checkbox" class="watch-direction" value="N" />
-          <input type="checkbox" class="watch-direction" value="NE" />
-          <input type="checkbox" class="watch-direction" value="E" />
-          <input type="checkbox" class="watch-direction" value="SE" />
-          <input type="checkbox" class="watch-direction" value="S" />
-          <input type="checkbox" class="watch-direction" value="SW" />
-          <input type="checkbox" class="watch-direction" value="W" />
-          <input type="checkbox" class="watch-direction" value="NW" />
-        </div>
-        <div class="watch-quick-actions">
-          <button id="watchSelectAllDirsBtn" type="button">Select all</button>
-          <button id="watchClearDirsBtn" type="button">Clear all</button>
-          <button id="watchPresetWestBtn" type="button">W / NW / SW</button>
-        </div>
-      </div>
-
-      <div style="margin-top:1rem;">
-        <label><input id="watchBrowserNotifications" type="checkbox" checked /> Browser notifications</label>
-      </div>
-    </div>
-  </details>
-</div>
-
-<div class="data">
-  <label style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
-    <div style="display: flex; gap: 0.75rem; align-items: center;">
-      <strong>Detection Margin</strong>
-      <a href="public/detection_visuals.html" class="small-link" style="font-size: 0.85rem;">Visuals</a>
-    </div>
-    <div style="display: flex; flex-direction: column; align-items: flex-end;">
-      <button
-        id="enhancedPredictionBtn"
-        onclick="toggleEnhancedPrediction()"
-        style="background-color: #66252f; color: white; border: none; padding: 0.4rem 1rem; font-weight: bold; font-size: 0.95rem; border-radius: 8px; cursor: pointer;"
-      >
-        🔴 Enhanced Prediction
-      </button>
-      <a href="https://transitchaser.com/public/EnhancedPrediction.html" class="small-link" style="font-size: 0.8rem; margin-top: 0.2rem;">What’s this?</a>
+    <main class="container">
+      <section class="hero-card panel">
+        <div class="hero-topbar">
+          <div>
+            <div class="eyebrow">Real-time celestial alignment tracker</div>
+            <h1><span id="trackerTitle">🌙 Moon</span> Transits</h1>
+            <p class="hero-copy">A cleaner, more modern control surface for spotting Sun, Moon, contrail, plane-watch and plane-on-plane moments.</p>
           </div>
-  </label>
-  <input id="marginSlider" type="range" min="0.5" max="20" step="0.5" value="2.5" />
-  <span id="marginValue">2.5°</span>
-  <div id="marginFeedback">🌟 Very strict (photography)</div>
-  <input type="checkbox" id="enhancedPrediction" checked style="display:none;" />
-</div>
-
-
-    <div class="data" id="locationInfo">
-      <strong>Your Location &amp; <span id="bodyLabel">Moon</span> Info:</strong>
-      <div class="info-grid">
-        <div>
-          <div>Latitude: <span id="lat">...</span></div>
-          <div>Longitude: <span id="lon">...</span></div>
-          <div>Elevation: <span id="elevation">...</span> m</div>
+          <div class="hero-actions">
+            <a href="https://youtu.be/JpSmjU9v5QA" target="_blank" class="header-link accent-link">How to Use</a>
+            <a href="/public/upload.html" class="header-link">Upload</a>
+            <a href="/public/gallery.html" class="header-link">Gallery</a>
+            <a href="https://buymeacoffee.com/transitchaser" target="_blank" class="nav-btn donate-btn">Donate</a>
+            <button id="muteToggleBtn" class="nav-btn theme-toggle" aria-label="Mute/unmute alert sound">🔔</button>
+            <button id="testSoundBtn" class="nav-btn theme-toggle" aria-label="Test alert sound" title="Test alert audio">🔊</button>
+            <button id="themeToggle" class="nav-btn theme-toggle" aria-label="Toggle light/dark mode">☼</button>
+          </div>
         </div>
-        <div>
-          <div>Azimuth: <span id="moonAz">...</span>°</div>
-          <div>Altitude: <span id="moonAlt">...</span>°</div>
+
+        <div class="hero-status-row">
+          <div class="brand-chip">
+            <span class="brand-mark">TransitChaser</span>
+            <span class="brand-sub">powered by <a href="https://www.lifebeyondstars.com" class="small-link" target="_blank" rel="noopener noreferrer">Life Beyond Stars</a></span>
+          </div>
+
+          <div id="engineToggleContainer" class="engine-chip">
+            <span id="engineLabel">Engine: V1 (Stable)</span>
+            <button id="engineToggleBtn" title="Switch between stable (V1) and experimental (V2) detection engines">Switch to V2</button>
+          </div>
         </div>
-      </div>
-    </div>
 
-    <div class="data">
-      <details>
-        <summary><strong>⚙️ Advanced Settings</strong></summary><br>
-        <button id="viewLogBtn">🕒 View Transit Log</button>
-        <button id="clearLogBtn">🗑️ Clear Log</button>
-        <button id="downloadLogBtn">📥 Download Log</button><br><br>
-        <label><strong>Log Format:</strong>
-          <select id="logFormat">
-            <option value="txt" selected>Plain Text (.txt)</option>
-            <option value="json">JSON (.json)</option>
-          </select>
-        </label><br>
-        <br>
-        <label>🔁 Auto Refresh Interval (sec):
-          <input id="refreshIntervalInput" type="number" min="3" style="width:60px" value="5" />
-        </label><br>
-        <label for="volumeSlider">🔊 Volume:</label>
-       <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1" />
-       <br />
-    </details>
-    </div>
+        <div class="hero-grid">
+          <div class="hero-primary panel panel-soft">
+            <div class="status-kicker">Live status</div>
+            <div class="highlight" id="transitStatus">Checking flights near the Moon...</div>
+          </div>
 
-    <audio id="alertSound" preload="auto" src="/alert.MP3"></audio>
+          <div class="hero-secondary panel panel-soft" id="locationInfo">
+            <div class="status-kicker">Observer &amp; body</div>
+            <div class="info-grid info-grid-hero">
+              <div>
+                <div class="metric-label">Latitude</div>
+                <div class="metric-value"><span id="lat">...</span></div>
+                <div class="metric-label">Longitude</div>
+                <div class="metric-value"><span id="lon">...</span></div>
+                <div class="metric-label">Elevation</div>
+                <div class="metric-value"><span id="elevation">...</span> m</div>
+              </div>
+              <div>
+                <div class="metric-label"><span id="bodyLabel">Moon</span> azimuth</div>
+                <div class="metric-value"><span id="moonAz">...</span>°</div>
+                <div class="metric-label"><span id="bodyLabelDuplicate">Moon</span> altitude</div>
+                <div class="metric-value"><span id="moonAlt">...</span>°</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/suncalc/1.8.0/suncalc.min.js"></script>
-    <script src="scripts/script.js"></script>
+      <section id="transitLogContainer" class="panel log-card" style="display:none;">
+        <div class="section-heading-row">
+          <h2>Recent detections</h2>
+          <button id="dismissLogBtn" class="ghost-btn">Dismiss</button>
+        </div>
+        <ul id="transitLogList" class="log-list"></ul>
+        <div id="extraLogContainer" style="display:none;">
+          <ul id="extraLogList" class="log-list extra"></ul>
+        </div>
+        <button id="readMoreBtn" class="inline-link-btn" style="display:none;">🔽 Read More</button>
+      </section>
 
-    <footer>
-      <p>Copyright © Rey Sandu Godakumbura</p>
+      <section class="dashboard-grid">
+        <div class="stack-col">
+          <details id="dataSourceToggle" class="panel section-panel" open>
+            <summary>
+              <span>Data source</span>
+              <a href="public/providers.html" class="small-link summary-link">What are these?</a>
+            </summary>
+            <div class="data">
+              <div class="tab-buttons modern-tabs">
+                <button id="adsboneTabBtn" onclick="showTab('adsboneTab')">📡 ADSB-One</button>
+                <button id="openskyTabBtn" onclick="showTab('openskyTab')">✈️ OpenSky</button>
+                <button id="adsbexTabBtn" onclick="showTab('adsbexTab')">📡 ADS-B Exchange</button>
+                <button id="radarboxTabBtn" onclick="showTab('radarboxTab')">🛰️ RadarBox</button>
+              </div>
+
+              <div id="adsboneTab" class="provider-panel" style="display:none;">
+                <h2>ADSB-One</h2>
+                <p class="muted-copy">Fast setup with no credentials required.</p>
+                <button onclick="useAdsbOneAPI()">📡 Use ADSB-One</button>
+                <div id="adsboneApiNotice" class="notice-slot"></div>
+              </div>
+
+              <div id="openskyTab" class="provider-panel">
+                <details open>
+                  <summary><strong>OpenSky Login</strong></summary>
+                  <p class="muted-copy">
+                    You need an account with <a href="https://opensky-network.org/" target="_blank" class="inline-anchor">OpenSky Network</a>. Only works with accounts made before 03/2025.<br>
+                    New accounts cannot authenticate via the old Basic-Auth method right now. OAuth2 support is still being added.
+                  </p>
+                  <label>Username: <input type="text" id="osUsername" /></label>
+                  <label>Password: <input type="password" id="osPassword" /></label>
+                  <button onclick="saveCredentials()">🔐 Save Credentials</button>
+                  <small>Stored only in your current browser session.</small>
+                </details>
+              </div>
+
+              <div id="adsbexTab" class="provider-panel" style="display:none;">
+                <details open>
+                  <summary><strong>ADS-B Exchange</strong></summary>
+                  <p class="muted-copy">Connect through RapidAPI.</p>
+                  <label>🔑 RapidAPI Key:
+                    <input type="text" id="adsbApiKey" placeholder="Enter your RapidAPI Key" />
+                  </label>
+                  <label>🌐 API Host:
+                    <input type="text" id="adsbApiHost" value="adsbexchange-com1.p.rapidapi.com" />
+                  </label>
+                  <div class="button-row">
+                    <button onclick="saveAdsbExSettings()">💾 Save Settings</button>
+                    <button onclick="useAdsbExchangeAPI()">📡 Use ADS-B Exchange</button>
+                  </div>
+                  <div id="adsbApiNotice" class="notice-slot"></div>
+                </details>
+              </div>
+
+              <div id="radarboxTab" class="provider-panel" style="display:none;">
+                <h2>RadarBox</h2>
+                <p class="muted-copy">Coming soon.</p>
+                <label for="radarboxKeyInput">API Token:</label>
+                <input id="radarboxKeyInput" type="text" placeholder="Enter your RadarBox token" />
+                <div class="button-row">
+                  <button onclick="saveRadarboxKey()">💾 Save Token</button>
+                  <button onclick="useRadarboxAPI()">🛰️ Use RadarBox</button>
+                </div>
+                <span id="radarboxApiNotice" class="notice-slot"></span>
+              </div>
+            </div>
+          </details>
+
+          <details id="locationModeToggle" class="panel section-panel" open>
+            <summary><span>Location</span></summary>
+            <div class="data">
+              <div class="controls controls-compact">
+                <label><strong>Location Mode</strong></label>
+                <select id="locationMode">
+                  <option value="auto" selected>Auto (GPS)</option>
+                  <option value="manual">Manual</option>
+                </select>
+                <button id="refreshBtn">🔄 Refresh</button>
+              </div>
+
+              <div id="manualLocationFields" class="manual-location" style="display:none;">
+                <button onclick="showMap()">🗺️ Select from Map</button>
+                <div id="locationErrorMsg" class="notice-inline" style="display:none;"></div>
+                <div id="mapContainer" style="height: 300px; margin-top: 1rem; display: none;"></div>
+                <div class="three-up-grid">
+                  <label>Latitude
+                    <input id="manualLat" type="number" step="0.000001" />
+                  </label>
+                  <label>Longitude
+                    <input id="manualLon" type="number" step="0.000001" />
+                  </label>
+                  <label>Elevation (m)
+                    <input id="manualElev" type="number" value="10" />
+                  </label>
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <section class="panel section-panel">
+            <div class="data no-top-pad">
+              <div class="section-heading-row compact-space">
+                <h2>Tracking controls</h2>
+                <span id="countdownTimer" class="countdown-chip">Next check in: 5s</span>
+              </div>
+
+              <div class="controls-grid">
+                <label class="control-card"><span>Transit Mode</span>
+                  <select id="bodyToggle">
+                    <option value="moon">🌙 Moon</option>
+                    <option value="sun">☀️ Sun</option>
+                    <option value="plane watch">👀 Plane Watch</option>
+                    <option value="plane on plane">✈️ on ✈️</option>
+                    <option value="plane contrails">✈️💨💨</option>
+                  </select>
+                </label>
+
+                <label class="control-card"><span>Search Radius</span>
+                  <select id="radiusSelect">
+                    <option value="10">10 km</option>
+                    <option value="20">20 km</option>
+                    <option value="30" selected>30 km</option>
+                    <option value="40">40 km</option>
+                    <option value="50">50 km</option>
+                    <option value="60">60 km</option>
+                  </select>
+                </label>
+
+                <label class="control-card"><span>Prediction</span>
+                  <select id="predictToggle">
+                    <option value="0">Off</option>
+                    <option value="30">30 sec</option>
+                    <option value="60">60 sec</option>
+                    <option value="120" selected>120 sec</option>
+                    <option value="180">180 sec</option>
+                  </select>
+                </label>
+
+                <label class="control-card"><span>Auto Refresh</span>
+                  <select id="autoRefreshToggle">
+                    <option value="on" selected>On</option>
+                    <option value="off">Off</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="stack-col">
+          <div class="data panel section-panel" id="planeWatchControls" style="display:none;">
+            <details open>
+              <summary><strong>👀 Plane Watch Filters</strong></summary>
+              <div class="plane-watch-layout">
+                <div>
+                  <label><strong>Aircraft Types</strong></label>
+                  <select id="watchAircraftTypes" class="watch-type-select" multiple size="10">
+                    <option value="A380">Airbus A380 family</option>
+                    <option value="A388">Airbus A380-800 (A388)</option>
+                    <option value="A330">Airbus A330 family</option>
+                    <option value="A332">Airbus A330-200 (A332)</option>
+                    <option value="A333">Airbus A330-300 (A333)</option>
+                    <option value="A339">Airbus A330-900neo (A339)</option>
+                    <option value="A350">Airbus A350 family</option>
+                    <option value="B747">Boeing 747 family</option>
+                    <option value="B787">Boeing 787 family</option>
+                    <option value="A320">Airbus A320 family</option>
+                    <option value="B737">Boeing 737 family</option>
+                  </select>
+                  <div class="watch-help-text">Hold Ctrl / Cmd to select more than one. Family options also match common subtype ICAO codes.</div>
+
+                  <div class="three-up-grid slim-gap">
+                    <label><strong>Min Altitude (ft)</strong>
+                      <input id="watchMinAltitude" type="number" min="0" step="100" value="0" />
+                    </label>
+                    <label><strong>Max Altitude (ft)</strong>
+                      <input id="watchMaxAltitude" type="number" min="0" step="100" value="10000" />
+                    </label>
+                  </div>
+                </div>
+
+                <div class="watch-compass-wrap">
+                  <strong>Directions from you</strong>
+                  <div class="watch-help-text">Tap the compass sectors you want to monitor.</div>
+                  <div class="watch-compass" id="watchCompass" aria-label="Direction selector">
+                    <button class="watch-dir-btn" type="button" data-dir="N">N</button>
+                    <button class="watch-dir-btn" type="button" data-dir="NE">NE</button>
+                    <button class="watch-dir-btn" type="button" data-dir="E">E</button>
+                    <button class="watch-dir-btn" type="button" data-dir="SE">SE</button>
+                    <button class="watch-dir-btn" type="button" data-dir="S">S</button>
+                    <button class="watch-dir-btn" type="button" data-dir="SW">SW</button>
+                    <button class="watch-dir-btn" type="button" data-dir="W">W</button>
+                    <button class="watch-dir-btn" type="button" data-dir="NW">NW</button>
+                    <div class="watch-compass-center">YOU</div>
+                  </div>
+                  <div class="watch-direction-checkboxes" aria-hidden="true">
+                    <input type="checkbox" class="watch-direction" value="N" />
+                    <input type="checkbox" class="watch-direction" value="NE" />
+                    <input type="checkbox" class="watch-direction" value="E" />
+                    <input type="checkbox" class="watch-direction" value="SE" />
+                    <input type="checkbox" class="watch-direction" value="S" />
+                    <input type="checkbox" class="watch-direction" value="SW" />
+                    <input type="checkbox" class="watch-direction" value="W" />
+                    <input type="checkbox" class="watch-direction" value="NW" />
+                  </div>
+                  <div class="watch-quick-actions">
+                    <button id="watchSelectAllDirsBtn" type="button">Select all</button>
+                    <button id="watchClearDirsBtn" type="button">Clear all</button>
+                    <button id="watchPresetWestBtn" type="button">W / NW / SW</button>
+                  </div>
+                  <label class="toggle-row"><input id="watchBrowserNotifications" type="checkbox" checked /> Browser notifications</label>
+                </div>
+              </div>
+            </details>
+          </div>
+
+          <section class="panel section-panel">
+            <div class="data no-top-pad">
+              <div class="section-heading-row compact-space">
+                <h2>Detection margin</h2>
+                <a href="public/detection_visuals.html" class="small-link">Visuals</a>
+              </div>
+              <div class="margin-top-row">
+                <button id="enhancedPredictionBtn" onclick="toggleEnhancedPrediction()" class="enhanced-btn">🔴 Enhanced Prediction</button>
+                <a href="https://transitchaser.com/public/EnhancedPrediction.html" class="small-link">What’s this?</a>
+              </div>
+              <input id="marginSlider" type="range" min="0.5" max="20" step="0.5" value="2.5" />
+              <div class="margin-meta">
+                <span id="marginValue">2.5°</span>
+                <span id="marginFeedback">🌟 Very strict (photography)</span>
+              </div>
+              <input type="checkbox" id="enhancedPrediction" checked style="display:none;" />
+            </div>
+          </section>
+
+          <details class="panel section-panel" open>
+            <summary><span>Advanced settings</span></summary>
+            <div class="data advanced-grid">
+              <div class="button-row wrap">
+                <button id="viewLogBtn">🕒 View Transit Log</button>
+                <button id="clearLogBtn">🗑️ Clear Log</button>
+                <button id="downloadLogBtn">📥 Download Log</button>
+              </div>
+
+              <div class="three-up-grid">
+                <label><strong>Log Format</strong>
+                  <select id="logFormat">
+                    <option value="txt" selected>Plain Text (.txt)</option>
+                    <option value="json">JSON (.json)</option>
+                  </select>
+                </label>
+
+                <label><strong>Auto Refresh Interval (sec)</strong>
+                  <input id="refreshIntervalInput" type="number" min="3" value="5" />
+                </label>
+
+                <label for="volumeSlider"><strong>Volume</strong>
+                  <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1" />
+                </label>
+              </div>
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <footer class="panel footer-panel">
+        <p>Copyright © Rey Sandu Godakumbura</p>
+        <p>
+          <a href="/public/reports.html">Help us</a>
+          <a href="/public/aboutus.html">About Us</a>
+          <a href="https://www.lifebeyondstars.com/about-me" target="_blank">About Creator</a>
+          <a href="/public/terms.html">Terms of Use</a>
+          <a href="/public/privacy.html">Privacy &amp; Cookies</a>
+          <a href="LICENSE.txt">License</a>
+          <a href="mailto:sandu.godakumbura@gmail.com">Contact</a>
+          <a href="public/how_to_use.html">How to Use</a>
+        </p>
+      </footer>
+    </main>
+  </div>
+
+  <div id="alertModal" class="modal-overlay">
+    <div class="modal-card">
+      <h2>Volume Reminder 🔈</h2>
       <p>
-        <a href="/public/reports.html">Help us</a> |
-        <a href="/public/aboutus.html">About Us</a> |
-        <a href="https://www.lifebeyondstars.com/about-me" target="_blank">About Creator</a> |
-        <a href="/public/terms.html">Terms of Use</a> |
-        <a href="/public/privacy.html">Privacy & Cookies</a> |
-        <a href="LICENSE.txt">License</a> |
-        <a href="mailto:sandu.godakumbura@gmail.com">Contact</a> |
-        <a href="public/how_to_use.html">How to Use</a> 
+        A loud alert will sound when an aircraft is detected.<br>
+        Please adjust your volume now to avoid surprises.
       </p>
-    </footer>
-
-<!-- Modal HTML -->
-<div id="alertModal" style="
-  position: fixed;
-  z-index: 9999;
-  left: 0; top: 0;
-  width: 100%; height: 100%;
-  background-color: rgba(0,0,0,0.5);
-  display: flex; align-items: center; justify-content: center;
-">
-  <div style="
-    background: rgb(73, 73, 73);
-    padding: 1.5rem 2rem;
-    max-width: 500px;
-    border-radius: 12px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.3);
-    text-align: center;
-    font-family: sans-serif;
-  ">
-    <h2 style="margin-top: 0;">Volume Reminder 🔈</h2>
-    <p>
-      A loud alert will sound when an aircraft is detected.<br>
-      Please adjust your volume now to avoid surprises.
-    </p>
-    <p style="margin-top:1em; font-size:0.9em; color:#ccc;">
-      ⚠️ Some browsers pause this app when the tab isn’t visible.<br>
-      To keep alerts running, leave this window open and visible.
-    </p>
-    <button onclick="document.getElementById('alertModal').style.display='none'" style="
-      margin-top: 1rem;
-      padding: 0.5rem 1.2rem;
-      border: none;
-      background-color: #2b5127;
-      color: rgb(211, 211, 211);
-      border-radius: 6px;
-      cursor: pointer;
-    ">Got it</button>
-  </div>
-</div>
-
-  </div>
-</div>
-
-   
+      <p class="modal-note">
+        ⚠️ Some browsers pause this app when the tab isn’t visible.<br>
+        To keep alerts running, leave this window open and visible.
+      </p>
+      <button onclick="document.getElementById('alertModal').style.display='none'">Got it</button>
+    </div>
   </div>
 
-  </header>
+  <audio id="alertSound" preload="auto" src="/alert.MP3"></audio>
 
-<!-- Engine Version Toggle (temporary position) -->
-<div id="engineToggleContainer" style="
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.75rem;
-  margin-top: 4px;
-  margin-bottom: 6px;
-  opacity: 0.85;
-">
-  <span id="engineLabel">Engine: V1 (Stable)</span>
-  <button
-    id="engineToggleBtn"
-    style="
-      padding: 2px 6px;
-      font-size: 0.7rem;
-      border-radius: 4px;
-      border: none;
-      cursor: pointer;
-      background-color: #444;
-      color: white;
-    "
-    title="Switch between stable (V1) and experimental (V2) detection engines"
-  >
-    Switch to V2
-  </button>
-</div>
-
-<!-- Branding -->
-<div style="margin-bottom: 0.75rem;">
-  TransitChaser.com
-  <span style="font-size: 0.7rem;"> powered by </span>
-  <a href="https://www.lifebeyondstars.com" class="small-link" target="_blank" rel="noopener noreferrer">
-    www.lifebeyondstars.com
-  </a>
-</div>
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/suncalc/1.8.0/suncalc.min.js"></script>
+  <script src="scripts/script.js"></script>
 </body>
 </html>
