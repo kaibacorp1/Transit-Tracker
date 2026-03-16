@@ -392,16 +392,3 @@ export function detectPlaneOnPlane({ flights, userLat, userLon, userElev = 0, ma
 }
 
 
-
-// =========================
-// Version 2 (Experimental)
-// =========================
-
-// IMPORTANT:
-// For now, V2 is an exact copy of V1.
-// We will improve it later, step by step.
-
-export function detectTransitsV2(options) {
-  // Call V1 for now so behavior is IDENTICAL
-  return detectTransitsV1(options);
-}
