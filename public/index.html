@@ -155,8 +155,8 @@
       transform: translate(-50%, -50%);
     }
     .watch-dir-btn {
-      width: 52px;
-      height: 52px;
+      width: 48px;
+      height: 48px;
       border-radius: 999px;
       border: 1px solid rgba(255,255,255,0.16);
       background: rgba(29, 41, 63, 0.9);
@@ -177,22 +177,22 @@
       border-color: rgba(255,255,255,0.48);
       box-shadow: 0 0 0 3px rgba(59,130,246,0.18), 0 8px 18px rgba(0,0,0,0.28);
     }
-    .watch-dir-btn[data-dir="N"]   { left: 50%; top: 8%; }
-    .watch-dir-btn[data-dir="NNE"] { left: 66%; top: 12%; }
-    .watch-dir-btn[data-dir="NE"]  { left: 79%; top: 21%; }
-    .watch-dir-btn[data-dir="ENE"] { left: 88%; top: 34%; }
-    .watch-dir-btn[data-dir="E"]   { left: 92%; top: 50%; }
-    .watch-dir-btn[data-dir="ESE"] { left: 88%; top: 66%; }
-    .watch-dir-btn[data-dir="SE"]  { left: 79%; top: 79%; }
-    .watch-dir-btn[data-dir="SSE"] { left: 66%; top: 88%; }
-    .watch-dir-btn[data-dir="S"]   { left: 50%; top: 92%; }
-    .watch-dir-btn[data-dir="SSW"] { left: 34%; top: 88%; }
-    .watch-dir-btn[data-dir="SW"]  { left: 21%; top: 79%; }
-    .watch-dir-btn[data-dir="WSW"] { left: 12%; top: 66%; }
-    .watch-dir-btn[data-dir="W"]   { left: 8%; top: 50%; }
-    .watch-dir-btn[data-dir="WNW"] { left: 12%; top: 34%; }
-    .watch-dir-btn[data-dir="NW"]  { left: 21%; top: 21%; }
-    .watch-dir-btn[data-dir="NNW"] { left: 34%; top: 12%; }
+    .watch-dir-btn[data-dir="N"]   { left: 50%; top: 3%; }
+    .watch-dir-btn[data-dir="NNE"] { left: 69%; top: 7%; }
+    .watch-dir-btn[data-dir="NE"]  { left: 87%; top: 13%; }
+    .watch-dir-btn[data-dir="ENE"] { left: 93%; top: 31%; }
+    .watch-dir-btn[data-dir="E"]   { left: 97%; top: 50%; }
+    .watch-dir-btn[data-dir="ESE"] { left: 93%; top: 69%; }
+    .watch-dir-btn[data-dir="SE"]  { left: 87%; top: 87%; }
+    .watch-dir-btn[data-dir="SSE"] { left: 69%; top: 93%; }
+    .watch-dir-btn[data-dir="S"]   { left: 50%; top: 97%; }
+    .watch-dir-btn[data-dir="SSW"] { left: 31%; top: 93%; }
+    .watch-dir-btn[data-dir="SW"]  { left: 13%; top: 87%; }
+    .watch-dir-btn[data-dir="WSW"] { left: 7%; top: 69%; }
+    .watch-dir-btn[data-dir="W"]   { left: 3%; top: 50%; }
+    .watch-dir-btn[data-dir="WNW"] { left: 7%; top: 31%; }
+    .watch-dir-btn[data-dir="NW"]  { left: 13%; top: 13%; }
+    .watch-dir-btn[data-dir="NNW"] { left: 31%; top: 7%; }
     .watch-degree-label {
       color: rgba(233, 238, 252, 0.82);
       font-size: 0.72rem;
@@ -200,18 +200,18 @@
       pointer-events: none;
       z-index: 1;
     }
-    .watch-degree-label[data-deg="0"]   { left: 50%; top: 1.5%; }
-    .watch-degree-label[data-deg="30"]  { left: 70%; top: 6.5%; }
-    .watch-degree-label[data-deg="60"]  { left: 85.5%; top: 18%; }
-    .watch-degree-label[data-deg="90"]  { left: 98%; top: 50%; }
-    .watch-degree-label[data-deg="120"] { left: 85.5%; top: 82%; }
-    .watch-degree-label[data-deg="150"] { left: 70%; top: 93.5%; }
-    .watch-degree-label[data-deg="180"] { left: 50%; top: 98.5%; }
-    .watch-degree-label[data-deg="210"] { left: 30%; top: 93.5%; }
-    .watch-degree-label[data-deg="240"] { left: 14.5%; top: 82%; }
-    .watch-degree-label[data-deg="270"] { left: 2%; top: 50%; }
-    .watch-degree-label[data-deg="300"] { left: 14.5%; top: 18%; }
-    .watch-degree-label[data-deg="330"] { left: 30%; top: 6.5%; }
+    .watch-degree-label[data-deg="0"]   { left: 50%; top: 14%; }
+    .watch-degree-label[data-deg="30"]  { left: 65%; top: 18%; }
+    .watch-degree-label[data-deg="60"]  { left: 78%; top: 28%; }
+    .watch-degree-label[data-deg="90"]  { left: 86%; top: 50%; }
+    .watch-degree-label[data-deg="120"] { left: 78%; top: 72%; }
+    .watch-degree-label[data-deg="150"] { left: 65%; top: 82%; }
+    .watch-degree-label[data-deg="180"] { left: 50%; top: 86%; }
+    .watch-degree-label[data-deg="210"] { left: 35%; top: 82%; }
+    .watch-degree-label[data-deg="240"] { left: 22%; top: 72%; }
+    .watch-degree-label[data-deg="270"] { left: 14%; top: 50%; }
+    .watch-degree-label[data-deg="300"] { left: 22%; top: 28%; }
+    .watch-degree-label[data-deg="330"] { left: 35%; top: 18%; }
     .watch-direction-checkboxes {
       display: none;
     }
@@ -233,23 +233,19 @@
       gap: 0.75rem;
       align-items:start;
     }
-    .watch-type-picker {
-      display:grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap:0.45rem;
-      margin-top:0.5rem;
-    }
-    .watch-type-option {
-      display:flex;
-      align-items:center;
-      gap:0.45rem;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.08);
+    .watch-type-select {
+      width: 100%;
+      min-height: 13rem;
+      margin-top: 0.5rem;
+      background: rgba(255,255,255,0.06);
+      color: #e9eefc;
+      border: 1px solid rgba(255,255,255,0.16);
       border-radius: 10px;
-      padding: 0.5rem 0.6rem;
+      padding: 0.35rem;
     }
-    .watch-type-option input {
-      margin:0;
+    .watch-type-select option {
+      padding: 0.4rem 0.45rem;
+      border-radius: 6px;
     }
     .watch-selection-summary {
       margin-top:0.6rem;
@@ -454,21 +450,21 @@
     <div style="margin-top:0.75rem;">
       <div class="watch-filter-grid">
         <div>
-          <label><strong>Aircraft Types:</strong></label>
-          <div class="watch-help-text">Tap as many aircraft families or ICAO types as you want.</div>
-          <div id="watchTypePicker" class="watch-type-picker">
-            <label class="watch-type-option"><input class="watch-aircraft-type" type="checkbox" value="A380" /> Airbus A380 family</label>
-            <label class="watch-type-option"><input class="watch-aircraft-type" type="checkbox" value="A388" /> Airbus A380-800 (A388)</label>
-            <label class="watch-type-option"><input class="watch-aircraft-type" type="checkbox" value="A330" /> Airbus A330 family</label>
-            <label class="watch-type-option"><input class="watch-aircraft-type" type="checkbox" value="A332" /> Airbus A330-200 (A332)</label>
-            <label class="watch-type-option"><input class="watch-aircraft-type" type="checkbox" value="A333" /> Airbus A330-300 (A333)</label>
-            <label class="watch-type-option"><input class="watch-aircraft-type" type="checkbox" value="A339" /> Airbus A330-900neo (A339)</label>
-            <label class="watch-type-option"><input class="watch-aircraft-type" type="checkbox" value="A350" /> Airbus A350 family</label>
-            <label class="watch-type-option"><input class="watch-aircraft-type" type="checkbox" value="B747" /> Boeing 747 family</label>
-            <label class="watch-type-option"><input class="watch-aircraft-type" type="checkbox" value="B787" /> Boeing 787 family</label>
-            <label class="watch-type-option"><input class="watch-aircraft-type" type="checkbox" value="A320" /> Airbus A320 family</label>
-            <label class="watch-type-option"><input class="watch-aircraft-type" type="checkbox" value="B737" /> Boeing 737 family</label>
-          </div>
+          <label for="watchTypeSelect"><strong>Aircraft Types:</strong></label>
+          <div class="watch-help-text">Use Ctrl (Windows) or Cmd (Mac) to select multiple aircraft families or ICAO types.</div>
+          <select id="watchTypeSelect" class="watch-type-select" multiple size="11">
+            <option value="A380">Airbus A380 family</option>
+            <option value="A388">Airbus A380-800 (A388)</option>
+            <option value="A330">Airbus A330 family</option>
+            <option value="A332">Airbus A330-200 (A332)</option>
+            <option value="A333">Airbus A330-300 (A333)</option>
+            <option value="A339">Airbus A330-900neo (A339)</option>
+            <option value="A350">Airbus A350 family</option>
+            <option value="B747">Boeing 747 family</option>
+            <option value="B787">Boeing 787 family</option>
+            <option value="A320">Airbus A320 family</option>
+            <option value="B737">Boeing 737 family</option>
+          </select>
         </div>
 
         <div class="watch-inline-field">
@@ -491,7 +487,7 @@
 
       <div class="watch-compass-wrap">
         <strong>Directions from you:</strong>
-        <div class="watch-help-text">Tap the compass sectors you want to monitor. Added 16-point precision plus degree labels.</div>
+        <div class="watch-help-text">Tap the compass sectors you want to monitor. Direction buttons sit outside the degree ring to keep the labels clearer.</div>
         <div class="watch-compass" id="watchCompass" aria-label="Direction selector">
           <div class="watch-degree-label" data-deg="0">0°</div>
           <div class="watch-degree-label" data-deg="30">30°</div>
