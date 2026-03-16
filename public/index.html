@@ -147,19 +147,26 @@
       color: #dce8ff;
       box-shadow: 0 0 18px rgba(0,0,0,0.2);
       pointer-events: none;
+      z-index: 2;
+    }
+    .watch-dir-btn,
+    .watch-degree-label {
+      position: absolute;
+      transform: translate(-50%, -50%);
     }
     .watch-dir-btn {
-      position: absolute;
-      width: 56px;
-      height: 56px;
+      width: 52px;
+      height: 52px;
       border-radius: 999px;
       border: 1px solid rgba(255,255,255,0.16);
       background: rgba(29, 41, 63, 0.9);
       color: #e9eefc;
       font-weight: 700;
+      font-size: 0.75rem;
       cursor: pointer;
       transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
       box-shadow: 0 4px 10px rgba(0,0,0,0.18);
+      z-index: 2;
     }
     .watch-dir-btn:hover {
       transform: translate(-50%, -50%) scale(1.05);
@@ -170,21 +177,48 @@
       border-color: rgba(255,255,255,0.48);
       box-shadow: 0 0 0 3px rgba(59,130,246,0.18), 0 8px 18px rgba(0,0,0,0.28);
     }
-    .watch-dir-btn[data-dir="N"]  { left: 50%; top: 12%; transform: translate(-50%, -50%); }
-    .watch-dir-btn[data-dir="NE"] { left: 78%; top: 22%; transform: translate(-50%, -50%); }
-    .watch-dir-btn[data-dir="E"]  { left: 88%; top: 50%; transform: translate(-50%, -50%); }
-    .watch-dir-btn[data-dir="SE"] { left: 78%; top: 78%; transform: translate(-50%, -50%); }
-    .watch-dir-btn[data-dir="S"]  { left: 50%; top: 88%; transform: translate(-50%, -50%); }
-    .watch-dir-btn[data-dir="SW"] { left: 22%; top: 78%; transform: translate(-50%, -50%); }
-    .watch-dir-btn[data-dir="W"]  { left: 12%; top: 50%; transform: translate(-50%, -50%); }
-    .watch-dir-btn[data-dir="NW"] { left: 22%; top: 22%; transform: translate(-50%, -50%); }
+    .watch-dir-btn[data-dir="N"]   { left: 50%; top: 8%; }
+    .watch-dir-btn[data-dir="NNE"] { left: 66%; top: 12%; }
+    .watch-dir-btn[data-dir="NE"]  { left: 79%; top: 21%; }
+    .watch-dir-btn[data-dir="ENE"] { left: 88%; top: 34%; }
+    .watch-dir-btn[data-dir="E"]   { left: 92%; top: 50%; }
+    .watch-dir-btn[data-dir="ESE"] { left: 88%; top: 66%; }
+    .watch-dir-btn[data-dir="SE"]  { left: 79%; top: 79%; }
+    .watch-dir-btn[data-dir="SSE"] { left: 66%; top: 88%; }
+    .watch-dir-btn[data-dir="S"]   { left: 50%; top: 92%; }
+    .watch-dir-btn[data-dir="SSW"] { left: 34%; top: 88%; }
+    .watch-dir-btn[data-dir="SW"]  { left: 21%; top: 79%; }
+    .watch-dir-btn[data-dir="WSW"] { left: 12%; top: 66%; }
+    .watch-dir-btn[data-dir="W"]   { left: 8%; top: 50%; }
+    .watch-dir-btn[data-dir="WNW"] { left: 12%; top: 34%; }
+    .watch-dir-btn[data-dir="NW"]  { left: 21%; top: 21%; }
+    .watch-dir-btn[data-dir="NNW"] { left: 34%; top: 12%; }
+    .watch-degree-label {
+      color: rgba(233, 238, 252, 0.82);
+      font-size: 0.72rem;
+      font-weight: 600;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .watch-degree-label[data-deg="0"]   { left: 50%; top: 1.5%; }
+    .watch-degree-label[data-deg="30"]  { left: 70%; top: 6.5%; }
+    .watch-degree-label[data-deg="60"]  { left: 85.5%; top: 18%; }
+    .watch-degree-label[data-deg="90"]  { left: 98%; top: 50%; }
+    .watch-degree-label[data-deg="120"] { left: 85.5%; top: 82%; }
+    .watch-degree-label[data-deg="150"] { left: 70%; top: 93.5%; }
+    .watch-degree-label[data-deg="180"] { left: 50%; top: 98.5%; }
+    .watch-degree-label[data-deg="210"] { left: 30%; top: 93.5%; }
+    .watch-degree-label[data-deg="240"] { left: 14.5%; top: 82%; }
+    .watch-degree-label[data-deg="270"] { left: 2%; top: 50%; }
+    .watch-degree-label[data-deg="300"] { left: 14.5%; top: 18%; }
+    .watch-degree-label[data-deg="330"] { left: 30%; top: 6.5%; }
     .watch-direction-checkboxes {
       display: none;
     }
     .watch-quick-actions {
       display:flex;
       gap:0.5rem;
-      margin-top:0.25rem;
+      margin-top:0.5rem;
       flex-wrap:wrap;
       justify-content:center;
     }
@@ -192,6 +226,59 @@
       font-size:0.85rem;
       color:#ccc;
       margin-top:0.35rem;
+    }
+    .watch-filter-grid {
+      display:grid;
+      grid-template-columns: minmax(240px, 1.4fr) minmax(220px, 1fr);
+      gap: 0.75rem;
+      align-items:start;
+    }
+    .watch-type-picker {
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap:0.45rem;
+      margin-top:0.5rem;
+    }
+    .watch-type-option {
+      display:flex;
+      align-items:center;
+      gap:0.45rem;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 0.5rem 0.6rem;
+    }
+    .watch-type-option input {
+      margin:0;
+    }
+    .watch-selection-summary {
+      margin-top:0.6rem;
+      padding:0.65rem 0.8rem;
+      border-radius:10px;
+      background: rgba(59,130,246,0.12);
+      border: 1px solid rgba(59,130,246,0.28);
+      font-size:0.9rem;
+    }
+    .watch-inline-field {
+      display:flex;
+      flex-direction:column;
+      gap:0.35rem;
+    }
+    .watch-inline-field input {
+      width:100%;
+    }
+    @media (max-width: 720px) {
+      .watch-filter-grid {
+        grid-template-columns: 1fr;
+      }
+      .watch-dir-btn {
+        width: 46px;
+        height: 46px;
+        font-size: 0.68rem;
+      }
+      .watch-degree-label {
+        font-size: 0.66rem;
+      }
     }
 
   </style>
@@ -365,23 +452,33 @@
   <details open>
     <summary><strong>👀 Plane Watch Filters</strong></summary>
     <div style="margin-top:0.75rem;">
-      <label><strong>Aircraft Types:</strong></label><br />
-      <select id="watchAircraftTypes" class="watch-type-select" multiple size="10">
-        <option value="A380">Airbus A380 family</option>
-        <option value="A388">Airbus A380-800 (A388)</option>
-        <option value="A330">Airbus A330 family</option>
-        <option value="A332">Airbus A330-200 (A332)</option>
-        <option value="A333">Airbus A330-300 (A333)</option>
-        <option value="A339">Airbus A330-900neo (A339)</option>
-        <option value="A350">Airbus A350 family</option>
-        <option value="B747">Boeing 747 family</option>
-        <option value="B787">Boeing 787 family</option>
-        <option value="A320">Airbus A320 family</option>
-        <option value="B737">Boeing 737 family</option>
-      </select>
-      <div class="watch-help-text">
-        Hold Ctrl / Cmd to select more than one. Family options also match common subtype ICAO codes.
+      <div class="watch-filter-grid">
+        <div>
+          <label><strong>Aircraft Types:</strong></label>
+          <div class="watch-help-text">Tap as many aircraft families or ICAO types as you want.</div>
+          <div id="watchTypePicker" class="watch-type-picker">
+            <label class="watch-type-option"><input class="watch-aircraft-type" type="checkbox" value="A380" /> Airbus A380 family</label>
+            <label class="watch-type-option"><input class="watch-aircraft-type" type="checkbox" value="A388" /> Airbus A380-800 (A388)</label>
+            <label class="watch-type-option"><input class="watch-aircraft-type" type="checkbox" value="A330" /> Airbus A330 family</label>
+            <label class="watch-type-option"><input class="watch-aircraft-type" type="checkbox" value="A332" /> Airbus A330-200 (A332)</label>
+            <label class="watch-type-option"><input class="watch-aircraft-type" type="checkbox" value="A333" /> Airbus A330-300 (A333)</label>
+            <label class="watch-type-option"><input class="watch-aircraft-type" type="checkbox" value="A339" /> Airbus A330-900neo (A339)</label>
+            <label class="watch-type-option"><input class="watch-aircraft-type" type="checkbox" value="A350" /> Airbus A350 family</label>
+            <label class="watch-type-option"><input class="watch-aircraft-type" type="checkbox" value="B747" /> Boeing 747 family</label>
+            <label class="watch-type-option"><input class="watch-aircraft-type" type="checkbox" value="B787" /> Boeing 787 family</label>
+            <label class="watch-type-option"><input class="watch-aircraft-type" type="checkbox" value="A320" /> Airbus A320 family</label>
+            <label class="watch-type-option"><input class="watch-aircraft-type" type="checkbox" value="B737" /> Boeing 737 family</label>
+          </div>
+        </div>
+
+        <div class="watch-inline-field">
+          <label for="watchCallsignInput"><strong>Custom Callsign / Flight:</strong></label>
+          <input id="watchCallsignInput" type="text" placeholder="e.g. QFA1, CCA880, DAL123" autocomplete="off" />
+          <div class="watch-help-text">Optional. Match by flight number/callsign in addition to aircraft type.</div>
+        </div>
       </div>
+
+      <div id="watchSelectionSummary" class="watch-selection-summary">Watching: none yet. Select at least one aircraft type or enter a callsign to start Plane Watch.</div>
 
       <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:0.75rem; margin-top:1rem;">
         <label><strong>Min Altitude (ft):</strong><br />
@@ -394,32 +491,60 @@
 
       <div class="watch-compass-wrap">
         <strong>Directions from you:</strong>
-        <div class="watch-help-text">Tap the compass sectors you want to monitor.</div>
+        <div class="watch-help-text">Tap the compass sectors you want to monitor. Added 16-point precision plus degree labels.</div>
         <div class="watch-compass" id="watchCompass" aria-label="Direction selector">
+          <div class="watch-degree-label" data-deg="0">0°</div>
+          <div class="watch-degree-label" data-deg="30">30°</div>
+          <div class="watch-degree-label" data-deg="60">60°</div>
+          <div class="watch-degree-label" data-deg="90">90°</div>
+          <div class="watch-degree-label" data-deg="120">120°</div>
+          <div class="watch-degree-label" data-deg="150">150°</div>
+          <div class="watch-degree-label" data-deg="180">180°</div>
+          <div class="watch-degree-label" data-deg="210">210°</div>
+          <div class="watch-degree-label" data-deg="240">240°</div>
+          <div class="watch-degree-label" data-deg="270">270°</div>
+          <div class="watch-degree-label" data-deg="300">300°</div>
+          <div class="watch-degree-label" data-deg="330">330°</div>
           <button class="watch-dir-btn" type="button" data-dir="N">N</button>
+          <button class="watch-dir-btn" type="button" data-dir="NNE">NNE</button>
           <button class="watch-dir-btn" type="button" data-dir="NE">NE</button>
+          <button class="watch-dir-btn" type="button" data-dir="ENE">ENE</button>
           <button class="watch-dir-btn" type="button" data-dir="E">E</button>
+          <button class="watch-dir-btn" type="button" data-dir="ESE">ESE</button>
           <button class="watch-dir-btn" type="button" data-dir="SE">SE</button>
+          <button class="watch-dir-btn" type="button" data-dir="SSE">SSE</button>
           <button class="watch-dir-btn" type="button" data-dir="S">S</button>
+          <button class="watch-dir-btn" type="button" data-dir="SSW">SSW</button>
           <button class="watch-dir-btn" type="button" data-dir="SW">SW</button>
+          <button class="watch-dir-btn" type="button" data-dir="WSW">WSW</button>
           <button class="watch-dir-btn" type="button" data-dir="W">W</button>
+          <button class="watch-dir-btn" type="button" data-dir="WNW">WNW</button>
           <button class="watch-dir-btn" type="button" data-dir="NW">NW</button>
+          <button class="watch-dir-btn" type="button" data-dir="NNW">NNW</button>
           <div class="watch-compass-center">YOU</div>
         </div>
         <div class="watch-direction-checkboxes" aria-hidden="true">
           <input type="checkbox" class="watch-direction" value="N" />
+          <input type="checkbox" class="watch-direction" value="NNE" />
           <input type="checkbox" class="watch-direction" value="NE" />
+          <input type="checkbox" class="watch-direction" value="ENE" />
           <input type="checkbox" class="watch-direction" value="E" />
+          <input type="checkbox" class="watch-direction" value="ESE" />
           <input type="checkbox" class="watch-direction" value="SE" />
+          <input type="checkbox" class="watch-direction" value="SSE" />
           <input type="checkbox" class="watch-direction" value="S" />
+          <input type="checkbox" class="watch-direction" value="SSW" />
           <input type="checkbox" class="watch-direction" value="SW" />
+          <input type="checkbox" class="watch-direction" value="WSW" />
           <input type="checkbox" class="watch-direction" value="W" />
+          <input type="checkbox" class="watch-direction" value="WNW" />
           <input type="checkbox" class="watch-direction" value="NW" />
+          <input type="checkbox" class="watch-direction" value="NNW" />
         </div>
         <div class="watch-quick-actions">
           <button id="watchSelectAllDirsBtn" type="button">Select all</button>
           <button id="watchClearDirsBtn" type="button">Clear all</button>
-          <button id="watchPresetWestBtn" type="button">W / NW / SW</button>
+          <button id="watchPresetWestBtn" type="button">W / WNW / NW / SW</button>
         </div>
       </div>
 
@@ -430,7 +555,7 @@
   </details>
 </div>
 
-<div class="data">
+<div class="data" id="detectionMarginSection">
   <label style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
     <div style="display: flex; gap: 0.75rem; align-items: center;">
       <strong>Detection Margin</strong>
