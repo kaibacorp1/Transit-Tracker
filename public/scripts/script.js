@@ -193,17 +193,18 @@ console.log('Aircraft fields:', flights.map(f => ({
     const isArrival = arrIata === airport;
 
     return {
-      type: isDeparture ? 'departure' : (isArrival ? 'arrival' : 'unknown'),
-      airline: f.airline?.name || 'Unknown',
-      aircraft,
-      rawAircraft,
-      time: isDeparture
-        ? f.departure?.scheduled
-        : (isArrival ? f.arrival?.scheduled : null),
-      route: isDeparture
-        ? `→ ${arrIata || '???'}`
-        : (isArrival ? `← ${depIata || '???'}` : '↔ ???')
-    };
+  type: isDeparture ? 'departure' : (isArrival ? 'arrival' : 'unknown'),
+  airline: f.airline?.name || 'Unknown',
+  flight: f.flight,
+  aircraft,
+  rawAircraft,
+  time: isDeparture
+    ? f.departure?.scheduled
+    : (isArrival ? f.arrival?.scheduled : null),
+  route: isDeparture
+    ? `→ ${arrIata || '???'}`
+    : (isArrival ? `← ${depIata || '???'}` : '↔ ???')
+};
   })
   .filter(f => BIG_AIRCRAFT.includes(f.aircraft))
   .filter(f => f.type !== 'unknown')
