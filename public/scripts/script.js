@@ -94,9 +94,14 @@ async function loadFlightSchedule() {
 
   try {
     const res = await fetch(`/api/syd-schedule?airport=${airport}`);
-    const json = await res.json();
+const json = await res.json();
 
-    const flights = json.flights || [];
+if (!res.ok) {
+  console.error('Schedule API error:', json);
+  throw new Error(json.error || 'Schedule request failed');
+}
+
+const flights = json.flights || [];
 
     console.log('Airport:', airport);
 console.log('Flights returned:', flights.length);
