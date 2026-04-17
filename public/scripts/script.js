@@ -171,21 +171,30 @@ console.log('Aircraft fields:', flights.map(f => ({
       '';
 
     const aircraft = normalizeAircraftCode(rawAircraft);
-    const isDeparture = f.departure?.iata === airport;
+
+    const depIata = String(f.departure?.iata || '').trim().toUpperCase();
+    const arrIata = String(f.arrival?.iata || '').trim().toUpperCase();
+
+    const isDeparture = depIata === airport;
+    const isArrival = arrIata === airport;
 
     return {
-      type: isDeparture ? 'departure' : 'arrival',
+      type: isDeparture ? 'departure' : (isArrival ? 'arrival' : 'unknown'),
       airline: f.airline?.name || 'Unknown',
       aircraft,
       rawAircraft,
-      time: isDeparture ? f.departure?.scheduled : f.arrival?.scheduled,
+      time: isDeparture
+        ? f.departure?.scheduled
+        : (isArrival ? f.arrival?.scheduled : null),
       route: isDeparture
-        ? `→ ${f.arrival?.iata || '???'}`
-        : `← ${f.departure?.iata || '???'}`
+        ? `→ ${arrIata || '???'}`
+        : (isArrival ? `← ${depIata || '???'}` : '↔ ???')
     };
   })
   .filter(f => BIG_AIRCRAFT.includes(f.aircraft))
-  .sort((a, b) => new Date(a.time || 0) - new Date(b.time || 0));
+  .filter(f => f.type !== 'unknown')
+  .filter(f => f.time)
+  .sort((a, b) => new Date(a.time) - new Date(b.time));
 
     if (!bigFlights.length) {
       statusEl.textContent = 'No big aircraft today.';
