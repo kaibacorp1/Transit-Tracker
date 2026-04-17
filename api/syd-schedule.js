@@ -7,8 +7,8 @@ export default async function handler(req, res) {
 
     const airport = (req.query.airport || 'SYD').toUpperCase();
 
-    const depUrl = `http://api.aviationstack.com/v1/flights?access_key=${key}&dep_iata=${airport}&limit=100`;
-    const arrUrl = `http://api.aviationstack.com/v1/flights?access_key=${key}&arr_iata=${airport}&limit=100`;
+    const depUrl = `http://api.aviationstack.com/v1/flights?access_key=${key}&dep_iata=${airport}&limit=1000`;
+    const arrUrl = `http://api.aviationstack.com/v1/flights?access_key=${key}&arr_iata=${airport}&limit=1000`;
 
     const [depRes, arrRes] = await Promise.all([
       fetch(depUrl),
