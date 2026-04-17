@@ -87,47 +87,60 @@ const BIG_AIRCRAFT = [
 function normalizeAircraftCode(code = '') {
   const c = String(code || '').toUpperCase().trim();
 
+  // Airbus A380
   if (
     c.includes('A380') || c.includes('A388') || c === '388' || c.includes('380')
   ) return 'A380';
 
+  // Boeing 747 family
   if (
-    c.includes('B748') || c.includes('B744') || c.includes('B747') || c.includes('747')
+    c.includes('B747') || c.includes('B744') || c.includes('B748') || c.includes('747')
   ) return 'B747';
 
+  // Boeing 777 family
   if (
-    c.includes('B77W') || c.includes('B77L') || c.includes('B773') ||
-    c.includes('B772') || c.includes('B77X') || c.includes('B777') || c.includes('77')
+    c.includes('B777') || c.includes('B77W') || c.includes('B77L') ||
+    c.includes('B773') || c.includes('B772') || c.includes('77')
   ) return 'B777';
 
+  // Airbus A350 family
   if (
-    c.includes('A35K') || c.includes('A359') || c.includes('A350') || c.includes('350')
+    c.includes('A350') || c.includes('A359') || c.includes('A35K') || c.includes('350')
   ) return 'A350';
 
+  // Boeing 787 family
   if (
-    c.includes('B78X') || c.includes('B789') || c.includes('B788') || c.includes('B787') || c.includes('787') || c.includes('78')
+    c.includes('B787') || c.includes('B788') || c.includes('B789') ||
+    c.includes('B78X') || c.includes('787') || c.includes('78')
   ) return 'B787';
 
+  // Airbus A340 family
   if (
-    c.includes('A346') || c.includes('A340')
+    c.includes('A340') || c.includes('A346') || c.includes('A343')
   ) return 'A340';
 
+  // Airbus A330 family
   if (
-    c.includes('A339') || c.includes('A338') || c.includes('A333') || c.includes('A332') || c.includes('A330')
+    c.includes('A330') || c.includes('A332') || c.includes('A333') ||
+    c.includes('A338') || c.includes('A339')
   ) return 'A330';
 
+  // Boeing 767 family
   if (
-    c.includes('B764') || c.includes('B763') || c.includes('B762') || c.includes('B767')
+    c.includes('B767') || c.includes('B762') || c.includes('B763') || c.includes('B764')
   ) return 'B767';
 
+  // Antonov An-124
   if (
     c.includes('AN124') || c.includes('AN-124')
   ) return 'AN124';
 
+  // Lockheed C-5 Galaxy
   if (
     c.includes('C5') || c.includes('C-5')
   ) return 'C5';
 
+  // 747 Dreamlifter
   if (
     c.includes('DREAMLIFTER')
   ) return 'B747';
@@ -166,9 +179,10 @@ console.log('Aircraft fields:', flights.map(f => ({
     const bigFlights = flights
   .map(f => {
     const rawAircraft =
-      f.aircraft?.iata ||
-      f.aircraft?.icao ||
-      '';
+  f.aircraft?.iata ||
+  f.aircraft?.icao ||
+  f.aircraft?.name ||
+  '';
 
     const aircraft = normalizeAircraftCode(rawAircraft);
 
