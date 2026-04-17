@@ -71,16 +71,66 @@ let lastStatusRender = null;
 // ==========================
 // ✈️ FLIGHT SCHEDULE FEATURE
 // ==========================
-const BIG_AIRCRAFT = ['A380', 'B747', 'A350', 'B777', 'B787'];
+const BIG_AIRCRAFT = [
+  'A380',
+  'B747',
+  'B777',
+  'A350',
+  'B787',
+  'A340',
+  'A330',
+  'B767',
+  'AN124',
+  'C5'
+];
 
 function normalizeAircraftCode(code = '') {
   const c = String(code || '').toUpperCase().trim();
 
-  if (c.includes('380') || c === '388') return 'A380';
-if (c.includes('747')) return 'B747';
-if (c.includes('350')) return 'A350';
-if (c.includes('777') || c.includes('77')) return 'B777';
-if (c.includes('787') || c.includes('78')) return 'B787';
+  if (
+    c.includes('A380') || c.includes('A388') || c === '388' || c.includes('380')
+  ) return 'A380';
+
+  if (
+    c.includes('B748') || c.includes('B744') || c.includes('B747') || c.includes('747')
+  ) return 'B747';
+
+  if (
+    c.includes('B77W') || c.includes('B77L') || c.includes('B773') ||
+    c.includes('B772') || c.includes('B77X') || c.includes('B777') || c.includes('77')
+  ) return 'B777';
+
+  if (
+    c.includes('A35K') || c.includes('A359') || c.includes('A350') || c.includes('350')
+  ) return 'A350';
+
+  if (
+    c.includes('B78X') || c.includes('B789') || c.includes('B788') || c.includes('B787') || c.includes('787') || c.includes('78')
+  ) return 'B787';
+
+  if (
+    c.includes('A346') || c.includes('A340')
+  ) return 'A340';
+
+  if (
+    c.includes('A339') || c.includes('A338') || c.includes('A333') || c.includes('A332') || c.includes('A330')
+  ) return 'A330';
+
+  if (
+    c.includes('B764') || c.includes('B763') || c.includes('B762') || c.includes('B767')
+  ) return 'B767';
+
+  if (
+    c.includes('AN124') || c.includes('AN-124')
+  ) return 'AN124';
+
+  if (
+    c.includes('C5') || c.includes('C-5')
+  ) return 'C5';
+
+  if (
+    c.includes('DREAMLIFTER')
+  ) return 'B747';
 
   return c;
 }
