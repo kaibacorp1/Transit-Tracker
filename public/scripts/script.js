@@ -87,6 +87,7 @@ function normalizeAircraftCode(code = '') {
 
 async function loadFlightSchedule() {
   const statusEl = document.getElementById('transitStatus');
+  stopAutoRefresh();
   const airport = (document.getElementById('scheduleAirportInput')?.value || 'SYD').toUpperCase();
 
   statusEl.textContent = `📅 Loading ${airport} schedule...`;
@@ -111,12 +112,13 @@ async function loadFlightSchedule() {
           aircraft,
           time: isDeparture ? f.departure?.scheduled : f.arrival?.scheduled,
           route: isDeparture
-            ? `→ ${f.arrival?.iata}`
-            : `← ${f.departure?.iata}`
+  ? `→ ${f.arrival?.iata || '???'}`
+  : `← ${f.departure?.iata || '???'}`
+            
         };
       })
       .filter(f => BIG_AIRCRAFT.includes(f.aircraft))
-      .sort((a, b) => new Date(a.time) - new Date(b.time));
+      .sort((a, b) => new Date(a.time || 0) - new Date(b.time || 0));
 
     if (!bigFlights.length) {
       statusEl.textContent = 'No big aircraft today.';
@@ -492,6 +494,7 @@ document.addEventListener('DOMContentLoaded', () => {
 //  updateSessionTimer();
 
   updateContrailModeUI();
+  updateScheduleOnlyUI();
   readPlaneWatchConfig();
 });
 
@@ -526,6 +529,7 @@ document.getElementById('bodyToggle').addEventListener('change', e => {
 
 
   updateContrailModeUI();  // NEW
+  updateScheduleOnlyUI();
   getCurrentLocationAndRun();
 });
 
@@ -1210,6 +1214,23 @@ function updateCountdown() {
 }
 
 function startAutoRefresh() {
+  if (selectedBody === 'flight schedule') {
+    stopAutoRefresh();
+    return;
+  }
+
+  stopAutoRefresh();
+  updateCountdown();
+  updateCountdownDisplay();
+  countdownInterval = setInterval(() => {
+    countdown--;
+    updateCountdownDisplay();
+    if (countdown <= 0) {
+      getCurrentLocationAndRun();
+      updateCountdown();
+    }
+  }, 1000);
+}
   stopAutoRefresh();
   updateCountdown();
   updateCountdownDisplay();
@@ -1805,6 +1826,35 @@ if (testBtn && alertSound) {
       });
     } catch (e) {
       console.error("Test sound error:", e);
+    }
+  });
+}
+
+
+function updateScheduleOnlyUI() {
+  const isSchedule = selectedBody === 'flight schedule';
+
+  const idsToHideInSchedule = [
+    'radiusSelect',
+    'autoRefreshToggle',
+    'predictToggle',
+    'marginSlider',
+    'countdownTimer',
+    'marginFeedback',
+    'enhancedPredictionBtn'
+  ];
+
+  idsToHideInSchedule.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    const wrapper =
+      el.closest('label') ||
+      el.closest('div') ||
+      el.parentElement;
+
+    if (wrapper) {
+      wrapper.style.display = isSchedule ? 'none' : '';
     }
   });
 }
