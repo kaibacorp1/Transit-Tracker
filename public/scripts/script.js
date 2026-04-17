@@ -184,6 +184,7 @@ console.log('Aircraft fields:', flights.map(f => ({
         : `← ${f.departure?.iata || '???'}`
     };
   })
+  .filter(f => BIG_AIRCRAFT.includes(f.aircraft))
   .sort((a, b) => new Date(a.time || 0) - new Date(b.time || 0));
 
     if (!bigFlights.length) {
@@ -199,14 +200,12 @@ console.log('Aircraft fields:', flights.map(f => ({
 
     const dep = bigFlights
   .filter(f => f.type === 'departure')
-  .slice(0, 20)
-  .map(f => `${formatTime(f.time)} — ${f.airline} ${f.aircraft || 'UNKNOWN'} [raw: ${f.rawAircraft || 'empty'}] ${f.route}`)
+  .map(f => `${formatTime(f.time)} — ${f.airline} ${f.aircraft} ${f.route}`)
   .join('<br>');
 
 const arr = bigFlights
   .filter(f => f.type === 'arrival')
-  .slice(0, 20)
-  .map(f => `${formatTime(f.time)} — ${f.airline} ${f.aircraft || 'UNKNOWN'} [raw: ${f.rawAircraft || 'empty'}] ${f.route}`)
+  .map(f => `${formatTime(f.time)} — ${f.airline} ${f.aircraft} ${f.route}`)
   .join('<br>');
 
     statusEl.innerHTML = `
