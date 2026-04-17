@@ -166,10 +166,10 @@ if (!res.ok) {
 
 const flights = json.flights || [];
 console.log('Airport:', airport);
-console.log('depCount:', json.depCount);
-console.log('arrCount:', json.arrCount);
+console.log('Mode:', json.mode || 'airport');
 console.log('Flights returned:', flights.length);
 console.log('Aircraft fields:', flights.map(f => ({
+  flight: f.flight?.iata,
   airline: f.airline?.name,
   dep: f.departure?.iata,
   arr: f.arrival?.iata,
