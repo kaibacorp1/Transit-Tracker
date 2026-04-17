@@ -163,26 +163,27 @@ console.log('Aircraft fields:', flights.map(f => ({
 })));
 
     const bigFlights = flights
-      .map(f => {
-        const aircraft = normalizeAircraftCode(
-          f.aircraft?.iata || f.aircraft?.icao || ''
-        );
+  .map(f => {
+    const rawAircraft =
+      f.aircraft?.iata ||
+      f.aircraft?.icao ||
+      '';
 
-        const isDeparture = f.departure?.iata === airport;
+    const aircraft = normalizeAircraftCode(rawAircraft);
+    const isDeparture = f.departure?.iata === airport;
 
-        return {
-          type: isDeparture ? 'departure' : 'arrival',
-          airline: f.airline?.name || 'Unknown',
-          aircraft,
-          time: isDeparture ? f.departure?.scheduled : f.arrival?.scheduled,
-          route: isDeparture
-  ? `→ ${f.arrival?.iata || '???'}`
-  : `← ${f.departure?.iata || '???'}`
-            
-        };
-      })
-      .filter(f => BIG_AIRCRAFT.includes(f.aircraft))
-      .sort((a, b) => new Date(a.time || 0) - new Date(b.time || 0));
+    return {
+      type: isDeparture ? 'departure' : 'arrival',
+      airline: f.airline?.name || 'Unknown',
+      aircraft,
+      rawAircraft,
+      time: isDeparture ? f.departure?.scheduled : f.arrival?.scheduled,
+      route: isDeparture
+        ? `→ ${f.arrival?.iata || '???'}`
+        : `← ${f.departure?.iata || '???'}`
+    };
+  })
+  .sort((a, b) => new Date(a.time || 0) - new Date(b.time || 0));
 
     if (!bigFlights.length) {
       statusEl.textContent = 'No big aircraft today.';
@@ -196,14 +197,16 @@ console.log('Aircraft fields:', flights.map(f => ({
       });
 
     const dep = bigFlights
-      .filter(f => f.type === 'departure')
-      .map(f => `${formatTime(f.time)} — ${f.airline} ${f.aircraft} ${f.route}`)
-      .join('<br>');
+  .filter(f => f.type === 'departure')
+  .slice(0, 20)
+  .map(f => `${formatTime(f.time)} — ${f.airline} ${f.aircraft || 'UNKNOWN'} [raw: ${f.rawAircraft || 'empty'}] ${f.route}`)
+  .join('<br>');
 
-    const arr = bigFlights
-      .filter(f => f.type === 'arrival')
-      .map(f => `${formatTime(f.time)} — ${f.airline} ${f.aircraft} ${f.route}`)
-      .join('<br>');
+const arr = bigFlights
+  .filter(f => f.type === 'arrival')
+  .slice(0, 20)
+  .map(f => `${formatTime(f.time)} — ${f.airline} ${f.aircraft || 'UNKNOWN'} [raw: ${f.rawAircraft || 'empty'}] ${f.route}`)
+  .join('<br>');
 
     statusEl.innerHTML = `
       🛫 <strong>Departures (${airport})</strong><br>
