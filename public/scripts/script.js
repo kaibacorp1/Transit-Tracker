@@ -223,12 +223,18 @@ console.log('Aircraft fields:', flights.map(f => ({
 
     const dep = bigFlights
   .filter(f => f.type === 'departure')
-  .map(f => `${formatTime(f.time)} — ${f.airline} ${f.aircraft} ${f.route}`)
+  .map(f => {
+  const flightNum = f.flight?.iata || '';
+  return `${formatTime(f.time)} — ${f.airline} ${flightNum} ${f.aircraft} ${f.route}`;
+})
   .join('<br>');
 
 const arr = bigFlights
   .filter(f => f.type === 'arrival')
-  .map(f => `${formatTime(f.time)} — ${f.airline} ${f.aircraft} ${f.route}`)
+  .map(f => {
+  const flightNum = f.flight?.iata || '';
+  return `${formatTime(f.time)} — ${f.airline} ${flightNum} ${f.aircraft} ${f.route}`;
+})
   .join('<br>');
 
     statusEl.innerHTML = `
