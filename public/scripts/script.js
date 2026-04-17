@@ -156,8 +156,11 @@ async function loadFlightSchedule() {
   statusEl.textContent = `📅 Loading ${airport} schedule...`;
 
   try {
-    const res = await fetch(`/api/syd-schedule?airport=${airport}`);
+    const res = airport === 'SYD'
+  ? await fetch(`/api/syd-board`)
+  : await fetch(`/api/syd-schedule?airport=${airport}`);
 const json = await res.json();
+    console.log('SYD BOARD DATA:', json);
 
 if (!res.ok) {
   console.error('Schedule API error:', json);
@@ -165,6 +168,46 @@ if (!res.ok) {
 }
 
 const flights = json.flights || [];
+
+    if (airport === 'SYD') {
+  const BIG_FLIGHTS = [
+    'QF1','QF2',
+    'QF11','QF12',
+    'QF63','QF64',
+    'QF73','QF74',
+    'EK412','EK413',
+    'QR908','QR909',
+    'SQ221','SQ222',
+    'SQ231','SQ232',
+    'SQ241','SQ242',
+    'UA839','UA870',
+    'AA72','AA73',
+    'JL51','JL52',
+    'CX100','CX101',
+    'CX138','CX139'
+  ];
+
+  const filtered = flights.filter(f => {
+  const flightCode = String(f.flight || '').toUpperCase().trim();
+  return BIG_FLIGHTS.some(code => flightCode === code);
+});
+
+  const list = filtered.map(f => {
+    const time = f.time || '--:--';
+    const airline = f.airline || 'Unknown';
+    const flight = f.flight || '';
+    const destination = f.destination || '???';
+    const status = f.status || '';
+    return `${time} — ${airline} ${flight} → ${destination}${status ? ` (${status})` : ''}`;
+  }).join('<br>');
+
+  statusEl.innerHTML = `
+    🛫 <strong>Departures (SYD)</strong><br>
+    ${list || 'None'}
+  `;
+
+  return;
+}
 console.log('Airport:', airport);
 console.log('Mode:', json.mode || 'airport');
 console.log('Flights returned:', flights.length);
