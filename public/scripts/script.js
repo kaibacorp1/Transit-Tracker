@@ -74,13 +74,13 @@ let lastStatusRender = null;
 const BIG_AIRCRAFT = ['A380', 'B747', 'A350', 'B777', 'B787'];
 
 function normalizeAircraftCode(code = '') {
-  const c = String(code).toUpperCase();
+  const c = String(code || '').toUpperCase().trim();
 
-  if (c.includes('380')) return 'A380';
-  if (c.includes('747')) return 'B747';
-  if (c.includes('350')) return 'A350';
-  if (c.includes('777') || c.includes('77')) return 'B777';
-  if (c.includes('787') || c.includes('78')) return 'B787';
+  if (c.includes('380') || c === '388') return 'A380';
+if (c.includes('747')) return 'B747';
+if (c.includes('350')) return 'A350';
+if (c.includes('777') || c.includes('77')) return 'B777';
+if (c.includes('787') || c.includes('78')) return 'B787';
 
   return c;
 }
@@ -501,8 +501,11 @@ document.addEventListener('DOMContentLoaded', () => {
 // --- UI Event Listeners ---
 document.getElementById('bodyToggle').addEventListener('change', e => {
   selectedBody = e.target.value;
-  document.getElementById('scheduleControls').style.display =
-  selectedBody === 'flight schedule' ? 'block' : 'none';
+  const scheduleControls = document.getElementById('scheduleControls');
+if (scheduleControls) {
+  scheduleControls.style.display =
+    selectedBody === 'flight schedule' ? 'block' : 'none';
+}
 
   const title = document.getElementById('trackerTitle');
   const label = document.getElementById('bodyLabel');
