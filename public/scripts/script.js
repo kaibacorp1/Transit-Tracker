@@ -98,6 +98,15 @@ async function loadFlightSchedule() {
 
     const flights = json.flights || [];
 
+    console.log('Airport:', airport);
+console.log('Flights returned:', flights.length);
+console.log('Aircraft fields:', flights.map(f => ({
+  airline: f.airline?.name,
+  dep: f.departure?.iata,
+  arr: f.arrival?.iata,
+  aircraft: f.aircraft
+})));
+
     const bigFlights = flights
       .map(f => {
         const aircraft = normalizeAircraftCode(
