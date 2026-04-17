@@ -68,6 +68,89 @@ let predictSeconds = 0;
 let margin         = 2.5;
 let lastStatusRender = null;
 
+// ==========================
+// ✈️ FLIGHT SCHEDULE FEATURE
+// ==========================
+const BIG_AIRCRAFT = ['A380', 'B747', 'A350', 'B777', 'B787'];
+
+function normalizeAircraftCode(code = '') {
+  const c = String(code).toUpperCase();
+
+  if (c.includes('380')) return 'A380';
+  if (c.includes('747')) return 'B747';
+  if (c.includes('350')) return 'A350';
+  if (c.includes('777') || c.includes('77')) return 'B777';
+  if (c.includes('787') || c.includes('78')) return 'B787';
+
+  return c;
+}
+
+async function loadFlightSchedule() {
+  const statusEl = document.getElementById('transitStatus');
+  const airport = (document.getElementById('scheduleAirportInput')?.value || 'SYD').toUpperCase();
+
+  statusEl.textContent = `📅 Loading ${airport} schedule...`;
+
+  try {
+    const res = await fetch(`/api/syd-schedule?airport=${airport}`);
+    const json = await res.json();
+
+    const flights = json.flights || [];
+
+    const bigFlights = flights
+      .map(f => {
+        const aircraft = normalizeAircraftCode(
+          f.aircraft?.iata || f.aircraft?.icao || ''
+        );
+
+        const isDeparture = f.departure?.iata === airport;
+
+        return {
+          type: isDeparture ? 'departure' : 'arrival',
+          airline: f.airline?.name || 'Unknown',
+          aircraft,
+          time: isDeparture ? f.departure?.scheduled : f.arrival?.scheduled,
+          route: isDeparture
+            ? `→ ${f.arrival?.iata}`
+            : `← ${f.departure?.iata}`
+        };
+      })
+      .filter(f => BIG_AIRCRAFT.includes(f.aircraft))
+      .sort((a, b) => new Date(a.time) - new Date(b.time));
+
+    if (!bigFlights.length) {
+      statusEl.textContent = 'No big aircraft today.';
+      return;
+    }
+
+    const formatTime = t =>
+      new Date(t).toLocaleTimeString('en-AU', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+    const dep = bigFlights
+      .filter(f => f.type === 'departure')
+      .map(f => `${formatTime(f.time)} — ${f.airline} ${f.aircraft} ${f.route}`)
+      .join('<br>');
+
+    const arr = bigFlights
+      .filter(f => f.type === 'arrival')
+      .map(f => `${formatTime(f.time)} — ${f.airline} ${f.aircraft} ${f.route}`)
+      .join('<br>');
+
+    statusEl.innerHTML = `
+      🛫 <strong>Departures (${airport})</strong><br>
+      ${dep || 'None'}<br><br>
+      🛬 <strong>Arrivals (${airport})</strong><br>
+      ${arr || 'None'}
+    `;
+
+  } catch (err) {
+    statusEl.textContent = `❌ Error: ${err.message}`;
+  }
+}
+
 // ✅ Add this here:
 const ignoredFlights = new Set();
 const watchNotifiedFlights = new Map();
@@ -394,6 +477,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // Prompt for location
   navigator.geolocation.getCurrentPosition(success, error);
 
+  document.getElementById('scheduleRefreshBtn')?.addEventListener('click', () => {
+  loadFlightSchedule();
+});
+
   // Initialize first tab
   showTab('adsboneTab');
 
@@ -411,6 +498,8 @@ document.addEventListener('DOMContentLoaded', () => {
 // --- UI Event Listeners ---
 document.getElementById('bodyToggle').addEventListener('change', e => {
   selectedBody = e.target.value;
+  document.getElementById('scheduleControls').style.display =
+  selectedBody === 'flight schedule' ? 'block' : 'none';
 
   const title = document.getElementById('trackerTitle');
   const label = document.getElementById('bodyLabel');
@@ -430,8 +519,10 @@ document.getElementById('bodyToggle').addEventListener('change', e => {
 } else if (selectedBody === 'plane on plane') {
   title.textContent = '✈️ Plane vs Plane';
   label.textContent = 'Plane on Plane';
+} else if (selectedBody === 'flight schedule') {
+  title.textContent = '📅 Flight Schedule';
+  label.textContent = 'Schedule';
 }
-
 
 
   updateContrailModeUI();  // NEW
@@ -655,6 +746,10 @@ if (errorEl) {
 }
 
 function getCelestialPosition(lat, lon, elev) {
+ if (selectedBody === 'flight schedule') {
+  loadFlightSchedule();
+  return;
+}
   if (selectedBody === 'plane contrails') {
     checkContrailFlights(lat, lon, elev);
     return;
