@@ -18,26 +18,16 @@ export default async function handler(req, res) {
     const depJson = await depRes.json();
     const arrJson = await arrRes.json();
 
-    console.log('DEP RESPONSE:', JSON.stringify(depJson));
-    console.log('ARR RESPONSE:', JSON.stringify(arrJson));
-
-    if (depJson.error) {
+    if (depJson.error || arrJson.error) {
       return res.status(500).json({
-        error: 'Departure API error',
-        details: depJson.error
-      });
-    }
-
-    if (arrJson.error) {
-      return res.status(500).json({
-        error: 'Arrival API error',
-        details: arrJson.error
+        error: 'Aviationstack error',
+        depError: depJson.error || null,
+        arrError: arrJson.error || null
       });
     }
 
     const depFlights = Array.isArray(depJson.data) ? depJson.data : [];
     const arrFlights = Array.isArray(arrJson.data) ? arrJson.data : [];
-
     const flights = [...depFlights, ...arrFlights];
 
     return res.status(200).json({
@@ -47,7 +37,6 @@ export default async function handler(req, res) {
       flights
     });
   } catch (err) {
-    console.error('syd-schedule error:', err);
     return res.status(500).json({
       error: 'Failed to fetch schedule',
       details: err.message
