@@ -42,7 +42,8 @@ for (let i = 0; i < count; i++) {
     flightType
   });
 }
-    
+    console.log('Parsed flights count:', flights.length);
+console.log('Parsed flights sample:', flights.slice(0, 20));
     return res.status(200).json({ flights });
   } catch (err) {
     console.error('sydney-airport-schedule error:', err);
