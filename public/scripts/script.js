@@ -123,10 +123,15 @@ async function fetchSydneyAirportSchedule(flightType, date) {
 function filterBigPlaneScheduleRows(rows = []) {
   return rows
     .map(row => {
-      const info = getBigPlaneInfo(row.flightNumber);
+      const rawFlightNumber = row.flightNumber || row.flight || row.callsign || '';
+      const normalizedFlightNumber = normalizeFlightCode(rawFlightNumber);
+
+      const info = getBigPlaneInfo(normalizedFlightNumber);
       if (!info) return null;
+
       return {
         ...row,
+        flightNumber: normalizedFlightNumber,
         bigPlaneType: info.type,
         notes: info.notes
       };
@@ -149,6 +154,9 @@ async function checkBigPlaneSchedule() {
 
     console.log('Big Planes arrivalsRes:', arrivalsRes);
 console.log('Big Planes departuresRes:', departuresRes);
+
+    console.log('Raw arrival flights:', arrivalsRes.flights);
+console.log('Raw departure flights:', departuresRes.flights);
 
     const arrivals = filterBigPlaneScheduleRows(arrivalsRes.flights || [])
       .map(f => ({ ...f, movement: 'Arrival' }));
