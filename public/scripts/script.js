@@ -68,231 +68,6 @@ let predictSeconds = 0;
 let margin         = 2.5;
 let lastStatusRender = null;
 
-// ==========================
-// ✈️ FLIGHT SCHEDULE FEATURE
-// ==========================
-const BIG_AIRCRAFT = [
-  'A380',
-  'B747',
-  'B777',
-  'A350',
-  'B787',
-  'A340',
-  'A330',
-  'B767',
-  'AN124',
-  'C5'
-];
-
-function normalizeAircraftCode(code = '') {
-  const c = String(code || '').toUpperCase().trim();
-
-  // Airbus A380
-  if (
-    c.includes('A380') || c.includes('A388') || c === '388' || c.includes('380')
-  ) return 'A380';
-
-  // Boeing 747 family
-  if (
-    c.includes('B747') || c.includes('B744') || c.includes('B748') || c.includes('747')
-  ) return 'B747';
-
-  // Boeing 777 family
-  if (
-    c.includes('B777') || c.includes('B77W') || c.includes('B77L') ||
-    c.includes('B773') || c.includes('B772') || c.includes('77')
-  ) return 'B777';
-
-  // Airbus A350 family
-  if (
-    c.includes('A350') || c.includes('A359') || c.includes('A35K') || c.includes('350')
-  ) return 'A350';
-
-  // Boeing 787 family
-  if (
-    c.includes('B787') || c.includes('B788') || c.includes('B789') ||
-    c.includes('B78X') || c.includes('787') || c.includes('78')
-  ) return 'B787';
-
-  // Airbus A340 family
-  if (
-    c.includes('A340') || c.includes('A346') || c.includes('A343')
-  ) return 'A340';
-
-  // Airbus A330 family
-  if (
-    c.includes('A330') || c.includes('A332') || c.includes('A333') ||
-    c.includes('A338') || c.includes('A339')
-  ) return 'A330';
-
-  // Boeing 767 family
-  if (
-    c.includes('B767') || c.includes('B762') || c.includes('B763') || c.includes('B764')
-  ) return 'B767';
-
-  // Antonov An-124
-  if (
-    c.includes('AN124') || c.includes('AN-124')
-  ) return 'AN124';
-
-  // Lockheed C-5 Galaxy
-  if (
-    c.includes('C5') || c.includes('C-5')
-  ) return 'C5';
-
-  // 747 Dreamlifter
-  if (
-    c.includes('DREAMLIFTER')
-  ) return 'B747';
-
-  return c;
-}
-
-async function loadFlightSchedule() {
-  const statusEl = document.getElementById('transitStatus');
-  stopAutoRefresh();
-  const airport = (document.getElementById('scheduleAirportInput')?.value || 'SYD').toUpperCase();
-
-  statusEl.textContent = `📅 Loading ${airport} schedule...`;
-
-  try {
-    const res = airport === 'SYD'
-  ? await fetch(`/api/syd-board`)
-  : await fetch(`/api/syd-schedule?airport=${airport}`);
-const json = await res.json();
-    console.log('SYD BOARD DATA:', json);
-
-if (!res.ok) {
-  console.error('Schedule API error:', json);
-  throw new Error(json.error || 'Schedule request failed');
-}
-
-const flights = json.flights || [];
-
-    if (airport === 'SYD') {
-  const BIG_FLIGHTS = [
-    'QF1','QF2',
-    'QF11','QF12',
-    'QF63','QF64',
-    'QF73','QF74',
-    'EK412','EK413',
-    'QR908','QR909',
-    'SQ221','SQ222',
-    'SQ231','SQ232',
-    'SQ241','SQ242',
-    'UA839','UA870',
-    'AA72','AA73',
-    'JL51','JL52',
-    'CX100','CX101',
-    'CX138','CX139'
-  ];
-
-  const filtered = flights.filter(f => {
-  const flightCode = String(f.flight || '').toUpperCase().trim();
-  return BIG_FLIGHTS.some(code => flightCode === code);
-});
-
-  const list = filtered.map(f => {
-    const time = f.time || '--:--';
-    const airline = f.airline || 'Unknown';
-    const flight = f.flight || '';
-    const destination = f.destination || '???';
-    const status = f.status || '';
-    return `${time} — ${airline} ${flight} → ${destination}${status ? ` (${status})` : ''}`;
-  }).join('<br>');
-
-  statusEl.innerHTML = `
-    🛫 <strong>Departures (SYD)</strong><br>
-    ${list || 'None'}
-  `;
-
-  return;
-}
-console.log('Airport:', airport);
-console.log('Mode:', json.mode || 'airport');
-console.log('Flights returned:', flights.length);
-console.log('Aircraft fields:', flights.map(f => ({
-  flight: f.flight?.iata,
-  airline: f.airline?.name,
-  dep: f.departure?.iata,
-  arr: f.arrival?.iata,
-  aircraft: f.aircraft
-})));
-
-    const bigFlights = flights
-  .map(f => {
-    const rawAircraft =
-  f.aircraft?.iata ||
-  f.aircraft?.icao ||
-  f.aircraft?.name ||
-  '';
-
-    const aircraft = normalizeAircraftCode(rawAircraft);
-
-    const depIata = String(f.departure?.iata || '').trim().toUpperCase();
-    const arrIata = String(f.arrival?.iata || '').trim().toUpperCase();
-
-    const isDeparture = depIata === airport;
-    const isArrival = arrIata === airport;
-
-    return {
-  type: isDeparture ? 'departure' : (isArrival ? 'arrival' : 'unknown'),
-  airline: f.airline?.name || 'Unknown',
-  flight: f.flight,
-  aircraft,
-  rawAircraft,
-  time: isDeparture
-    ? f.departure?.scheduled
-    : (isArrival ? f.arrival?.scheduled : null),
-  route: isDeparture
-    ? `→ ${arrIata || '???'}`
-    : (isArrival ? `← ${depIata || '???'}` : '↔ ???')
-};
-  })
-  .filter(f => BIG_AIRCRAFT.includes(f.aircraft))
-  .filter(f => f.type !== 'unknown')
-  .filter(f => f.time)
-  .sort((a, b) => new Date(a.time) - new Date(b.time));
-
-    if (!bigFlights.length) {
-      statusEl.textContent = 'No big aircraft today.';
-      return;
-    }
-
-    const formatTime = t =>
-      new Date(t).toLocaleTimeString('en-AU', {
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-
-    const dep = bigFlights
-  .filter(f => f.type === 'departure')
-  .map(f => {
-  const flightNum = f.flight?.iata || '';
-  return `${formatTime(f.time)} — ${f.airline} ${flightNum} ${f.aircraft} ${f.route}`;
-})
-  .join('<br>');
-
-const arr = bigFlights
-  .filter(f => f.type === 'arrival')
-  .map(f => {
-  const flightNum = f.flight?.iata || '';
-  return `${formatTime(f.time)} — ${f.airline} ${flightNum} ${f.aircraft} ${f.route}`;
-})
-  .join('<br>');
-
-    statusEl.innerHTML = `
-      🛫 <strong>Departures (${airport})</strong><br>
-      ${dep || 'None'}<br><br>
-      🛬 <strong>Arrivals (${airport})</strong><br>
-      ${arr || 'None'}
-    `;
-
-  } catch (err) {
-    statusEl.textContent = `❌ Error: ${err.message}`;
-  }
-}
-
 // ✅ Add this here:
 const ignoredFlights = new Set();
 const watchNotifiedFlights = new Map();
@@ -619,10 +394,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Prompt for location
   navigator.geolocation.getCurrentPosition(success, error);
 
-  document.getElementById('scheduleRefreshBtn')?.addEventListener('click', () => {
-  loadFlightSchedule();
-});
-
   // Initialize first tab
   showTab('adsboneTab');
 
@@ -634,18 +405,12 @@ document.addEventListener('DOMContentLoaded', () => {
 //  updateSessionTimer();
 
   updateContrailModeUI();
-  updateScheduleOnlyUI();
   readPlaneWatchConfig();
 });
 
 // --- UI Event Listeners ---
 document.getElementById('bodyToggle').addEventListener('change', e => {
   selectedBody = e.target.value;
-  const scheduleControls = document.getElementById('scheduleControls');
-if (scheduleControls) {
-  scheduleControls.style.display =
-    selectedBody === 'flight schedule' ? 'block' : 'none';
-}
 
   const title = document.getElementById('trackerTitle');
   const label = document.getElementById('bodyLabel');
@@ -665,14 +430,11 @@ if (scheduleControls) {
 } else if (selectedBody === 'plane on plane') {
   title.textContent = '✈️ Plane vs Plane';
   label.textContent = 'Plane on Plane';
-} else if (selectedBody === 'flight schedule') {
-  title.textContent = '📅 Flight Schedule';
-  label.textContent = 'Schedule';
 }
 
 
+
   updateContrailModeUI();  // NEW
-  updateScheduleOnlyUI();
   getCurrentLocationAndRun();
 });
 
@@ -893,10 +655,6 @@ if (errorEl) {
 }
 
 function getCelestialPosition(lat, lon, elev) {
- if (selectedBody === 'flight schedule') {
-  loadFlightSchedule();
-  return;
-}
   if (selectedBody === 'plane contrails') {
     checkContrailFlights(lat, lon, elev);
     return;
@@ -1357,11 +1115,6 @@ function updateCountdown() {
 }
 
 function startAutoRefresh() {
-  if (selectedBody === 'flight schedule') {
-    stopAutoRefresh();
-    return;
-  }
-
   stopAutoRefresh();
   updateCountdown();
   updateCountdownDisplay();
@@ -1369,6 +1122,17 @@ function startAutoRefresh() {
     countdown--;
     updateCountdownDisplay();
     if (countdown <= 0) {
+     
+      
+      // ←► HERE: session timeout check
+   //   if (hasSessionExpired()) {
+//  const lockSound = new Audio('/lock.MP3');
+//  lockSound.play().catch(() => {});
+ // alert("⏳ Time expired. Let the pass cool for a bit now.");
+//  stopAutoRefresh(); // stop the countdown as well
+//  return;
+//}
+
       getCurrentLocationAndRun();
       updateCountdown();
     }
@@ -1946,35 +1710,6 @@ if (testBtn && alertSound) {
       });
     } catch (e) {
       console.error("Test sound error:", e);
-    }
-  });
-}
-
-
-function updateScheduleOnlyUI() {
-  const isSchedule = selectedBody === 'flight schedule';
-
-  const idsToHideInSchedule = [
-    'radiusSelect',
-    'autoRefreshToggle',
-    'predictToggle',
-    'marginSlider',
-    'countdownTimer',
-    'marginFeedback',
-    'enhancedPredictionBtn'
-  ];
-
-  idsToHideInSchedule.forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-
-    const wrapper =
-      el.closest('label') ||
-      el.closest('div') ||
-      el.parentElement;
-
-    if (wrapper) {
-      wrapper.style.display = isSchedule ? 'none' : '';
     }
   });
 }
