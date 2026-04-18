@@ -430,6 +430,9 @@ document.getElementById('bodyToggle').addEventListener('change', e => {
 } else if (selectedBody === 'plane on plane') {
   title.textContent = '✈️ Plane vs Plane';
   label.textContent = 'Plane on Plane';
+} else if (selectedBody === 'big planes') {
+  title.textContent = '🛫 Big Planes';
+  label.textContent = 'Big Planes';
 }
 
 
@@ -660,13 +663,20 @@ function getCelestialPosition(lat, lon, elev) {
     return;
   }
   if (selectedBody === 'plane watch') {
-    checkNearbyFlights(lat, lon, elev, 0, 0);  // bodyAz, bodyAlt not needed
+    checkNearbyFlights(lat, lon, elev, 0, 0);
     return;
   }
   if (selectedBody === 'plane on plane') {
-    checkNearbyFlights(lat, lon, elev, 0, 0);  // bodyAz, bodyAlt not needed
+    checkNearbyFlights(lat, lon, elev, 0, 0);
     return;
   }
+  if (selectedBody === 'big planes') {
+    checkBigPlaneSchedule();
+    return;
+  }
+
+  // Sun/Moon logic...
+}
 
 
   const now = new Date();
