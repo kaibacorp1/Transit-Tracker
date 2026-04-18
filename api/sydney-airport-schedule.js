@@ -20,32 +20,29 @@ export default async function handler(req, res) {
 
     const html = await pageRes.text();
 
-    const flights = [];
-    const rowRegex = /<tr[\s\S]*?<\/tr>/gi;
-    const rows = html.match(rowRegex) || [];
+const flights = [];
 
-    for (const row of rows) {
-      const text = row.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+// Extract ALL flight-like codes (EK412, SQ221, etc)
+const flightRegex = /\b([A-Z]{2}\d{1,4})\b/g;
+const timeRegex = /\b(\d{1,2}:\d{2})\b/g;
 
-      const flightMatch = text.match(/\b([A-Z]{2}\s?\d{1,4})\b/);
-      const timeMatch = text.match(/\b(\d{1,2}:\d{2})\b/);
+const flightMatches = [...html.matchAll(flightRegex)];
+const timeMatches = [...html.matchAll(timeRegex)];
 
-      if (!flightMatch || !timeMatch) continue;
+const count = Math.min(flightMatches.length, timeMatches.length);
 
-      const flightNumber = flightMatch[1].replace(/\s+/g, '');
-      const scheduledTime = timeMatch[1];
-
-      flights.push({
-        flightNumber,
-        scheduledTime,
-        airline: '',
-        city: '',
-        status: text,
-        terminal: 'T1',
-        flightType
-      });
-    }
-
+for (let i = 0; i < count; i++) {
+  flights.push({
+    flightNumber: flightMatches[i][1],
+    scheduledTime: timeMatches[i][1],
+    airline: '',
+    city: '',
+    status: '',
+    terminal: 'T1',
+    flightType
+  });
+}
+    
     return res.status(200).json({ flights });
   } catch (err) {
     console.error('sydney-airport-schedule error:', err);
