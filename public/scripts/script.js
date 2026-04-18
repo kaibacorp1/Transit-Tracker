@@ -81,6 +81,128 @@ const planeWatchConfig = {
   browserNotifications: true
 };
 
+// --- Big Planes (Sydney schedule) ---
+const BIG_PLANE_WATCHLIST = {
+  EK412: { type: 'A380', notes: 'Emirates SYD-CHC' },
+  EK413: { type: 'A380', notes: 'Emirates CHC-SYD' },
+  SQ221: { type: 'A380', notes: 'Singapore Airlines SIN-SYD' },
+  SQ222: { type: 'A380', notes: 'Singapore Airlines SYD-SIN' },
+  SQ231: { type: 'A380', notes: 'Singapore Airlines SIN-SYD' },
+  SQ232: { type: 'A380', notes: 'Singapore Airlines SYD-SIN' },
+  QF1:   { type: 'A380', notes: 'Qantas SYD-SIN-LHR' },
+  QF2:   { type: 'A380', notes: 'Qantas inbound to Sydney' },
+
+  // Optional 747s — add exact flight numbers you care about later
+  // CXXXX: { type: 'B747', notes: 'Example cargo/charter' }
+};
+
+function normalizeFlightCode(code = '') {
+  return code.toUpperCase().replace(/\s+/g, '');
+}
+
+function getBigPlaneInfo(flightCode = '') {
+  return BIG_PLANE_WATCHLIST[normalizeFlightCode(flightCode)] || null;
+}
+
+function getLocalDateYYYYMMDD() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+async function fetchSydneyAirportSchedule(flightType, date) {
+  const res = await fetch(
+    `/api/sydney-airport-schedule?flightType=${encodeURIComponent(flightType)}&date=${encodeURIComponent(date)}`
+  );
+  if (!res.ok) throw new Error(`Sydney Airport schedule ${res.status}`);
+  return res.json();
+}
+
+function filterBigPlaneScheduleRows(rows = []) {
+  return rows
+    .map(row => {
+      const info = getBigPlaneInfo(row.flightNumber);
+      if (!info) return null;
+      return {
+        ...row,
+        bigPlaneType: info.type,
+        notes: info.notes
+      };
+    })
+    .filter(Boolean);
+}
+
+async function checkBigPlaneSchedule() {
+  const statusEl = document.getElementById('transitStatus');
+  const dateInput = document.getElementById('bigPlaneDate');
+  const date = dateInput?.value || getLocalDateYYYYMMDD();
+
+  statusEl.textContent = '🛫 Checking Sydney big-plane schedule...';
+
+  try {
+    const [arrivalsRes, departuresRes] = await Promise.all([
+      fetchSydneyAirportSchedule('arrival', date),
+      fetchSydneyAirportSchedule('departure', date)
+    ]);
+
+    const arrivals = filterBigPlaneScheduleRows(arrivalsRes.flights || [])
+      .map(f => ({ ...f, movement: 'Arrival' }));
+
+    const departures = filterBigPlaneScheduleRows(departuresRes.flights || [])
+      .map(f => ({ ...f, movement: 'Departure' }));
+
+    const all = [...arrivals, ...departures].sort((a, b) => {
+      return (a.scheduledTime || '').localeCompare(b.scheduledTime || '');
+    });
+
+    if (!all.length) {
+      statusEl.textContent = 'No tracked big-plane arrivals or departures found for that date.';
+      return;
+    }
+
+    const pauseBtn = `<button id="pauseResumeBtn" onclick="toggleAutoRefresh()" style="
+      float: right;
+      margin-left: 10px;
+      font-size: 0.75em;
+      padding: 3px 6px;
+      border: none;
+      border-radius: 4px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      background-color: ${autoRefresh ? '#66252f' : '#285431'};
+    ">
+      ${autoRefresh ? '🔴 Pause' : '🟢 Resume'}
+    </button>`;
+
+    const lines = all.map(f => `
+      <div style="margin-bottom: 0.45rem;">
+        <strong>${f.scheduledTime || '--:--'}</strong>
+        — ${f.movement}
+        —
+        <strong>${f.flightNumber}</strong>
+        <span style="font-size:0.78em; font-weight:normal;">
+          ${f.airline ? `— ${f.airline}` : ''}
+          ${f.city ? `— ${f.city}` : ''}
+          — ${f.bigPlaneType}
+          ${f.status ? `— ${f.status}` : ''}
+        </span>
+      </div>
+    `).join('');
+
+    lastStatusRender = () => {
+      statusEl.innerHTML = `🛫 Big Plane Schedule: ${pauseBtn}<br>${lines}`;
+    };
+
+    lastStatusRender();
+  } catch (err) {
+    console.error(err);
+    statusEl.textContent = `🚫 Error loading big-plane schedule: ${err.message}`;
+  }
+}
+
 // --- Utility & Storage Helpers ---
 function getAviationstackKey() {
   return sessionStorage.getItem('aviationstackKey');
@@ -400,12 +522,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // Read initial prediction setting from the dropdown
   predictSeconds = parseInt(document.getElementById('predictToggle').value, 10) || 0;
 
-  // ✅ NEW: Start session timer updates (moved inside the block)
-//  setInterval(updateSessionTimer, 1000);
-//  updateSessionTimer();
-
   updateContrailModeUI();
   readPlaneWatchConfig();
+
+  const bigPlaneDateInput = document.getElementById('bigPlaneDate');
+  if (bigPlaneDateInput && !bigPlaneDateInput.value) {
+    bigPlaneDateInput.value = getLocalDateYYYYMMDD();
+  }
 });
 
 // --- UI Event Listeners ---
@@ -674,10 +797,6 @@ function getCelestialPosition(lat, lon, elev) {
     checkBigPlaneSchedule();
     return;
   }
-
-  // Sun/Moon logic...
-}
-
 
   const now = new Date();
   const pos = selectedBody === 'moon'
@@ -1235,16 +1354,26 @@ function updateContrailModeUI() {
   const isContrail     = selectedBody === 'plane contrails';
   const isPlaneOnPlane = selectedBody === 'plane on plane';
   const isPlaneWatch   = selectedBody === 'plane watch';
+  const isBigPlanes    = selectedBody === 'big planes';
 
-  document.getElementById('predictToggle').disabled        = isContrail || isPlaneWatch;
-  document.getElementById('marginSlider').disabled         = isContrail || isPlaneWatch;
-  document.getElementById('enhancedPrediction').disabled   = isContrail || isPlaneOnPlane || isPlaneWatch;
-  document.getElementById('planeWatchControls').style.display = isPlaneWatch ? 'block' : 'none';
-  document.getElementById('detectionMarginSection').style.display = isPlaneWatch ? 'none' : 'block';
+  document.getElementById('predictToggle').disabled =
+    isContrail || isPlaneWatch || isBigPlanes;
+
+  document.getElementById('marginSlider').disabled =
+    isContrail || isPlaneWatch || isBigPlanes;
+
+  document.getElementById('enhancedPrediction').disabled =
+    isContrail || isPlaneOnPlane || isPlaneWatch || isBigPlanes;
+
+  document.getElementById('planeWatchControls').style.display =
+    isPlaneWatch ? 'block' : 'none';
+
+  document.getElementById('detectionMarginSection').style.display =
+    (isPlaneWatch || isBigPlanes) ? 'none' : 'block';
 
   const btn = document.getElementById('enhancedPredictionBtn');
   if (btn) {
-    btn.style.opacity = (isContrail || isPlaneOnPlane || isPlaneWatch) ? 0.5 : 1;
+    btn.style.opacity = (isContrail || isPlaneOnPlane || isPlaneWatch || isBigPlanes) ? 0.5 : 1;
   }
 
   document.getElementById('marginFeedback').textContent = isContrail
@@ -1253,7 +1382,9 @@ function updateContrailModeUI() {
       ? '🔭 Only angular margin matters here.'
       : isPlaneWatch
         ? '👀 Plane Watch uses radius, altitude, type, and direction filters.'
-        : getMarginFeedback(margin);
+        : isBigPlanes
+          ? '🛫 Big Planes uses airport schedule data, not transit geometry.'
+          : getMarginFeedback(margin);
 }
 
 
