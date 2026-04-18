@@ -147,11 +147,17 @@ async function checkBigPlaneSchedule() {
       fetchSydneyAirportSchedule('departure', date)
     ]);
 
+    console.log('Big Planes arrivalsRes:', arrivalsRes);
+console.log('Big Planes departuresRes:', departuresRes);
+
     const arrivals = filterBigPlaneScheduleRows(arrivalsRes.flights || [])
       .map(f => ({ ...f, movement: 'Arrival' }));
 
     const departures = filterBigPlaneScheduleRows(departuresRes.flights || [])
       .map(f => ({ ...f, movement: 'Departure' }));
+
+    console.log('Filtered big arrivals:', arrivals);
+console.log('Filtered big departures:', departures);
 
     const all = [...arrivals, ...departures].sort((a, b) => {
       return (a.scheduledTime || '').localeCompare(b.scheduledTime || '');
