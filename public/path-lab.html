@@ -1,362 +1,237 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>TransitChaser Path Lab</title>
-  <style>
-    body {
-      margin: 0;
-      background: #0b0f18;
-      color: #e8eefc;
-      font-family: system-ui, sans-serif;
-    }
+<meta charset="UTF-8">
+<title>TransitChaser Path Lab v2</title>
 
-    header {
-      padding: 18px 24px;
-      background: #111827;
-      border-bottom: 1px solid #243044;
-    }
+<style>
+body {
+  margin:0;
+  background:#050914;
+  color:#e8eefc;
+  font-family:system-ui;
+}
 
-    h1 {
-      margin: 0;
-      font-size: 22px;
-    }
+header {
+  padding:16px 20px;
+  background:#0f172a;
+  border-bottom:1px solid #1e293b;
+}
 
-    .layout {
-      display: grid;
-      grid-template-columns: 360px 1fr;
-      gap: 18px;
-      padding: 18px;
-    }
+.layout {
+  display:grid;
+  grid-template-columns:320px 1fr;
+  height:calc(100vh - 60px);
+}
 
-    .panel {
-      background: #111827;
-      border: 1px solid #243044;
-      border-radius: 18px;
-      padding: 18px;
-      box-shadow: 0 18px 40px rgba(0,0,0,0.35);
-    }
+.panel {
+  padding:16px;
+  border-right:1px solid #1e293b;
+}
 
-    label {
-      display: block;
-      margin-top: 14px;
-      font-size: 13px;
-      color: #aab6d3;
-    }
+input, select {
+  width:100%;
+  padding:8px;
+  margin-top:6px;
+  background:#0b1220;
+  color:white;
+  border:1px solid #334155;
+  border-radius:8px;
+}
 
-    input, select {
-      width: 100%;
-      padding: 10px;
-      margin-top: 6px;
-      border-radius: 10px;
-      border: 1px solid #334155;
-      background: #0b1220;
-      color: white;
-    }
+button {
+  width:100%;
+  margin-top:10px;
+  padding:10px;
+  background:#2563eb;
+  border:0;
+  color:white;
+  border-radius:10px;
+  cursor:pointer;
+}
 
-    button {
-      width: 100%;
-      margin-top: 16px;
-      padding: 12px;
-      border: 0;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #2563eb, #14b8a6);
-      color: white;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    button:hover {
-      filter: brightness(1.1);
-    }
-
-    #status {
-      margin-top: 14px;
-      color: #cbd5e1;
-      font-size: 14px;
-      line-height: 1.4;
-    }
-
-    canvas {
-      width: 100%;
-      height: calc(100vh - 92px);
-      background:
-        radial-gradient(circle at center, rgba(59,130,246,0.12), transparent 35%),
-        #050914;
-      border-radius: 20px;
-      border: 1px solid #243044;
-      box-shadow: 0 18px 50px rgba(0,0,0,0.45);
-    }
-
-    .small {
-      font-size: 12px;
-      color: #93a4c7;
-      margin-top: 10px;
-    }
-  </style>
+canvas {
+  width:100%;
+  height:100%;
+}
+</style>
 </head>
 
 <body>
-  <header>
-    <h1>TransitChaser Path Lab</h1>
-  </header>
 
-  <div class="layout">
-    <div class="panel">
-      <h2>Path Learning Test</h2>
+<header>
+  <h2>TransitChaser Path Lab v2</h2>
+</header>
 
-      <label>Your Latitude</label>
-      <input id="latInput" value="-33.918705">
+<div class="layout">
 
-      <label>Your Longitude</label>
-      <input id="lonInput" value="151.197647">
+<div class="panel">
+  <label>Latitude</label>
+  <input id="lat" value="-33.918705">
 
-      <label>Radius</label>
-      <select id="radiusInput">
-        <option value="20">20 km</option>
-        <option value="30" selected>30 km</option>
-        <option value="50">50 km</option>
-        <option value="80">80 km</option>
-      </select>
+  <label>Longitude</label>
+  <input id="lon" value="151.197647">
 
-      <label>Moon Azimuth</label>
-      <input id="moonAzInput" value="343.65">
+  <label>Radius (km)</label>
+  <input id="radius" value="30">
 
-      <label>Moon Altitude</label>
-      <input id="moonAltInput" value="44.32">
+  <label>Target Type</label>
+  <select id="targetType">
+    <option value="moon">Moon</option>
+    <option value="sun">Sun</option>
+  </select>
 
-      <button onclick="learnPaths()">Learn Flight Paths Once</button>
-      <button onclick="clearSamples()" style="background:#334155;">Clear Samples</button>
+  <label>Azimuth</label>
+  <input id="az" value="343">
 
-      <div id="status">Ready.</div>
+  <label>Altitude</label>
+  <input id="alt" value="44">
 
-      <div class="small">
-        This page fetches once per button press. It does not auto-refresh.
-      </div>
-    </div>
+  <button onclick="capture()">Capture Sample</button>
+  <button onclick="clearData()">Clear</button>
 
-    <canvas id="mapCanvas" width="1200" height="800"></canvas>
-  </div>
+  <div id="status">Ready</div>
+</div>
 
-  <script>
-    const canvas = document.getElementById('mapCanvas');
-    const ctx = canvas.getContext('2d');
+<canvas id="c"></canvas>
 
-    let samples = JSON.parse(localStorage.getItem('pathLabSamples') || '[]');
+</div>
 
-    function normalizeLongitude(lon) {
-      return ((lon + 180) % 360 + 360) % 360 - 180;
-    }
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
 
-    function toRad(v) {
-      return v * Math.PI / 180;
-    }
+let tracks = {}; // callsign -> history
 
-    function haversine(lat1, lon1, lat2, lon2) {
-      const R = 6371000;
-      const dLat = toRad(lat2 - lat1);
-      const dLon = toRad(lon2 - lon1);
-      const a =
-        Math.sin(dLat / 2) ** 2 +
-        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-        Math.sin(dLon / 2) ** 2;
-      return 2 * R * Math.asin(Math.sqrt(a));
-    }
+function toRad(d){return d*Math.PI/180;}
 
-    function calculateAzimuth(lat1, lon1, lat2, lon2) {
-      const y = Math.sin(toRad(lon2 - lon1)) * Math.cos(toRad(lat2));
-      const x =
-        Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) -
-        Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(toRad(lon2 - lon1));
-      return ((Math.atan2(y, x) * 180 / Math.PI) + 360) % 360;
-    }
+function haversine(lat1,lon1,lat2,lon2){
+  const R=6371000;
+  const dLat=toRad(lat2-lat1);
+  const dLon=toRad(lon2-lon1);
+  const a=Math.sin(dLat/2)**2 +
+    Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+  return 2*R*Math.asin(Math.sqrt(a));
+}
 
-    async function fetchAirplanesLive({ lat, lon, radiusKm }) {
-      const res = await fetch(
-        `https://api.airplanes.live/v2/point/${lat}/${lon}/${radiusKm}`
+function azimuth(lat1,lon1,lat2,lon2){
+  const y=Math.sin(toRad(lon2-lon1))*Math.cos(toRad(lat2));
+  const x=Math.cos(toRad(lat1))*Math.sin(toRad(lat2))-
+          Math.sin(toRad(lat1))*Math.cos(toRad(lat2))*Math.cos(toRad(lon2-lon1));
+  return (Math.atan2(y,x)*180/Math.PI+360)%360;
+}
+
+function elevationAngle(userLat,userLon,planeLat,planeLon,altFt){
+  const dist = haversine(userLat,userLon,planeLat,planeLon);
+  const altM = altFt*0.3048;
+  return Math.atan2(altM, dist)*180/Math.PI;
+}
+
+function angleDiff(a,b){
+  return Math.abs(((a-b+540)%360)-180);
+}
+
+async function fetchPlanes(lat,lon,r){
+  const res = await fetch(`https://api.airplanes.live/v2/point/${lat}/${lon}/${r}`);
+  const j = await res.json();
+  return j.ac || [];
+}
+
+async function capture(){
+  const lat = parseFloat(document.getElementById("lat").value);
+  const lon = parseFloat(document.getElementById("lon").value);
+  const r = parseFloat(document.getElementById("radius").value);
+
+  document.getElementById("status").innerText="Fetching...";
+
+  const data = await fetchPlanes(lat,lon,r);
+
+  data.forEach(p=>{
+    if(!p.lat || !p.lon) return;
+
+    const id = p.flight || p.hex;
+    if(!tracks[id]) tracks[id]=[];
+
+    tracks[id].push({
+      lat:p.lat,
+      lon:p.lon,
+      alt:p.alt_baro || p.alt_geom || 0,
+      time:Date.now()
+    });
+
+    if(tracks[id].length>10) tracks[id].shift();
+  });
+
+  draw();
+  document.getElementById("status").innerText="Captured";
+}
+
+function draw(){
+  canvas.width = canvas.clientWidth;
+  canvas.height = canvas.clientHeight;
+
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  const cx = canvas.width/2;
+  const cy = canvas.height/2;
+
+  const targetAz = parseFloat(document.getElementById("az").value);
+  const targetAlt = parseFloat(document.getElementById("alt").value);
+
+  // draw target line
+  ctx.strokeStyle="#facc15";
+  ctx.lineWidth=3;
+
+  const r = 200;
+  const a = toRad(targetAz);
+
+  ctx.beginPath();
+  ctx.moveTo(cx,cy);
+  ctx.lineTo(cx + Math.sin(a)*r, cy - Math.cos(a)*r);
+  ctx.stroke();
+
+  // draw tracks
+  Object.values(tracks).forEach(track=>{
+    for(let i=1;i<track.length;i++){
+
+      const p1=track[i-1];
+      const p2=track[i];
+
+      const az1 = azimuth(
+        parseFloat(lat.value),
+        parseFloat(lon.value),
+        p1.lat,p1.lon
       );
 
-      if (!res.ok) throw new Error(`Airplanes.live ${res.status}`);
+      const az2 = azimuth(
+        parseFloat(lat.value),
+        parseFloat(lon.value),
+        p2.lat,p2.lon
+      );
 
-      const json = await res.json();
-      const acList = Array.isArray(json.ac) ? json.ac : [];
+      const el1 = elevationAngle(lat.value,lon.value,p1.lat,p1.lon,p1.alt);
+      const el2 = elevationAngle(lat.value,lon.value,p2.lat,p2.lon,p2.alt);
 
-      return acList
-        .filter(f => f.lat && f.lon)
-        .map(f => ({
-          latitude: f.lat,
-          longitude: f.lon,
-          altitudeFt: f.alt_baro || f.alt_geom || 0,
-          heading: f.track || 0,
-          speedKt: f.gs || 0,
-          callsign: (f.flight || '').trim() || 'UNKNOWN',
-          aircraftType: (f.t || '').trim().toUpperCase(),
-          provider: 'airplanes-live'
-        }));
-    }
+      const close =
+        angleDiff(az2,targetAz)<5 &&
+        Math.abs(el2-targetAlt)<5;
 
-    function polarToCanvas(azDeg, distanceKm, maxRadiusKm) {
-      const cx = canvas.width / 2;
-      const cy = canvas.height / 2;
-      const maxPx = Math.min(canvas.width, canvas.height) * 0.42;
+      ctx.strokeStyle = close ? "#22c55e" : "#64748b";
+      ctx.lineWidth = close ? 3 : 1;
 
-      const r = Math.min(distanceKm / maxRadiusKm, 1) * maxPx;
-      const az = toRad(azDeg);
-
-      return {
-        x: cx + Math.sin(az) * r,
-        y: cy - Math.cos(az) * r
-      };
-    }
-
-    function angleDiff(a, b) {
-      return Math.abs(((a - b + 540) % 360) - 180);
-    }
-
-    function drawArrow(x, y, headingDeg, length, color) {
-      const h = toRad(headingDeg);
-      const x2 = x + Math.sin(h) * length;
-      const y2 = y - Math.cos(h) * length;
-
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.moveTo(x, y);
-      ctx.lineTo(x2, y2);
+      ctx.moveTo(cx + Math.sin(toRad(az1))*r*0.6, cy - Math.cos(toRad(az1))*r*0.6);
+      ctx.lineTo(cx + Math.sin(toRad(az2))*r*0.6, cy - Math.cos(toRad(az2))*r*0.6);
       ctx.stroke();
-
-      ctx.beginPath();
-      ctx.arc(x2, y2, 3, 0, Math.PI * 2);
-      ctx.fillStyle = color;
-      ctx.fill();
     }
+  });
+}
 
-    function draw() {
-      const userLat = parseFloat(document.getElementById('latInput').value);
-      const userLon = parseFloat(document.getElementById('lonInput').value);
-      const radiusKm = parseFloat(document.getElementById('radiusInput').value);
-      const moonAz = parseFloat(document.getElementById('moonAzInput').value);
+function clearData(){
+  tracks={};
+  draw();
+}
+</script>
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      const cx = canvas.width / 2;
-      const cy = canvas.height / 2;
-      const maxPx = Math.min(canvas.width, canvas.height) * 0.42;
-
-      ctx.strokeStyle = '#1e293b';
-      ctx.lineWidth = 1;
-
-      [0.25, 0.5, 0.75, 1].forEach(v => {
-        ctx.beginPath();
-        ctx.arc(cx, cy, maxPx * v, 0, Math.PI * 2);
-        ctx.stroke();
-      });
-
-      ctx.fillStyle = '#e2e8f0';
-      ctx.font = 'bold 14px system-ui';
-      ctx.fillText('N', cx - 5, cy - maxPx - 12);
-      ctx.fillText('S', cx - 5, cy + maxPx + 24);
-      ctx.fillText('E', cx + maxPx + 12, cy + 5);
-      ctx.fillText('W', cx - maxPx - 24, cy + 5);
-
-      ctx.strokeStyle = '#334155';
-      ctx.beginPath();
-      ctx.moveTo(cx, cy - maxPx);
-      ctx.lineTo(cx, cy + maxPx);
-      ctx.moveTo(cx - maxPx, cy);
-      ctx.lineTo(cx + maxPx, cy);
-      ctx.stroke();
-
-      const moonEnd = polarToCanvas(moonAz, radiusKm, radiusKm);
-      ctx.strokeStyle = '#facc15';
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      ctx.lineTo(moonEnd.x, moonEnd.y);
-      ctx.stroke();
-
-      ctx.fillStyle = '#facc15';
-      ctx.font = 'bold 15px system-ui';
-      ctx.fillText('Moon direction', moonEnd.x + 10, moonEnd.y);
-
-      ctx.fillStyle = '#38bdf8';
-      ctx.beginPath();
-      ctx.arc(cx, cy, 7, 0, Math.PI * 2);
-      ctx.fill();
-
-      samples.forEach(sample => {
-        sample.flights.forEach(f => {
-          const az = calculateAzimuth(userLat, userLon, f.latitude, f.longitude);
-          const distKm = haversine(userLat, userLon, f.latitude, f.longitude) / 1000;
-          if (distKm > radiusKm) return;
-
-          const p = polarToCanvas(az, distKm, radiusKm);
-          const closeToMoon = angleDiff(az, moonAz) < 8;
-
-          const color = closeToMoon ? '#22c55e' : '#64748b';
-
-          ctx.fillStyle = color;
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, closeToMoon ? 6 : 4, 0, Math.PI * 2);
-          ctx.fill();
-
-          drawArrow(p.x, p.y, f.heading, closeToMoon ? 28 : 18, color);
-
-          if (closeToMoon) {
-            ctx.fillStyle = '#d9f99d';
-            ctx.font = '12px system-ui';
-            ctx.fillText(f.callsign, p.x + 8, p.y - 8);
-          }
-        });
-      });
-
-      ctx.fillStyle = '#cbd5e1';
-      ctx.font = '13px system-ui';
-      ctx.fillText(`Samples saved: ${samples.length}`, 24, 30);
-      ctx.fillText(`Green aircraft = close to Moon azimuth`, 24, 50);
-    }
-
-    async function learnPaths() {
-      const userLat = parseFloat(document.getElementById('latInput').value);
-      const userLon = normalizeLongitude(parseFloat(document.getElementById('lonInput').value));
-      const radiusKm = parseFloat(document.getElementById('radiusInput').value);
-      const status = document.getElementById('status');
-
-      status.textContent = 'Fetching one aircraft sample...';
-
-      try {
-        const flights = await fetchAirplanesLive({
-          lat: userLat,
-          lon: userLon,
-          radiusKm
-        });
-
-        samples.push({
-          time: new Date().toISOString(),
-          user: { lat: userLat, lon: userLon },
-          radiusKm,
-          flights
-        });
-
-        localStorage.setItem('pathLabSamples', JSON.stringify(samples));
-
-        status.textContent = `Saved sample with ${flights.length} aircraft.`;
-        draw();
-
-      } catch (err) {
-        console.warn(err);
-        status.textContent = `Failed: ${err.message}`;
-      }
-    }
-
-    function clearSamples() {
-      samples = [];
-      localStorage.removeItem('pathLabSamples');
-      document.getElementById('status').textContent = 'Samples cleared.';
-      draw();
-    }
-
-    draw();
-  </script>
 </body>
 </html>
