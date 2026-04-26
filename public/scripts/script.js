@@ -880,19 +880,24 @@ if (window.useAdsbOne) {
 
   statusEl.textContent = "🚫 Too many users right now. Try again in 20 mins.";
 
-  // 🛑 Stop auto refresh so we don't spam the API
-  stopAutoRefresh();
+let retrySeconds = 60;
 
-  // ⏳ Try again after 60 seconds
-  setTimeout(() => {
-  statusEl.textContent = "🔄 Trying again...";
+stopAutoRefresh(`Trying again in ${retrySeconds}s`);
 
-  startAutoRefresh();
+const retryTimer = setInterval(() => {
+  retrySeconds--;
 
-  // 🔥 FORCE an immediate check
-  getCurrentLocationAndRun();
+  document.getElementById('countdownTimer').textContent =
+    `Trying again in ${retrySeconds}s`;
 
-}, 60000);
+  if (retrySeconds <= 0) {
+    clearInterval(retryTimer);
+
+    statusEl.textContent = "🔄 Trying again...";
+    startAutoRefresh();
+    getCurrentLocationAndRun();
+  }
+}, 1000);
 });
 
   return;
@@ -1299,9 +1304,9 @@ function startAutoRefresh() {
 }
 
 
-function stopAutoRefresh() {
+function stopAutoRefresh(message = 'Auto refresh off') {
   clearInterval(countdownInterval);
-  document.getElementById('countdownTimer').textContent = 'Auto refresh off';
+  document.getElementById('countdownTimer').textContent = message;
 }
 
 function updateCountdownDisplay() {
