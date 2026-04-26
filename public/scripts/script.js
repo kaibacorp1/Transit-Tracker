@@ -878,16 +878,21 @@ if (window.useAdsbOne) {
     .catch(err => {
   console.warn("ADSB-One failed:", err);
 
-  statusEl.textContent = "🚫 Too many users right now — try again in a 20 mins.";
+  statusEl.textContent = "🚫 Too many users right now. Try again in 20 mins.";
 
   // 🛑 Stop auto refresh so we don't spam the API
   stopAutoRefresh();
 
   // ⏳ Try again after 60 seconds
   setTimeout(() => {
-    statusEl.textContent = "🔄 Trying again...";
-    startAutoRefresh();
-  }, 60000);
+  statusEl.textContent = "🔄 Trying again...";
+
+  startAutoRefresh();
+
+  // 🔥 FORCE an immediate check
+  getCurrentLocationAndRun();
+
+}, 60000);
 });
 
   return;
