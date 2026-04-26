@@ -946,28 +946,7 @@ if (window.useAdsbOne) {
   }
 });
 
-let retrySeconds = 1200;
 
-stopAutoRefresh(`Trying again in ${retrySeconds}s`);
-
-const retryTimer = setInterval(() => {
-  retrySeconds--;
-
-  const mins = Math.floor(retrySeconds / 60);
-const secs = retrySeconds % 60;
-
-document.getElementById('countdownTimer').textContent =
-  `Trying again in ${mins}m ${secs.toString().padStart(2, '0')}s`;
-
-  if (retrySeconds <= 0) {
-    clearInterval(retryTimer);
-
-    statusEl.textContent = "🔄 Trying again...";
-    startAutoRefresh();
-    getCurrentLocationAndRun();
-  }
-}, 1000);
-});
 
   return;
 }
