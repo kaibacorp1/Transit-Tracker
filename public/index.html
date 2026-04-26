@@ -647,6 +647,74 @@
       </p>
     </footer>
 
+<!-- Service Update Modal -->
+<div id="serviceUpdateModal" style="
+  position: fixed;
+  z-index: 10000;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+">
+  <div style="
+    background: linear-gradient(180deg, #5a2b2b, #242424);
+    padding: 1.6rem 2rem;
+    max-width: 560px;
+    border-radius: 18px;
+    border: 2px solid #ff6b35;
+    box-shadow: 0 0 30px rgba(255,107,53,0.35);
+    text-align: center;
+    font-family: sans-serif;
+    color: #f2f2f2;
+  ">
+    <h2 style="margin-top:0; font-size:2rem;">🚧 ADSB-One Issue</h2>
+
+    <p style="font-size:1.05rem; line-height:1.45;">
+      You may currently see:<br>
+      <strong style="color:#ffb347;">🚫 ADSB-One error: ADSB-One 403</strong>
+    </p>
+
+    <p style="line-height:1.45;">
+      This is happening because Transit Chaser has had a huge increase in users.
+      I’m honestly honoured so many people are using it, but the traffic is putting heavy load on the flight-data provider.
+    </p>
+
+    <p style="line-height:1.45;">
+      I’m working on fixes so the app can stay available for everyone.
+      Running and maintaining it is also becoming expensive, so donations really help keep it alive.
+    </p>
+
+    <a href="https://buymeacoffee.com/transitchaser" target="_blank" style="
+      display:inline-block;
+      margin-top:0.8rem;
+      padding:0.8rem 1.2rem;
+      background:#1a8837;
+      color:white;
+      font-weight:bold;
+      border-radius:10px;
+      text-decoration:none;
+      font-size:1.05rem;
+    ">💚 Donate to keep Transit Chaser running</a>
+
+    <br>
+
+    <button onclick="
+      document.getElementById('serviceUpdateModal').style.display='none';
+      document.getElementById('alertModal').style.display='flex';
+    " style="
+      margin-top:1rem;
+      padding:0.55rem 1.3rem;
+      border:none;
+      background:#333;
+      color:#ddd;
+      border-radius:8px;
+      cursor:pointer;
+    ">Continue</button>
+  </div>
+</div>
+    
 <!-- Modal HTML -->
 <div id="alertModal" style="
   position: fixed;
