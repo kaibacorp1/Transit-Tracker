@@ -876,8 +876,19 @@ if (window.useAdsbOne) {
       callTransitAPI(data, uLat, uLon, uElev, bodyAz, bodyAlt);
     })
     .catch(err => {
-      statusEl.textContent = `🚫 ADSB-One error: ${err.message}`;
-    });
+  console.warn("ADSB-One failed:", err);
+
+  statusEl.textContent = "🚫 Too many users right now — try again in a 20 mins.";
+
+  // 🛑 Stop auto refresh so we don't spam the API
+  stopAutoRefresh();
+
+  // ⏳ Try again after 60 seconds
+  setTimeout(() => {
+    statusEl.textContent = "🔄 Trying again...";
+    startAutoRefresh();
+  }, 60000);
+});
 
   return;
 }
