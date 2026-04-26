@@ -880,15 +880,18 @@ if (window.useAdsbOne) {
 
   statusEl.textContent = "🚫 Too many users right now. Try again in 20 mins.";
 
-let retrySeconds = 60;
+let retrySeconds = 1200;
 
 stopAutoRefresh(`Trying again in ${retrySeconds}s`);
 
 const retryTimer = setInterval(() => {
   retrySeconds--;
 
-  document.getElementById('countdownTimer').textContent =
-    `Trying again in ${retrySeconds}s`;
+  const mins = Math.floor(retrySeconds / 60);
+const secs = retrySeconds % 60;
+
+document.getElementById('countdownTimer').textContent =
+  `Trying again in ${mins}m ${secs.toString().padStart(2, '0')}s`;
 
   if (retrySeconds <= 0) {
     clearInterval(retryTimer);
