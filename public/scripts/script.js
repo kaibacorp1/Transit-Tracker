@@ -67,6 +67,8 @@ let locationMode   = 'auto';
 let predictSeconds = 0;
 let margin         = 2.5;
 let lastStatusRender = null;
+let adsbOneFailCount = 0;
+let forceAirplanesLive = false;
 
 // ✅ Add this here:
 const ignoredFlights = new Set();
@@ -890,21 +892,46 @@ function getCelestialPosition(lat, lon, elev) {
   }
 
 // ─── ADSB-One mode ───────────────────────────────────────────────────
+// ─── ADSB-One mode ───────────────────────────────────────────────────
 if (window.useAdsbOne) {
   const statusEl = document.getElementById('transitStatus');
   const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
+
+  if (forceAirplanesLive) {
+    statusEl.textContent = 'Checking Airplanes.live flights…';
+
+    fetchAirplanesLive({ lat: uLat, lon: uLon, radiusKm })
+      .then(data => {
+        console.log('✅ Airplanes.live fetched', data.length, 'flights:', data);
+        callTransitAPI(data, uLat, uLon, uElev, bodyAz, bodyAlt);
+      })
+      .catch(err => {
+        console.warn('Airplanes.live failed:', err);
+        statusEl.textContent = '🚫 Airplanes.live error. Trying again later.';
+      });
+
+    return;
+  }
+
   statusEl.textContent = 'Checking ADSB-One flights…';
 
   fetchAdsbOne({ lat: uLat, lon: uLon, radiusKm })
     .then(data => {
-      // ← Log here, where `data` actually exists
-      console.log('ℹ️ ADSB-One fetched', data.length, 'flights:', data);
+  adsbOneFailCount = 0;   // ← ADD THIS LINE
 
-      // Then hand them off to your detector
-      callTransitAPI(data, uLat, uLon, uElev, bodyAz, bodyAlt);
-    })
+  console.log('ℹ️ ADSB-One fetched', data.length, 'flights:', data);
+
+  callTransitAPI(data, uLat, uLon, uElev, bodyAz, bodyAlt);
+})
     .catch(async err => {
   console.warn("ADSB-One failed, trying Airplanes.live...", err);
+
+      adsbOneFailCount++;
+
+if (adsbOneFailCount >= 5) {
+  forceAirplanesLive = true;
+  console.warn("ADSB-One failed 5 times. Switching to Airplanes.live until page refresh.");
+}
 
   statusEl.textContent = "⚠️ ADSB-One busy, trying backup source...";
 
