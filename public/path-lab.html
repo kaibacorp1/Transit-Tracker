@@ -2,234 +2,467 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>TransitChaser Path Lab v2</title>
-
+<title>TransitChaser Path Logger</title>
 <style>
 body {
-  margin:0;
-  background:#050914;
-  color:#e8eefc;
-  font-family:system-ui;
+  margin: 0;
+  background: #07111f;
+  color: #e5eefc;
+  font-family: system-ui, sans-serif;
 }
 
 header {
-  padding:16px 20px;
-  background:#0f172a;
-  border-bottom:1px solid #1e293b;
+  padding: 18px 24px;
+  background: #0f172a;
+  border-bottom: 1px solid #243044;
 }
 
-.layout {
-  display:grid;
-  grid-template-columns:320px 1fr;
-  height:calc(100vh - 60px);
+main {
+  padding: 20px;
 }
 
-.panel {
-  padding:16px;
-  border-right:1px solid #1e293b;
+.controls {
+  background: #111827;
+  border: 1px solid #243044;
+  border-radius: 16px;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+label {
+  font-size: 13px;
+  color: #aebbd6;
 }
 
 input, select {
-  width:100%;
-  padding:8px;
-  margin-top:6px;
-  background:#0b1220;
-  color:white;
-  border:1px solid #334155;
-  border-radius:8px;
+  width: 100%;
+  margin-top: 5px;
+  padding: 9px;
+  border-radius: 8px;
+  border: 1px solid #334155;
+  background: #07111f;
+  color: white;
 }
 
 button {
-  width:100%;
-  margin-top:10px;
-  padding:10px;
-  background:#2563eb;
-  border:0;
-  color:white;
-  border-radius:10px;
-  cursor:pointer;
+  padding: 11px;
+  border: none;
+  border-radius: 10px;
+  background: #2563eb;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
 }
 
-canvas {
-  width:100%;
-  height:100%;
+button.secondary {
+  background: #334155;
+}
+
+button.danger {
+  background: #7f1d1d;
+}
+
+.status {
+  margin: 12px 0;
+  color: #cbd5e1;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #0b1220;
+  border-radius: 14px;
+  overflow: hidden;
+  font-size: 13px;
+}
+
+th, td {
+  padding: 8px;
+  border-bottom: 1px solid #1e293b;
+  text-align: left;
+}
+
+th {
+  background: #111827;
+  color: #93c5fd;
+  position: sticky;
+  top: 0;
+}
+
+tr.same-plane {
+  background: rgba(34,197,94,0.08);
+}
+
+tr.changed {
+  background: rgba(250,204,21,0.10);
+}
+
+.small {
+  color: #94a3b8;
+  font-size: 12px;
 }
 </style>
 </head>
 
 <body>
-
 <header>
-  <h2>TransitChaser Path Lab v2</h2>
+  <h2>TransitChaser Path Logger</h2>
 </header>
 
-<div class="layout">
+<main>
 
-<div class="panel">
-  <label>Latitude</label>
-  <input id="lat" value="-33.918705">
+<div class="controls">
+  <div>
+    <label>Latitude</label>
+    <input id="latInput" value="-33.918705">
+  </div>
 
-  <label>Longitude</label>
-  <input id="lon" value="151.197647">
+  <div>
+    <label>Longitude</label>
+    <input id="lonInput" value="151.197647">
+  </div>
 
-  <label>Radius (km)</label>
-  <input id="radius" value="30">
+  <div>
+    <label>Elevation (m)</label>
+    <input id="elevInput" value="14">
+  </div>
 
-  <label>Target Type</label>
-  <select id="targetType">
-    <option value="moon">Moon</option>
-    <option value="sun">Sun</option>
-  </select>
+  <div>
+    <label>Radius (km)</label>
+    <input id="radiusInput" value="80">
+  </div>
 
-  <label>Azimuth</label>
-  <input id="az" value="343">
+  <div>
+    <label>Interval</label>
+    <select id="intervalInput">
+      <option value="60">1 min</option>
+      <option value="120" selected>2 min</option>
+      <option value="300">5 min</option>
+    </select>
+  </div>
 
-  <label>Altitude</label>
-  <input id="alt" value="44">
-
-  <button onclick="capture()">Capture Sample</button>
-  <button onclick="clearData()">Clear</button>
-
-  <div id="status">Ready</div>
+  <div>
+    <label>Target duration</label>
+    <select id="durationInput">
+      <option value="600">10 min</option>
+      <option value="1200">20 min</option>
+      <option value="1800" selected>30 min</option>
+    </select>
+  </div>
 </div>
 
-<canvas id="c"></canvas>
+<button onclick="captureOnce()">Capture Once</button>
+<button onclick="startLogging()">Start Auto Logging</button>
+<button class="secondary" onclick="stopLogging()">Stop</button>
+<button class="danger" onclick="clearLog()">Clear</button>
+<button class="secondary" onclick="downloadJSON()">Download JSON</button>
 
-</div>
+<div id="status" class="status">Ready.</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Time</th>
+      <th>Flight</th>
+      <th>Type</th>
+      <th>Lat</th>
+      <th>Lon</th>
+      <th>Alt ft</th>
+      <th>Dist km</th>
+      <th>Azimuth</th>
+      <th>Sky Alt</th>
+      <th>Heading</th>
+      <th>Speed kt</th>
+      <th>Vert Rate</th>
+      <th>Change</th>
+    </tr>
+  </thead>
+  <tbody id="logBody"></tbody>
+</table>
+
+</main>
 
 <script>
-const canvas = document.getElementById("c");
-const ctx = canvas.getContext("2d");
+let pathLog = JSON.parse(localStorage.getItem("pathLoggerData") || "[]");
+let lastByPlane = {};
+let timer = null;
+let startedAt = null;
 
-let tracks = {}; // callsign -> history
-
-function toRad(d){return d*Math.PI/180;}
-
-function haversine(lat1,lon1,lat2,lon2){
-  const R=6371000;
-  const dLat=toRad(lat2-lat1);
-  const dLon=toRad(lon2-lon1);
-  const a=Math.sin(dLat/2)**2 +
-    Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
-  return 2*R*Math.asin(Math.sqrt(a));
+function toRad(v) {
+  return v * Math.PI / 180;
 }
 
-function azimuth(lat1,lon1,lat2,lon2){
-  const y=Math.sin(toRad(lon2-lon1))*Math.cos(toRad(lat2));
-  const x=Math.cos(toRad(lat1))*Math.sin(toRad(lat2))-
-          Math.sin(toRad(lat1))*Math.cos(toRad(lat2))*Math.cos(toRad(lon2-lon1));
-  return (Math.atan2(y,x)*180/Math.PI+360)%360;
+function normalizeLongitude(lon) {
+  return ((lon + 180) % 360 + 360) % 360 - 180;
 }
 
-function elevationAngle(userLat,userLon,planeLat,planeLon,altFt){
-  const dist = haversine(userLat,userLon,planeLat,planeLon);
-  const altM = altFt*0.3048;
-  return Math.atan2(altM, dist)*180/Math.PI;
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371000;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) *
+    Math.cos(toRad(lat2)) *
+    Math.sin(dLon / 2) ** 2;
+
+  return 2 * R * Math.asin(Math.sqrt(a));
 }
 
-function angleDiff(a,b){
-  return Math.abs(((a-b+540)%360)-180);
+function calculateAzimuth(lat1, lon1, lat2, lon2) {
+  const y = Math.sin(toRad(lon2 - lon1)) * Math.cos(toRad(lat2));
+  const x =
+    Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) -
+    Math.sin(toRad(lat1)) *
+    Math.cos(toRad(lat2)) *
+    Math.cos(toRad(lon2 - lon1));
+
+  return ((Math.atan2(y, x) * 180 / Math.PI) + 360) % 360;
 }
 
-async function fetchPlanes(lat,lon,r){
-  const res = await fetch(`https://api.airplanes.live/v2/point/${lat}/${lon}/${r}`);
-  const j = await res.json();
-  return j.ac || [];
+function angleDiff(a, b) {
+  return Math.abs(((a - b + 540) % 360) - 180);
 }
 
-async function capture(){
-  const lat = parseFloat(document.getElementById("lat").value);
-  const lon = parseFloat(document.getElementById("lon").value);
-  const r = parseFloat(document.getElementById("radius").value);
+function calculateSkyAltitude(userLat, userLon, userElevM, planeLat, planeLon, planeAltFt) {
+  const groundDistanceM = haversine(userLat, userLon, planeLat, planeLon);
+  const planeAltM = planeAltFt * 0.3048;
+  const relativeAltM = planeAltM - userElevM;
 
-  document.getElementById("status").innerText="Fetching...";
+  return Math.atan2(relativeAltM, groundDistanceM) * 180 / Math.PI;
+}
 
-  const data = await fetchPlanes(lat,lon,r);
+async function fetchAirplanesLive({ lat, lon, radiusKm }) {
+  const res = await fetch(
+    `https://api.airplanes.live/v2/point/${lat}/${lon}/${radiusKm}`
+  );
 
-  data.forEach(p=>{
-    if(!p.lat || !p.lon) return;
+  if (!res.ok) throw new Error(`Airplanes.live ${res.status}`);
 
-    const id = p.flight || p.hex;
-    if(!tracks[id]) tracks[id]=[];
+  const json = await res.json();
+  const acList = Array.isArray(json.ac) ? json.ac : [];
 
-    tracks[id].push({
-      lat:p.lat,
-      lon:p.lon,
-      alt:p.alt_baro || p.alt_geom || 0,
-      time:Date.now()
+  return acList
+    .filter(f => f.lat && f.lon)
+    .map(f => ({
+      hex: f.hex || "",
+      callsign: (f.flight || "").trim() || f.hex || "UNKNOWN",
+      aircraftType: (f.t || "").toString().trim().toUpperCase(),
+      registration: f.r || "",
+      latitude: f.lat,
+      longitude: f.lon,
+      altitudeFt: f.alt_baro || f.alt_geom || 0,
+      altitudeSource: f.alt_baro ? "baro" : f.alt_geom ? "geom" : "unknown",
+      heading: f.track || 0,
+      speedKt: f.gs || 0,
+      verticalRateFpm: f.baro_rate || f.geom_rate || 0,
+      squawk: f.squawk || "",
+      category: f.category || "",
+      messages: f.messages || 0,
+      seen: f.seen || null,
+      seenPos: f.seen_pos || null
+    }));
+}
+
+function getInputs() {
+  return {
+    userLat: parseFloat(document.getElementById("latInput").value),
+    userLon: normalizeLongitude(parseFloat(document.getElementById("lonInput").value)),
+    userElevM: parseFloat(document.getElementById("elevInput").value) || 0,
+    radiusKm: parseFloat(document.getElementById("radiusInput").value),
+    intervalSec: parseInt(document.getElementById("intervalInput").value, 10),
+    durationSec: parseInt(document.getElementById("durationInput").value, 10)
+  };
+}
+
+async function captureOnce() {
+  const status = document.getElementById("status");
+  const {
+    userLat,
+    userLon,
+    userElevM,
+    radiusKm
+  } = getInputs();
+
+  status.textContent = "Capturing aircraft sample...";
+
+  try {
+    const aircraft = await fetchAirplanesLive({
+      lat: userLat,
+      lon: userLon,
+      radiusKm
     });
 
-    if(tracks[id].length>10) tracks[id].shift();
-  });
+    const time = new Date().toISOString();
 
-  draw();
-  document.getElementById("status").innerText="Captured";
+    const rows = aircraft.map(f => {
+      const distanceM = haversine(userLat, userLon, f.latitude, f.longitude);
+      const az = calculateAzimuth(userLat, userLon, f.latitude, f.longitude);
+      const skyAlt = calculateSkyAltitude(
+        userLat,
+        userLon,
+        userElevM,
+        f.latitude,
+        f.longitude,
+        f.altitudeFt
+      );
+
+      const previous = lastByPlane[f.callsign] || null;
+
+      let change = "new";
+
+      if (previous) {
+        const headingChange = angleDiff(f.heading, previous.heading);
+        const azChange = angleDiff(az, previous.azimuth);
+        const altChange = f.altitudeFt - previous.altitudeFt;
+        const distChange = (distanceM / 1000) - previous.distanceKm;
+
+        change =
+          `heading ${headingChange.toFixed(1)}°, ` +
+          `az ${azChange.toFixed(1)}°, ` +
+          `alt ${Math.round(altChange)} ft, ` +
+          `dist ${distChange.toFixed(1)} km`;
+      }
+
+      const record = {
+        time,
+        callsign: f.callsign,
+        hex: f.hex,
+        registration: f.registration,
+        aircraftType: f.aircraftType,
+        category: f.category,
+        latitude: f.latitude,
+        longitude: f.longitude,
+        altitudeFt: Math.round(f.altitudeFt),
+        altitudeSource: f.altitudeSource,
+        distanceKm: +(distanceM / 1000).toFixed(2),
+        azimuth: +az.toFixed(2),
+        skyAltitude: +skyAlt.toFixed(2),
+        heading: +f.heading.toFixed(1),
+        speedKt: Math.round(f.speedKt),
+        verticalRateFpm: Math.round(f.verticalRateFpm),
+        squawk: f.squawk,
+        messages: f.messages,
+        seen: f.seen,
+        seenPos: f.seenPos,
+        change
+      };
+
+      lastByPlane[f.callsign] = {
+        heading: record.heading,
+        azimuth: record.azimuth,
+        altitudeFt: record.altitudeFt,
+        distanceKm: record.distanceKm
+      };
+
+      return record;
+    });
+
+    pathLog.push({
+      time,
+      user: { lat: userLat, lon: userLon, elevM: userElevM },
+      radiusKm,
+      aircraftCount: rows.length,
+      aircraft: rows
+    });
+
+    localStorage.setItem("pathLoggerData", JSON.stringify(pathLog));
+
+    renderRows(rows);
+
+    status.textContent =
+      `Captured ${rows.length} aircraft at ${new Date().toLocaleTimeString()}. ` +
+      `Total samples: ${pathLog.length}`;
+
+  } catch (err) {
+    console.warn(err);
+    status.textContent = `Failed: ${err.message}`;
+  }
 }
 
-function draw(){
-  canvas.width = canvas.clientWidth;
-  canvas.height = canvas.clientHeight;
+function renderRows(rows) {
+  const body = document.getElementById("logBody");
 
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+  rows.forEach(r => {
+    const tr = document.createElement("tr");
 
-  const cx = canvas.width/2;
-  const cy = canvas.height/2;
-
-  const targetAz = parseFloat(document.getElementById("az").value);
-  const targetAlt = parseFloat(document.getElementById("alt").value);
-
-  // draw target line
-  ctx.strokeStyle="#facc15";
-  ctx.lineWidth=3;
-
-  const r = 200;
-  const a = toRad(targetAz);
-
-  ctx.beginPath();
-  ctx.moveTo(cx,cy);
-  ctx.lineTo(cx + Math.sin(a)*r, cy - Math.cos(a)*r);
-  ctx.stroke();
-
-  // draw tracks
-  Object.values(tracks).forEach(track=>{
-    for(let i=1;i<track.length;i++){
-
-      const p1=track[i-1];
-      const p2=track[i];
-
-      const az1 = azimuth(
-        parseFloat(lat.value),
-        parseFloat(lon.value),
-        p1.lat,p1.lon
-      );
-
-      const az2 = azimuth(
-        parseFloat(lat.value),
-        parseFloat(lon.value),
-        p2.lat,p2.lon
-      );
-
-      const el1 = elevationAngle(lat.value,lon.value,p1.lat,p1.lon,p1.alt);
-      const el2 = elevationAngle(lat.value,lon.value,p2.lat,p2.lon,p2.alt);
-
-      const close =
-        angleDiff(az2,targetAz)<5 &&
-        Math.abs(el2-targetAlt)<5;
-
-      ctx.strokeStyle = close ? "#22c55e" : "#64748b";
-      ctx.lineWidth = close ? 3 : 1;
-
-      ctx.beginPath();
-      ctx.moveTo(cx + Math.sin(toRad(az1))*r*0.6, cy - Math.cos(toRad(az1))*r*0.6);
-      ctx.lineTo(cx + Math.sin(toRad(az2))*r*0.6, cy - Math.cos(toRad(az2))*r*0.6);
-      ctx.stroke();
+    if (r.change !== "new") tr.classList.add("same-plane");
+    if (r.change.includes("heading") && !r.change.includes("heading 0.0")) {
+      tr.classList.add("changed");
     }
+
+    tr.innerHTML = `
+      <td>${new Date(r.time).toLocaleTimeString()}</td>
+      <td><strong>${r.callsign}</strong><br><span class="small">${r.hex}</span></td>
+      <td>${r.aircraftType || "-"}<br><span class="small">${r.registration || ""}</span></td>
+      <td>${r.latitude.toFixed(4)}</td>
+      <td>${r.longitude.toFixed(4)}</td>
+      <td>${r.altitudeFt.toLocaleString()}<br><span class="small">${r.altitudeSource}</span></td>
+      <td>${r.distanceKm}</td>
+      <td>${r.azimuth}°</td>
+      <td>${r.skyAltitude}°</td>
+      <td>${r.heading}°</td>
+      <td>${r.speedKt}</td>
+      <td>${r.verticalRateFpm}</td>
+      <td>${r.change}</td>
+    `;
+
+    body.prepend(tr);
   });
 }
 
-function clearData(){
-  tracks={};
-  draw();
+function startLogging() {
+  stopLogging();
+
+  const { intervalSec, durationSec } = getInputs();
+  startedAt = Date.now();
+
+  captureOnce();
+
+  timer = setInterval(() => {
+    const elapsed = (Date.now() - startedAt) / 1000;
+
+    if (elapsed >= durationSec) {
+      stopLogging();
+      document.getElementById("status").textContent =
+        `Finished auto logging after ${Math.round(durationSec / 60)} minutes.`;
+      return;
+    }
+
+    captureOnce();
+  }, intervalSec * 1000);
+
+  document.getElementById("status").textContent =
+    `Auto logging started: every ${intervalSec / 60} min for ${durationSec / 60} min.`;
+}
+
+function stopLogging() {
+  if (timer) clearInterval(timer);
+  timer = null;
+}
+
+function clearLog() {
+  stopLogging();
+  pathLog = [];
+  lastByPlane = {};
+  localStorage.removeItem("pathLoggerData");
+  document.getElementById("logBody").innerHTML = "";
+  document.getElementById("status").textContent = "Cleared.";
+}
+
+function downloadJSON() {
+  const blob = new Blob([JSON.stringify(pathLog, null, 2)], {
+    type: "application/json"
+  });
+
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `transitchaser-path-log-${Date.now()}.json`;
+  a.click();
 }
 </script>
 
