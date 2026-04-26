@@ -288,6 +288,34 @@ return acList.map(f => {
 
 }
 
+
+//---------airplane,live
+async function fetchAirplanesLive({ lat, lon, radiusKm }) {
+  const res = await fetch(
+    `https://api.airplanes.live/v2/point/${lat}/${lon}/${radiusKm}`
+  );
+
+  if (!res.ok) throw new Error(`Airplanes.live ${res.status}`);
+
+  const json = await res.json();
+  const acList = Array.isArray(json.ac) ? json.ac : [];
+
+  return acList.map(f => ({
+    latitude:  f.lat || 0,
+    longitude: f.lon || 0,
+    altitude:  (f.alt_baro || f.alt_geom || 0) * 0.3048,
+    altitudeFt: (f.alt_baro || f.alt_geom || 0),
+    heading:   f.track || 0,
+    speed:     (f.gs || 0) * 0.5144,
+    verticalSpeed: (f.baro_rate || f.geom_rate || 0) * 0.00508,
+    callsign:  (f.flight || '').trim(),
+    registration: f.r || '',
+    aircraftType: (f.t || '').toString().trim().toUpperCase(),
+    provider: 'airplanes-live'
+  }));
+}
+
+
 //_----------- FOR CONTRAILS_______///
 
 
@@ -875,10 +903,48 @@ if (window.useAdsbOne) {
       // Then hand them off to your detector
       callTransitAPI(data, uLat, uLon, uElev, bodyAz, bodyAlt);
     })
-    .catch(err => {
-  console.warn("ADSB-One failed:", err);
+    .catch(async err => {
+  console.warn("ADSB-One failed, trying Airplanes.live...", err);
 
-  statusEl.textContent = "🚫 Too many users right now. Try again in 20 mins.";
+  statusEl.textContent = "⚠️ ADSB-One busy, trying backup source...";
+
+  try {
+    const fallbackData = await fetchAirplanesLive({ lat: uLat, lon: uLon, radiusKm });
+
+    console.log('✅ Airplanes.live fallback worked:', fallbackData.length);
+
+    statusEl.textContent = "🟢 Using backup data source";
+
+    callTransitAPI(fallbackData, uLat, uLon, uElev, bodyAz, bodyAlt);
+
+  } catch (fallbackErr) {
+    console.warn("Airplanes.live also failed:", fallbackErr);
+
+    statusEl.textContent = "🚫 All data sources busy. Trying again in 20 mins.";
+
+    let retrySeconds = 1200;
+
+    stopAutoRefresh(`Trying again in ${retrySeconds}s`);
+
+    const retryTimer = setInterval(() => {
+      retrySeconds--;
+
+      const mins = Math.floor(retrySeconds / 60);
+      const secs = retrySeconds % 60;
+
+      document.getElementById('countdownTimer').textContent =
+        `Trying again in ${mins}m ${secs.toString().padStart(2, '0')}s`;
+
+      if (retrySeconds <= 0) {
+        clearInterval(retryTimer);
+
+        statusEl.textContent = "🔄 Trying again...";
+        startAutoRefresh();
+        getCurrentLocationAndRun();
+      }
+    }, 1000);
+  }
+});
 
 let retrySeconds = 1200;
 
