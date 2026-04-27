@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>TransitChaser 3D Path Viewer</title>
+  <style>
+    body {
+      margin: 0;
+      background: #050914;
+      color: white;
+      font-family: system-ui, sans-serif;
+      overflow: hidden;
+    }
+
+    #panel {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      width: 320px;
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 16px;
+      z-index: 10;
+    }
+
+    input, button {
+      width: 100%;
+      margin-top: 8px;
+      padding: 9px;
+      border-radius: 8px;
+      border: 1px solid #475569;
+      background: #0f172a;
+      color: white;
+    }
+
+    button {
+      cursor: pointer;
+      background: #2563eb;
+      font-weight: 700;
+    }
+
+    .small {
+      font-size: 12px;
+      color: #cbd5e1;
+      margin-top: 10px;
+      line-height: 1.4;
+    }
+
+    #stats {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #e2e8f0;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="panel">
+    <h2>TransitChaser 3D Path Viewer</h2>
+
+    <label>Load path log JSON</label>
+    <input type="file" id="fileInput" accept=".json" />
+
+    <label>Sun Azimuth</label>
+    <input id="sunAz" value="180" />
+
+    <label>Sun Altitude</label>
+    <input id="sunAlt" value="5" />
+
+    <label>Moon Azimuth</label>
+    <input id="moonAz" value="343" />
+
+    <label>Moon Altitude</label>
+    <input id="moonAlt" value="44" />
+
+    <button onclick="updateSunMoon()">Update Sun/Moon</button>
+
+    <div id="stats">No data loaded.</div>
+
+    <div class="small">
+      Viewer is at the centre.  
+      Dome = sky above you.  
+      Coloured paths = aircraft tracks.  
+      Yellow = Sun. White = Moon.
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+  <script src="https://unpkg.com/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
+
+  <script>
+    let scene, camera, renderer, controls;
+    let pathGroup, sunMesh, moonMesh;
+
+    const SKY_RADIUS = 100;
+
+    init();
+
+    function init() {
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x050914);
+
+      camera = new THREE.PerspectiveCamera(
+        60,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+      );
+
+      camera.position.set(0, 90, 180);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+
+      pathGroup = new THREE.Group();
+      scene.add(pathGroup);
+
+      addSkyDome();
+      addCompass();
+      addViewer();
+      addLights();
+      updateSunMoon();
+
+      animate();
+
+      window.addEventListener("resize", () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+    }
+
+    function addLights() {
+      scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+
+      const light = new THREE.DirectionalLight(0xffffff, 1);
+      light.position.set(50, 100, 50);
+      scene.add(light);
+    }
+
+    function addSkyDome() {
+      const geometry = new THREE.SphereGeometry(SKY_RADIUS, 64, 32, 0, Math.PI * 2, 0, Math.PI / 2);
+      const material = new THREE.MeshBasicMaterial({
+        color: 0x0f172a,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.25
+      });
+
+      const dome = new THREE.Mesh(geometry, material);
+      scene.add(dome);
+
+      // horizon ring
+      const ringGeometry = new THREE.RingGeometry(SKY_RADIUS - 0.4, SKY_RADIUS + 0.4, 128);
+      const ringMaterial = new THREE.MeshBasicMaterial({
+        color: 0x64748b,
+        side: THREE.DoubleSide
+      });
+
+      const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+      ring.rotation.x = Math.PI / 2;
+      scene.add(ring);
+
+      // altitude rings
+      [10, 20, 30, 45, 60, 75].forEach(alt => {
+        addAltitudeRing(alt);
+      });
+    }
+
+    function addAltitudeRing(altDeg) {
+      const alt = THREE.MathUtils.degToRad(altDeg);
+      const y = Math.sin(alt) * SKY_RADIUS;
+      const r = Math.cos(alt) * SKY_RADIUS;
+
+      const curve = new THREE.EllipseCurve(0, 0, r, r, 0, Math.PI * 2);
+      const points = curve.getPoints(160).map(p => new THREE.Vector3(p.x, y, p.y));
+
+      const geometry = new THREE.BufferGeometry().setFromPoints(points);
+      const material = new THREE.LineBasicMaterial({
+        color: 0x334155,
+        transparent: true,
+        opacity: 0.7
+      });
+
+      const line = new THREE.LineLoop(geometry, material);
+      scene.add(line);
+    }
+
+    function addCompass() {
+      addDirectionLine(0, "N", 0x38bdf8);
+      addDirectionLine(90, "E", 0x38bdf8);
+      addDirectionLine(180, "S", 0x38bdf8);
+      addDirectionLine(270, "W", 0x38bdf8);
+    }
+
+    function addDirectionLine(az, label, color) {
+      const p = skyTo3D(az, 0, SKY_RADIUS);
+
+      const geometry = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(0, 0, 0),
+        p
+      ]);
+
+      const material = new THREE.LineBasicMaterial({ color });
+      const line = new THREE.Line(geometry, material);
+      scene.add(line);
+
+      const canvas = document.createElement("canvas");
+      canvas.width = 128;
+      canvas.height = 64;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "white";
+      ctx.font = "bold 40px system-ui";
+      ctx.fillText(label, 42, 45);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+      const sprite = new THREE.Sprite(spriteMaterial);
+      sprite.position.copy(skyTo3D(az, 0, SKY_RADIUS + 8));
+      sprite.scale.set(12, 6, 1);
+      scene.add(sprite);
+    }
+
+    function addViewer() {
+      const geo = new THREE.SphereGeometry(2.5, 24, 24);
+      const mat = new THREE.MeshStandardMaterial({ color: 0x22c55e });
+      const viewer = new THREE.Mesh(geo, mat);
+      viewer.position.set(0, 0, 0);
+      scene.add(viewer);
+    }
+
+    function skyTo3D(azDeg, altDeg, radius = SKY_RADIUS) {
+      const az = THREE.MathUtils.degToRad(azDeg);
+      const alt = THREE.MathUtils.degToRad(altDeg);
+
+      const x = Math.sin(az) * Math.cos(alt) * radius;
+      const y = Math.sin(alt) * radius;
+      const z = -Math.cos(az) * Math.cos(alt) * radius;
+
+      return new THREE.Vector3(x, y, z);
+    }
+
+    function updateSunMoon() {
+      const sunAz = parseFloat(document.getElementById("sunAz").value);
+      const sunAlt = parseFloat(document.getElementById("sunAlt").value);
+
+      const moonAz = parseFloat(document.getElementById("moonAz").value);
+      const moonAlt = parseFloat(document.getElementById("moonAlt").value);
+
+      if (sunMesh) scene.remove(sunMesh);
+      if (moonMesh) scene.remove(moonMesh);
+
+      sunMesh = makeSkyObject(sunAz, sunAlt, 0xfacc15, 4.5);
+      moonMesh = makeSkyObject(moonAz, moonAlt, 0xe5e7eb, 3.5);
+
+      scene.add(sunMesh);
+      scene.add(moonMesh);
+    }
+
+    function makeSkyObject(az, alt, color, size) {
+      const geo = new THREE.SphereGeometry(size, 32, 32);
+      const mat = new THREE.MeshBasicMaterial({ color });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.copy(skyTo3D(az, alt, SKY_RADIUS));
+      return mesh;
+    }
+
+    document.getElementById("fileInput").addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const text = await file.text();
+      const json = JSON.parse(text);
+
+      renderFlightPaths(json);
+    });
+
+    function renderFlightPaths(logs) {
+      pathGroup.clear();
+
+      const tracks = {};
+
+      logs.forEach(sample => {
+        sample.aircraft.forEach(a => {
+          if (!isUsefulAircraft(a)) return;
+
+          const id = a.hex || a.callsign;
+          if (!tracks[id]) tracks[id] = [];
+
+          tracks[id].push({
+            time: a.time,
+            callsign: a.callsign,
+            azimuth: a.azimuth,
+            skyAltitude: a.skyAltitude,
+            altitudeFt: a.altitudeFt,
+            speedKt: a.speedKt
+          });
+        });
+      });
+
+      let rendered = 0;
+
+      Object.entries(tracks).forEach(([id, points]) => {
+        if (points.length < 2) return;
+
+        points.sort((a, b) => new Date(a.time) - new Date(b.time));
+
+        const vectors = points.map(p => {
+          const radius = altitudeToRadius(p.altitudeFt);
+          return skyTo3D(p.azimuth, p.skyAltitude, radius);
+        });
+
+        const geometry = new THREE.BufferGeometry().setFromPoints(vectors);
+
+        const material = new THREE.LineBasicMaterial({
+          color: colorForTrack(points),
+          transparent: true,
+          opacity: 0.85
+        });
+
+        const line = new THREE.Line(geometry, material);
+        pathGroup.add(line);
+
+        // latest position dot
+        const last = points[points.length - 1];
+        const dot = new THREE.Mesh(
+          new THREE.SphereGeometry(1.5, 16, 16),
+          new THREE.MeshBasicMaterial({ color: colorForTrack(points) })
+        );
+        dot.position.copy(vectors[vectors.length - 1]);
+        pathGroup.add(dot);
+
+        rendered++;
+      });
+
+      document.getElementById("stats").innerHTML =
+        `Loaded samples: <b>${logs.length}</b><br>` +
+        `Rendered aircraft tracks: <b>${rendered}</b>`;
+    }
+
+    function isUsefulAircraft(a) {
+      if (!a) return false;
+      if (a.altitudeFt === null || a.skyAltitude === null) return false;
+      if (!Number.isFinite(a.azimuth) || !Number.isFinite(a.skyAltitude)) return false;
+      if ((a.speedKt || 0) < 80) return false;
+      if (a.category === "C2") return false;
+      if (a.aircraftType === "SERV" || a.aircraftType === "TWR") return false;
+      return true;
+    }
+
+    function altitudeToRadius(altFt) {
+      // Keeps paths inside the sky dome, but lets higher aircraft sit slightly higher visually.
+      // The actual visible height is still controlled by skyAltitude.
+      const clamped = Math.max(0, Math.min(40000, altFt || 0));
+      return 35 + (clamped / 40000) * 65;
+    }
+
+    function colorForTrack(points) {
+      const avgAz = points.reduce((s, p) => s + p.azimuth, 0) / points.length;
+
+      if (avgAz >= 160 && avgAz <= 210) return 0x22c55e; // south
+      if (avgAz >= 220 && avgAz <= 300) return 0x38bdf8; // west
+      if (avgAz >= 330 || avgAz <= 40) return 0xf97316; // north
+      if (avgAz >= 70 && avgAz <= 150) return 0xa855f7; // east
+      return 0x94a3b8;
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+  </script>
+</body>
+</html>
