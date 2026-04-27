@@ -32,6 +32,7 @@
       border: 1px solid #475569;
       background: #0f172a;
       color: white;
+      box-sizing: border-box;
     }
 
     button {
@@ -74,66 +75,22 @@
     <label>Moon Altitude</label>
     <input id="moonAlt" value="44" />
 
-    <button onclick="updateSunMoon()">Update Sun/Moon</button>
+    <button id="updateButton">Update Sun/Moon</button>
 
     <div id="stats">No data loaded.</div>
 
     <div class="small">
-      Viewer is at the centre.  
-      Dome = sky above you.  
-      Coloured paths = aircraft tracks.  
+      Viewer is at the centre.<br>
+      Dome = sky above you.<br>
+      Coloured paths = aircraft tracks.<br>
       Yellow = Sun. White = Moon.
     </div>
   </div>
 
   <script type="module">
-  import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
-  import { OrbitControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+    import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
+    import { OrbitControls } from "https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js";
 
-  let scene, camera, renderer, controls;
-  let pathGroup, sunMesh, moonMesh;
-
-  const SKY_RADIUS = 100;
-
-  init();
-
-  function init() {
-    scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x050914);
-
-    camera = new THREE.PerspectiveCamera(
-      60,
-      window.innerWidth / window.innerHeight,
-      0.1,
-      1000
-    );
-
-    camera.position.set(0, 90, 180);
-
-    renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
-
-    // ✅ FIXED HERE
-    controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-
-    pathGroup = new THREE.Group();
-    scene.add(pathGroup);
-
-    addSkyDome();
-    addCompass();
-    addViewer();
-    addLights();
-    updateSunMoon();
-
-    animate();
-  }
-
-  // ⬇️ KEEP ALL YOUR EXISTING FUNCTIONS BELOW (NO CHANGES NEEDED)
-</script>
-
-  <script>
     let scene, camera, renderer, controls;
     let pathGroup, sunMesh, moonMesh;
 
@@ -158,7 +115,7 @@
       renderer.setSize(window.innerWidth, window.innerHeight);
       document.body.appendChild(renderer.domElement);
 
-      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls = new OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
 
       pathGroup = new THREE.Group();
@@ -170,13 +127,12 @@
       addLights();
       updateSunMoon();
 
-      animate();
+      document.getElementById("updateButton").addEventListener("click", updateSunMoon);
+      document.getElementById("fileInput").addEventListener("change", handleFileLoad);
 
-      window.addEventListener("resize", () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-      });
+      window.addEventListener("resize", onWindowResize);
+
+      animate();
     }
 
     function addLights() {
@@ -188,7 +144,16 @@
     }
 
     function addSkyDome() {
-      const geometry = new THREE.SphereGeometry(SKY_RADIUS, 64, 32, 0, Math.PI * 2, 0, Math.PI / 2);
+      const geometry = new THREE.SphereGeometry(
+        SKY_RADIUS,
+        64,
+        32,
+        0,
+        Math.PI * 2,
+        0,
+        Math.PI / 2
+      );
+
       const material = new THREE.MeshBasicMaterial({
         color: 0x0f172a,
         wireframe: true,
@@ -199,7 +164,6 @@
       const dome = new THREE.Mesh(geometry, material);
       scene.add(dome);
 
-      // horizon ring
       const ringGeometry = new THREE.RingGeometry(SKY_RADIUS - 0.4, SKY_RADIUS + 0.4, 128);
       const ringMaterial = new THREE.MeshBasicMaterial({
         color: 0x64748b,
@@ -210,10 +174,7 @@
       ring.rotation.x = Math.PI / 2;
       scene.add(ring);
 
-      // altitude rings
-      [10, 20, 30, 45, 60, 75].forEach(alt => {
-        addAltitudeRing(alt);
-      });
+      [10, 20, 30, 45, 60, 75].forEach(addAltitudeRing);
     }
 
     function addAltitudeRing(altDeg) {
@@ -257,6 +218,7 @@
       const canvas = document.createElement("canvas");
       canvas.width = 128;
       canvas.height = 64;
+
       const ctx = canvas.getContext("2d");
       ctx.fillStyle = "white";
       ctx.font = "bold 40px system-ui";
@@ -265,16 +227,20 @@
       const texture = new THREE.CanvasTexture(canvas);
       const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
       const sprite = new THREE.Sprite(spriteMaterial);
+
       sprite.position.copy(skyTo3D(az, 0, SKY_RADIUS + 8));
       sprite.scale.set(12, 6, 1);
+
       scene.add(sprite);
     }
 
     function addViewer() {
       const geo = new THREE.SphereGeometry(2.5, 24, 24);
       const mat = new THREE.MeshStandardMaterial({ color: 0x22c55e });
+
       const viewer = new THREE.Mesh(geo, mat);
       viewer.position.set(0, 0, 0);
+
       scene.add(viewer);
     }
 
@@ -296,8 +262,17 @@
       const moonAz = parseFloat(document.getElementById("moonAz").value);
       const moonAlt = parseFloat(document.getElementById("moonAlt").value);
 
-      if (sunMesh) scene.remove(sunMesh);
-      if (moonMesh) scene.remove(moonMesh);
+      if (sunMesh) {
+        scene.remove(sunMesh);
+        sunMesh.geometry.dispose();
+        sunMesh.material.dispose();
+      }
+
+      if (moonMesh) {
+        scene.remove(moonMesh);
+        moonMesh.geometry.dispose();
+        moonMesh.material.dispose();
+      }
 
       sunMesh = makeSkyObject(sunAz, sunAlt, 0xfacc15, 4.5);
       moonMesh = makeSkyObject(moonAz, moonAlt, 0xe5e7eb, 3.5);
@@ -309,20 +284,28 @@
     function makeSkyObject(az, alt, color, size) {
       const geo = new THREE.SphereGeometry(size, 32, 32);
       const mat = new THREE.MeshBasicMaterial({ color });
+
       const mesh = new THREE.Mesh(geo, mat);
       mesh.position.copy(skyTo3D(az, alt, SKY_RADIUS));
+
       return mesh;
     }
 
-    document.getElementById("fileInput").addEventListener("change", async (e) => {
+    async function handleFileLoad(e) {
       const file = e.target.files[0];
       if (!file) return;
 
-      const text = await file.text();
-      const json = JSON.parse(text);
+      try {
+        const text = await file.text();
+        const json = JSON.parse(text);
 
-      renderFlightPaths(json);
-    });
+        renderFlightPaths(json);
+      } catch (err) {
+        console.error(err);
+        document.getElementById("stats").innerHTML =
+          `<b>Error loading JSON:</b><br>${err.message}`;
+      }
+    }
 
     function renderFlightPaths(logs) {
       pathGroup.clear();
@@ -330,10 +313,13 @@
       const tracks = {};
 
       logs.forEach(sample => {
+        if (!sample.aircraft || !Array.isArray(sample.aircraft)) return;
+
         sample.aircraft.forEach(a => {
           if (!isUsefulAircraft(a)) return;
 
-          const id = a.hex || a.callsign;
+          const id = a.hex || a.callsign || crypto.randomUUID();
+
           if (!tracks[id]) tracks[id] = [];
 
           tracks[id].push({
@@ -370,12 +356,11 @@
         const line = new THREE.Line(geometry, material);
         pathGroup.add(line);
 
-        // latest position dot
-        const last = points[points.length - 1];
         const dot = new THREE.Mesh(
           new THREE.SphereGeometry(1.5, 16, 16),
           new THREE.MeshBasicMaterial({ color: colorForTrack(points) })
         );
+
         dot.position.copy(vectors[vectors.length - 1]);
         pathGroup.add(dot);
 
@@ -389,17 +374,18 @@
 
     function isUsefulAircraft(a) {
       if (!a) return false;
-      if (a.altitudeFt === null || a.skyAltitude === null) return false;
-      if (!Number.isFinite(a.azimuth) || !Number.isFinite(a.skyAltitude)) return false;
+      if (a.altitudeFt === null || a.altitudeFt === undefined) return false;
+      if (a.skyAltitude === null || a.skyAltitude === undefined) return false;
+      if (!Number.isFinite(a.azimuth)) return false;
+      if (!Number.isFinite(a.skyAltitude)) return false;
       if ((a.speedKt || 0) < 80) return false;
       if (a.category === "C2") return false;
       if (a.aircraftType === "SERV" || a.aircraftType === "TWR") return false;
+
       return true;
     }
 
     function altitudeToRadius(altFt) {
-      // Keeps paths inside the sky dome, but lets higher aircraft sit slightly higher visually.
-      // The actual visible height is still controlled by skyAltitude.
       const clamped = Math.max(0, Math.min(40000, altFt || 0));
       return 35 + (clamped / 40000) * 65;
     }
@@ -407,15 +393,24 @@
     function colorForTrack(points) {
       const avgAz = points.reduce((s, p) => s + p.azimuth, 0) / points.length;
 
-      if (avgAz >= 160 && avgAz <= 210) return 0x22c55e; // south
-      if (avgAz >= 220 && avgAz <= 300) return 0x38bdf8; // west
-      if (avgAz >= 330 || avgAz <= 40) return 0xf97316; // north
-      if (avgAz >= 70 && avgAz <= 150) return 0xa855f7; // east
+      if (avgAz >= 160 && avgAz <= 210) return 0x22c55e;
+      if (avgAz >= 220 && avgAz <= 300) return 0x38bdf8;
+      if (avgAz >= 330 || avgAz <= 40) return 0xf97316;
+      if (avgAz >= 70 && avgAz <= 150) return 0xa855f7;
+
       return 0x94a3b8;
+    }
+
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+
+      renderer.setSize(window.innerWidth, window.innerHeight);
     }
 
     function animate() {
       requestAnimationFrame(animate);
+
       controls.update();
       renderer.render(scene, camera);
     }
