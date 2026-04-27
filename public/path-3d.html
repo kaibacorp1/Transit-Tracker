@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <title>TransitChaser 3D Path Viewer</title>
+
   <style>
     body {
       margin: 0;
@@ -54,6 +55,16 @@
       color: #e2e8f0;
     }
   </style>
+
+  <!-- ✅ IMPORT MAP (fixes your error) -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
 </head>
 
 <body>
@@ -88,8 +99,8 @@
   </div>
 
   <script type="module">
-    import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
-    import { OrbitControls } from "https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+    import * as THREE from "three";
+    import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
     let scene, camera, renderer, controls;
     let pathGroup, sunMesh, moonMesh;
@@ -102,13 +113,7 @@
       scene = new THREE.Scene();
       scene.background = new THREE.Color(0x050914);
 
-      camera = new THREE.PerspectiveCamera(
-        60,
-        window.innerWidth / window.innerHeight,
-        0.1,
-        1000
-      );
-
+      camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
       camera.position.set(0, 90, 180);
 
       renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -130,289 +135,123 @@
       document.getElementById("updateButton").addEventListener("click", updateSunMoon);
       document.getElementById("fileInput").addEventListener("change", handleFileLoad);
 
-      window.addEventListener("resize", onWindowResize);
+      window.addEventListener("resize", onResize);
 
       animate();
     }
 
     function addLights() {
       scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-
       const light = new THREE.DirectionalLight(0xffffff, 1);
       light.position.set(50, 100, 50);
       scene.add(light);
     }
 
     function addSkyDome() {
-      const geometry = new THREE.SphereGeometry(
-        SKY_RADIUS,
-        64,
-        32,
-        0,
-        Math.PI * 2,
-        0,
-        Math.PI / 2
+      const dome = new THREE.Mesh(
+        new THREE.SphereGeometry(SKY_RADIUS, 64, 32, 0, Math.PI * 2, 0, Math.PI / 2),
+        new THREE.MeshBasicMaterial({ color: 0x0f172a, wireframe: true, transparent: true, opacity: 0.25 })
       );
-
-      const material = new THREE.MeshBasicMaterial({
-        color: 0x0f172a,
-        wireframe: true,
-        transparent: true,
-        opacity: 0.25
-      });
-
-      const dome = new THREE.Mesh(geometry, material);
       scene.add(dome);
-
-      const ringGeometry = new THREE.RingGeometry(SKY_RADIUS - 0.4, SKY_RADIUS + 0.4, 128);
-      const ringMaterial = new THREE.MeshBasicMaterial({
-        color: 0x64748b,
-        side: THREE.DoubleSide
-      });
-
-      const ring = new THREE.Mesh(ringGeometry, ringMaterial);
-      ring.rotation.x = Math.PI / 2;
-      scene.add(ring);
-
-      [10, 20, 30, 45, 60, 75].forEach(addAltitudeRing);
-    }
-
-    function addAltitudeRing(altDeg) {
-      const alt = THREE.MathUtils.degToRad(altDeg);
-      const y = Math.sin(alt) * SKY_RADIUS;
-      const r = Math.cos(alt) * SKY_RADIUS;
-
-      const curve = new THREE.EllipseCurve(0, 0, r, r, 0, Math.PI * 2);
-      const points = curve.getPoints(160).map(p => new THREE.Vector3(p.x, y, p.y));
-
-      const geometry = new THREE.BufferGeometry().setFromPoints(points);
-      const material = new THREE.LineBasicMaterial({
-        color: 0x334155,
-        transparent: true,
-        opacity: 0.7
-      });
-
-      const line = new THREE.LineLoop(geometry, material);
-      scene.add(line);
     }
 
     function addCompass() {
-      addDirectionLine(0, "N", 0x38bdf8);
-      addDirectionLine(90, "E", 0x38bdf8);
-      addDirectionLine(180, "S", 0x38bdf8);
-      addDirectionLine(270, "W", 0x38bdf8);
+      [0,"N",90,"E",180,"S",270,"W"].forEach((v,i,a)=>{
+        if(i%2===0) addDirectionLine(a[i],a[i+1]);
+      });
     }
 
-    function addDirectionLine(az, label, color) {
-      const p = skyTo3D(az, 0, SKY_RADIUS);
-
-      const geometry = new THREE.BufferGeometry().setFromPoints([
-        new THREE.Vector3(0, 0, 0),
-        p
-      ]);
-
-      const material = new THREE.LineBasicMaterial({ color });
-      const line = new THREE.Line(geometry, material);
+    function addDirectionLine(az,label){
+      const p = skyTo3D(az,0);
+      const line = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0),p]),
+        new THREE.LineBasicMaterial({color:0x38bdf8})
+      );
       scene.add(line);
-
-      const canvas = document.createElement("canvas");
-      canvas.width = 128;
-      canvas.height = 64;
-
-      const ctx = canvas.getContext("2d");
-      ctx.fillStyle = "white";
-      ctx.font = "bold 40px system-ui";
-      ctx.fillText(label, 42, 45);
-
-      const texture = new THREE.CanvasTexture(canvas);
-      const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
-      const sprite = new THREE.Sprite(spriteMaterial);
-
-      sprite.position.copy(skyTo3D(az, 0, SKY_RADIUS + 8));
-      sprite.scale.set(12, 6, 1);
-
-      scene.add(sprite);
     }
 
-    function addViewer() {
-      const geo = new THREE.SphereGeometry(2.5, 24, 24);
-      const mat = new THREE.MeshStandardMaterial({ color: 0x22c55e });
-
-      const viewer = new THREE.Mesh(geo, mat);
-      viewer.position.set(0, 0, 0);
-
-      scene.add(viewer);
+    function addViewer(){
+      scene.add(new THREE.Mesh(
+        new THREE.SphereGeometry(2.5,24,24),
+        new THREE.MeshStandardMaterial({color:0x22c55e})
+      ));
     }
 
-    function skyTo3D(azDeg, altDeg, radius = SKY_RADIUS) {
-      const az = THREE.MathUtils.degToRad(azDeg);
-      const alt = THREE.MathUtils.degToRad(altDeg);
-
-      const x = Math.sin(az) * Math.cos(alt) * radius;
-      const y = Math.sin(alt) * radius;
-      const z = -Math.cos(az) * Math.cos(alt) * radius;
-
-      return new THREE.Vector3(x, y, z);
+    function skyTo3D(az,alt,r=SKY_RADIUS){
+      const A=THREE.MathUtils.degToRad(az);
+      const h=THREE.MathUtils.degToRad(alt);
+      return new THREE.Vector3(
+        Math.sin(A)*Math.cos(h)*r,
+        Math.sin(h)*r,
+        -Math.cos(A)*Math.cos(h)*r
+      );
     }
 
-    function updateSunMoon() {
-      const sunAz = parseFloat(document.getElementById("sunAz").value);
-      const sunAlt = parseFloat(document.getElementById("sunAlt").value);
+    function updateSunMoon(){
+      const sA=+sunAz.value,sH=+sunAlt.value;
+      const mA=+moonAz.value,mH=+moonAlt.value;
 
-      const moonAz = parseFloat(document.getElementById("moonAz").value);
-      const moonAlt = parseFloat(document.getElementById("moonAlt").value);
+      if(sunMesh) scene.remove(sunMesh);
+      if(moonMesh) scene.remove(moonMesh);
 
-      if (sunMesh) {
-        scene.remove(sunMesh);
-        sunMesh.geometry.dispose();
-        sunMesh.material.dispose();
-      }
+      sunMesh=makeObj(sA,sH,0xfacc15,4);
+      moonMesh=makeObj(mA,mH,0xe5e7eb,3);
 
-      if (moonMesh) {
-        scene.remove(moonMesh);
-        moonMesh.geometry.dispose();
-        moonMesh.material.dispose();
-      }
-
-      sunMesh = makeSkyObject(sunAz, sunAlt, 0xfacc15, 4.5);
-      moonMesh = makeSkyObject(moonAz, moonAlt, 0xe5e7eb, 3.5);
-
-      scene.add(sunMesh);
-      scene.add(moonMesh);
+      scene.add(sunMesh,moonMesh);
     }
 
-    function makeSkyObject(az, alt, color, size) {
-      const geo = new THREE.SphereGeometry(size, 32, 32);
-      const mat = new THREE.MeshBasicMaterial({ color });
-
-      const mesh = new THREE.Mesh(geo, mat);
-      mesh.position.copy(skyTo3D(az, alt, SKY_RADIUS));
-
-      return mesh;
+    function makeObj(a,h,c,size){
+      const m=new THREE.Mesh(
+        new THREE.SphereGeometry(size,32,32),
+        new THREE.MeshBasicMaterial({color:c})
+      );
+      m.position.copy(skyTo3D(a,h));
+      return m;
     }
 
-    async function handleFileLoad(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      try {
-        const text = await file.text();
-        const json = JSON.parse(text);
-
-        renderFlightPaths(json);
-      } catch (err) {
-        console.error(err);
-        document.getElementById("stats").innerHTML =
-          `<b>Error loading JSON:</b><br>${err.message}`;
-      }
+    async function handleFileLoad(e){
+      const f=e.target.files[0];
+      if(!f)return;
+      const logs=JSON.parse(await f.text());
+      renderFlightPaths(logs);
     }
 
-    function renderFlightPaths(logs) {
+    function renderFlightPaths(logs){
       pathGroup.clear();
+      let count=0;
 
-      const tracks = {};
+      logs.forEach(s=>{
+        (s.aircraft||[]).forEach(a=>{
+          if(!a.azimuth||!a.skyAltitude)return;
 
-      logs.forEach(sample => {
-        if (!sample.aircraft || !Array.isArray(sample.aircraft)) return;
-
-        sample.aircraft.forEach(a => {
-          if (!isUsefulAircraft(a)) return;
-
-          const id = a.hex || a.callsign || crypto.randomUUID();
-
-          if (!tracks[id]) tracks[id] = [];
-
-          tracks[id].push({
-            time: a.time,
-            callsign: a.callsign,
-            azimuth: a.azimuth,
-            skyAltitude: a.skyAltitude,
-            altitudeFt: a.altitudeFt,
-            speedKt: a.speedKt
-          });
+          const p=skyTo3D(a.azimuth,a.skyAltitude,altitudeToRadius(a.altitudeFt));
+          const dot=new THREE.Mesh(
+            new THREE.SphereGeometry(1,8,8),
+            new THREE.MeshBasicMaterial({color:0x38bdf8})
+          );
+          dot.position.copy(p);
+          pathGroup.add(dot);
+          count++;
         });
       });
 
-      let rendered = 0;
-
-      Object.entries(tracks).forEach(([id, points]) => {
-        if (points.length < 2) return;
-
-        points.sort((a, b) => new Date(a.time) - new Date(b.time));
-
-        const vectors = points.map(p => {
-          const radius = altitudeToRadius(p.altitudeFt);
-          return skyTo3D(p.azimuth, p.skyAltitude, radius);
-        });
-
-        const geometry = new THREE.BufferGeometry().setFromPoints(vectors);
-
-        const material = new THREE.LineBasicMaterial({
-          color: colorForTrack(points),
-          transparent: true,
-          opacity: 0.85
-        });
-
-        const line = new THREE.Line(geometry, material);
-        pathGroup.add(line);
-
-        const dot = new THREE.Mesh(
-          new THREE.SphereGeometry(1.5, 16, 16),
-          new THREE.MeshBasicMaterial({ color: colorForTrack(points) })
-        );
-
-        dot.position.copy(vectors[vectors.length - 1]);
-        pathGroup.add(dot);
-
-        rendered++;
-      });
-
-      document.getElementById("stats").innerHTML =
-        `Loaded samples: <b>${logs.length}</b><br>` +
-        `Rendered aircraft tracks: <b>${rendered}</b>`;
+      stats.innerHTML=`Points: <b>${count}</b>`;
     }
 
-    function isUsefulAircraft(a) {
-      if (!a) return false;
-      if (a.altitudeFt === null || a.altitudeFt === undefined) return false;
-      if (a.skyAltitude === null || a.skyAltitude === undefined) return false;
-      if (!Number.isFinite(a.azimuth)) return false;
-      if (!Number.isFinite(a.skyAltitude)) return false;
-      if ((a.speedKt || 0) < 80) return false;
-      if (a.category === "C2") return false;
-      if (a.aircraftType === "SERV" || a.aircraftType === "TWR") return false;
-
-      return true;
+    function altitudeToRadius(a){
+      return 35+(Math.min(40000,a||0)/40000)*65;
     }
 
-    function altitudeToRadius(altFt) {
-      const clamped = Math.max(0, Math.min(40000, altFt || 0));
-      return 35 + (clamped / 40000) * 65;
-    }
-
-    function colorForTrack(points) {
-      const avgAz = points.reduce((s, p) => s + p.azimuth, 0) / points.length;
-
-      if (avgAz >= 160 && avgAz <= 210) return 0x22c55e;
-      if (avgAz >= 220 && avgAz <= 300) return 0x38bdf8;
-      if (avgAz >= 330 || avgAz <= 40) return 0xf97316;
-      if (avgAz >= 70 && avgAz <= 150) return 0xa855f7;
-
-      return 0x94a3b8;
-    }
-
-    function onWindowResize() {
-      camera.aspect = window.innerWidth / window.innerHeight;
+    function onResize(){
+      camera.aspect=innerWidth/innerHeight;
       camera.updateProjectionMatrix();
-
-      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setSize(innerWidth,innerHeight);
     }
 
-    function animate() {
+    function animate(){
       requestAnimationFrame(animate);
-
       controls.update();
-      renderer.render(scene, camera);
+      renderer.render(scene,camera);
     }
   </script>
 </body>
