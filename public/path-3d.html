@@ -86,8 +86,52 @@
     </div>
   </div>
 
-  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
-  <script src="https://unpkg.com/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
+  <script type="module">
+  import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
+  import { OrbitControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+
+  let scene, camera, renderer, controls;
+  let pathGroup, sunMesh, moonMesh;
+
+  const SKY_RADIUS = 100;
+
+  init();
+
+  function init() {
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x050914);
+
+    camera = new THREE.PerspectiveCamera(
+      60,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      1000
+    );
+
+    camera.position.set(0, 90, 180);
+
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    // ✅ FIXED HERE
+    controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+
+    pathGroup = new THREE.Group();
+    scene.add(pathGroup);
+
+    addSkyDome();
+    addCompass();
+    addViewer();
+    addLights();
+    updateSunMoon();
+
+    animate();
+  }
+
+  // ⬇️ KEEP ALL YOUR EXISTING FUNCTIONS BELOW (NO CHANGES NEEDED)
+</script>
 
   <script>
     let scene, camera, renderer, controls;
