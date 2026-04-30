@@ -240,7 +240,7 @@ function normalizeLongitude(lon) {
 function hasSessionExpired() {
   const start = parseInt(sessionStorage.getItem('sessionStart'), 10);
   // 1,800,000 ms = 30 minutes
-  return (Date.now() - start) > 1_800_000;
+  return (Date.now() - start) > 1_200_000; // 20 minutes
 }
 
 // ---- rolling transit log setup ----
@@ -659,7 +659,7 @@ document.getElementById('refreshBtn')
 
   // Small delay before alert so the sound has time to start
   setTimeout(() => {
-    alert("⏳ Time expired. Let the pass cool for a bit now.");
+    alert("⏳ You've been running this for a while.\n\nTo protect the flight data receivers, the app pauses every 20 minutes.\n\nPlease give it a minute to breathe and refresh the page to continue.");
   }, 250);  // 1/4 second delay for smoother experience
 
   stopAutoRefresh(); // stop the countdown
@@ -1361,20 +1361,22 @@ function startAutoRefresh() {
     countdown--;
     updateCountdownDisplay();
     if (countdown <= 0) {
-     
-      
-      // ←► HERE: session timeout check
-   //   if (hasSessionExpired()) {
-//  const lockSound = new Audio('/lock.MP3');
-//  lockSound.play().catch(() => {});
- // alert("⏳ Time expired. Let the pass cool for a bit now.");
-//  stopAutoRefresh(); // stop the countdown as well
-//  return;
-//}
 
-      getCurrentLocationAndRun();
-      updateCountdown();
-    }
+  if (hasSessionExpired()) {
+    const lockSound = new Audio('lock.MP3');
+    lockSound.play().catch(() => {});
+
+    setTimeout(() => {
+      alert("⏳ You've been running this for a while.\n\nTo protect the flight data receivers, the app pauses every 20 minutes.\n\nPlease give it a minute to breathe and refresh the page to continue.");
+    }, 250);
+
+    stopAutoRefresh("⏸ Paused — refresh the page to continue");
+    return;
+  }
+
+  getCurrentLocationAndRun();
+  updateCountdown();
+}
   }, 1000);
 }
 
@@ -1385,7 +1387,8 @@ function stopAutoRefresh(message = 'Auto refresh off') {
 }
 
 function updateCountdownDisplay() {
-  document.getElementById('countdownTimer').textContent = `Next check in: ${countdown}s`;
+  document.getElementById('countdownTimer').textContent =
+    `Next check in: ${countdown}s — pauses every 20 minutes to let data sources breathe`;
 }
 
 // === Theme Toggle ===
