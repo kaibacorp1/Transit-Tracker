@@ -671,7 +671,7 @@
     <h2 style="margin-top:0; font-size:1.8rem;">Help us</h2>
 
     <p style="line-height:1.45; margin-bottom:0.8rem;">
-      Due to high traffic and limited flight-data receiver access, Transit Chaser may not be able to stay online in its current form.
+      Due to high traffic and limited flight-data receiver access, Transit Chaser is becoming harder to maintain and currently doesn’t cover its running costs.
     </p>
 
     <p style="line-height:1.45; margin-bottom:1rem;">
@@ -717,35 +717,56 @@
       </label>
 
       <label style="display:block; text-align:left; margin-top:0.7rem;">
+  How did you hear about Transit Chaser?
+  <select name="discovery_source" required style="width:100%; padding:0.55rem; margin-top:0.25rem; border-radius:8px;">
+    <option value="">Choose one</option>
+    <option>Social media</option>
+    <option>Word of mouth</option>
+    <option>Google search</option>
+    <option>Friend / recommendation</option>
+    <option>YouTube</option>
+    <option>Other</option>
+  </select>
+</label>
+
+      <label style="display:block; text-align:left; margin-top:0.7rem;">
         Any quick comment?
         <textarea name="comment" rows="3" placeholder="How do you use it? What settings do you use?" style="width:100%; padding:0.55rem; margin-top:0.25rem; border-radius:8px;"></textarea>
       </label>
 
-      <button type="submit" style="
-        margin-top:1rem;
-        padding:0.8rem 1.2rem;
-        background:#1a8837;
-        color:white;
-        font-weight:bold;
-        border:none;
-        border-radius:10px;
-        cursor:pointer;
-        font-size:1rem;
-      ">Send feedback</button>
+      <div style="margin-top:1rem; display:flex; flex-direction:column; align-items:center; gap:0.4rem;">
 
-      <button type="button" onclick="
-        document.getElementById('serviceUpdateModal').style.display='none';
-        document.getElementById('alertModal').style.display='flex';
-      " style="
-        margin-left:0.5rem;
-        margin-top:1rem;
-        padding:0.7rem 1rem;
-        border:none;
-        background:#333;
-        color:#ddd;
-        border-radius:8px;
-        cursor:pointer;
-      ">Skip</button>
+  <button type="submit" style="
+    padding:0.8rem 1.2rem;
+    background:#1a8837;
+    color:white;
+    font-weight:bold;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:1rem;
+    width:100%;
+  ">
+    Send feedback
+  </button>
+
+  <button type="button" onclick="
+    document.getElementById('serviceUpdateModal').style.display='none';
+    document.getElementById('alertModal').style.display='flex';
+  " style="
+    padding:0.45rem 0.8rem;
+    border:none;
+    background:#333;
+    color:#aaa;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:0.75rem;
+    opacity:0.7;
+  ">
+    Skip
+  </button>
+
+</div>
 
     </form>
   </div>
