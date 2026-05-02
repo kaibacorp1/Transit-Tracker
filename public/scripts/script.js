@@ -1288,19 +1288,25 @@ function useAdsbExchangeAPI() {
 }
 
 function showTab(tabId) {
-  // 1) show/hide panels & highlight the button
-  ['openskyTab','adsbexTab','radarboxTab','adsboneTab'].forEach(id => {
-    document.getElementById(id).style.display     = (id === tabId ? 'block' : 'none');
-    document.getElementById(id + 'Btn').style.borderColor = (id === tabId ? '#00bfff' : '#444');
+  // Only active public tabs
+  ['adsboneTab', 'adsbexTab'].forEach(id => {
+    const panel = document.getElementById(id);
+    const btn = document.getElementById(id + 'Btn');
+
+    if (panel) panel.style.display = (id === tabId ? 'block' : 'none');
+    if (btn) btn.style.borderColor = (id === tabId ? '#00bfff' : '#444');
   });
 
-  // 2) set the mode flags
+  // Hide removed/disabled tabs safely if they still exist in HTML
+  ['openskyTab', 'radarboxTab'].forEach(id => {
+    const panel = document.getElementById(id);
+    if (panel) panel.style.display = 'none';
+  });
+
   window.useAdsbOne      = (tabId === 'adsboneTab');
   window.useAdsbexchange = (tabId === 'adsbexTab');
-  window.useRadarBox     = (tabId === 'radarboxTab');
-  // (if none are true, we'll fall back to OpenSky)
+  window.useRadarBox     = false;
 
-  // 3) update the top-of-page message
   setInitialStatus();
 }
 
