@@ -659,9 +659,10 @@
   justify-content: center;
 ">
   <div style="
-    background: linear-gradient(180deg, #5a2b2b, #242424);
-    padding: 1.6rem 2rem;
+    background: linear-gradient(180deg, #3b1f1f, #202020);
+    padding: 1.4rem 1.6rem;
     max-width: 560px;
+    width: 90%;
     border-radius: 18px;
     border: 2px solid #ff6b35;
     box-shadow: 0 0 30px rgba(255,107,53,0.35);
@@ -669,51 +670,121 @@
     font-family: sans-serif;
     color: #f2f2f2;
   ">
-    <h2 style="margin-top:0; font-size:2rem;">🚧 ADSB-One Issue</h2>
+    <h2 style="margin-top:0; font-size:1.8rem;">✈️ Quick Transit Chaser Feedback</h2>
 
-    <p style="font-size:1.05rem; line-height:1.45;">
-      You may currently see:<br>
-      <strong style="color:#ffb347;">🚫 ADSB-One error: ADSB-One 403</strong>
+    <p style="line-height:1.45; margin-bottom:0.8rem;">
+      Due to high traffic and limited flight-data receiver access, Transit Chaser may not be able to stay online in its current form.
     </p>
 
-    <p style="line-height:1.45;">
-      This is happening because Transit Chaser has had a huge increase in users.
-      I’m honoured so many people are using it, but the traffic is putting heavy load on the flight-data provider.
+    <p style="line-height:1.45; margin-bottom:1rem;">
+      If you use this app, please spend <strong style="color:#ffb347;">10 seconds</strong> telling me how you use it. This helps decide what happens next.
     </p>
 
-    <p style="line-height:1.45;">
-      I’m working on fixes so the app can stay available for everyone.
-      Running and maintaining it is also becoming expensive, so donations really help keep it alive.
-    </p>
+    <form id="serviceFeedbackForm" action="https://formspree.io/f/mvzlglzp" method="POST">
 
-    <a href="https://buymeacoffee.com/transitchaser" target="_blank" style="
-      display:inline-block;
-      margin-top:0.8rem;
-      padding:0.8rem 1.2rem;
-      background:#1a8837;
-      color:white;
-      font-weight:bold;
-      border-radius:10px;
-      text-decoration:none;
-      font-size:1.05rem;
-    ">💚 Donate to keep Transit Chaser running</a>
+      <input type="hidden" name="_subject" value="Transit Chaser user feedback">
 
-    <br>
+      <label style="display:block; text-align:left; margin-top:0.7rem;">
+        How often do you use Transit Chaser?
+        <select name="usage_frequency" required style="width:100%; padding:0.55rem; margin-top:0.25rem; border-radius:8px;">
+          <option value="">Choose one</option>
+          <option>Occasionally</option>
+          <option>A few times a week</option>
+          <option>Daily</option>
+          <option>I leave it running for long sessions</option>
+        </select>
+      </label>
 
-    <button onclick="
-      document.getElementById('serviceUpdateModal').style.display='none';
-      document.getElementById('alertModal').style.display='flex';
-    " style="
-      margin-top:1rem;
-      padding:0.55rem 1.3rem;
-      border:none;
-      background:#333;
-      color:#ddd;
-      border-radius:8px;
-      cursor:pointer;
-    ">Continue</button>
+      <label style="display:block; text-align:left; margin-top:0.7rem;">
+        What do you mainly use it for?
+        <select name="main_use" required style="width:100%; padding:0.55rem; margin-top:0.25rem; border-radius:8px;">
+          <option value="">Choose one</option>
+          <option>Moon transits</option>
+          <option>Sun transits</option>
+          <option>Plane watching</option>
+          <option>Contrails</option>
+          <option>Just exploring</option>
+        </select>
+      </label>
+
+      <label style="display:block; text-align:left; margin-top:0.7rem;">
+        Would you support keeping the app alive?
+        <select name="support_option" required style="width:100%; padding:0.55rem; margin-top:0.25rem; border-radius:8px;">
+          <option value="">Choose one</option>
+          <option>I may pay a small monthly fee</option>
+          <option>I may donate occasionally</option>
+          <option>I may set up my own ADS-B receiver</option>
+          <option>I only want to use the free version</option>
+        </select>
+      </label>
+
+      <label style="display:block; text-align:left; margin-top:0.7rem;">
+        Any quick comment?
+        <textarea name="comment" rows="3" placeholder="How do you use it? What settings do you use?" style="width:100%; padding:0.55rem; margin-top:0.25rem; border-radius:8px;"></textarea>
+      </label>
+
+      <button type="submit" style="
+        margin-top:1rem;
+        padding:0.8rem 1.2rem;
+        background:#1a8837;
+        color:white;
+        font-weight:bold;
+        border:none;
+        border-radius:10px;
+        cursor:pointer;
+        font-size:1rem;
+      ">Send feedback</button>
+
+      <button type="button" onclick="
+        document.getElementById('serviceUpdateModal').style.display='none';
+        document.getElementById('alertModal').style.display='flex';
+      " style="
+        margin-left:0.5rem;
+        margin-top:1rem;
+        padding:0.7rem 1rem;
+        border:none;
+        background:#333;
+        color:#ddd;
+        border-radius:8px;
+        cursor:pointer;
+      ">Skip</button>
+
+    </form>
   </div>
 </div>
+
+<script>
+document.getElementById('serviceFeedbackForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+
+  const form = e.target;
+  const button = form.querySelector('button[type="submit"]');
+  button.textContent = 'Sending...';
+  button.disabled = true;
+
+  try {
+    const response = await fetch(form.action, {
+      method: 'POST',
+      body: new FormData(form),
+      headers: { 'Accept': 'application/json' }
+    });
+
+    if (response.ok) {
+      alert('Thank you — your feedback really helps keep Transit Chaser going.');
+      document.getElementById('serviceUpdateModal').style.display = 'none';
+      document.getElementById('alertModal').style.display = 'flex';
+    } else {
+      alert('Could not send feedback right now. Please try again later.');
+      button.textContent = 'Send feedback';
+      button.disabled = false;
+    }
+  } catch (err) {
+    alert('Could not send feedback right now. Please try again later.');
+    button.textContent = 'Send feedback';
+    button.disabled = false;
+  }
+});
+</script>
     
 <!-- Modal HTML -->
 <div id="alertModal" style="
