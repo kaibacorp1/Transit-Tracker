@@ -1387,8 +1387,25 @@ function stopAutoRefresh(message = 'Auto refresh off') {
 }
 
 function updateCountdownDisplay() {
-  document.getElementById('countdownTimer').textContent =
-    `Next check in: ${countdown}s — pauses every 20 minutes to let data sources breathe`;
+  const el = document.getElementById('countdownTimer');
+
+  const start = parseInt(sessionStorage.getItem('sessionStart'), 10);
+  const elapsed = Date.now() - start;
+
+  const total = 1_200_000; // 20 minutes
+  const remaining = Math.max(0, total - elapsed);
+
+  const mins = Math.floor(remaining / 60000);
+  const secs = Math.floor((remaining % 60000) / 1000);
+
+  const pauseTimer = `${mins}m ${secs.toString().padStart(2, '0')}s`;
+
+  el.innerHTML = `
+    <div>Next check in: ${countdown}s</div>
+    <div style="font-size: 0.7em; color: red; margin-top: 2px;">
+      ⏸ App will pause in ${pauseTimer}
+    </div>
+  `;
 }
 
 // === Theme Toggle ===
