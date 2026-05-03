@@ -844,13 +844,14 @@ document.getElementById('serviceFeedbackForm').addEventListener('submit', async 
     ">Got it</button>
   </div>
 </div>
+
 <script>
 (function () {
   const modal = document.getElementById('serviceUpdateModal');
   if (!modal) return;
 
   const key = 'transitChaserFeedbackPopupLastShown';
-  const sevenDays = 7 * 24 * 60 * 60 * 1000;
+  const threeDays = 3 * 24 * 60 * 60 * 1000;
   const lastShown = parseInt(localStorage.getItem(key), 10) || 0;
 
   if (Date.now() - lastShown > threeDays) {
@@ -859,5 +860,6 @@ document.getElementById('serviceFeedbackForm').addEventListener('submit', async 
   }
 })();
 </script>
+    
 </body>
 </html>
