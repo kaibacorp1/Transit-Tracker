@@ -772,3 +772,74 @@ body.loading #loginBtn,
 body.loading #moderationQueue {
   display: none !important;
 }
+#photoDrawerToggle {
+  position: fixed;
+  top: 95px;
+  left: 0;
+  z-index: 9000;
+  width: 28px;
+  height: 54px;
+  border-radius: 0 8px 8px 0 !important;
+  background: #2f6f88 !important;
+  color: white !important;
+  border: 1px solid #5f91a4 !important;
+  font-size: 1rem;
+}
+
+#photoDrawer {
+  position: fixed;
+  top: 80px;
+  left: 0;
+  width: 190px;
+  max-height: calc(100vh - 110px);
+  overflow-y: auto;
+  z-index: 8999;
+  background: #172231;
+  border: 1px solid #39495d;
+  border-left: none;
+  border-radius: 0 12px 12px 0;
+  padding: 0.6rem;
+  transform: translateX(-105%);
+  transition: transform 0.22s ease;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.35);
+}
+
+#photoDrawer.open {
+  transform: translateX(0);
+}
+
+.photoDrawerHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+}
+
+#photoDrawerClose {
+  padding: 0.15rem 0.45rem !important;
+  font-size: 0.8rem !important;
+}
+
+.photoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+}
+
+.photoGrid img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #39495d;
+}
+
+/* Hide drawer on small screens */
+@media (max-width: 900px) {
+  #photoDrawer,
+  #photoDrawerToggle {
+    display: none;
+  }
+}
