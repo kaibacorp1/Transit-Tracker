@@ -860,7 +860,7 @@ body.loading #moderationQueue {
 
 #photoDrawer {
   width: 330px !important;
-  max-height: calc(100vh - 110px) !important;
+  max-height: calc(100vh - 100px) !important;
   padding: 0.8rem !important;
 }
 
