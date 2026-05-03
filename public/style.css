@@ -496,3 +496,36 @@ body.loading #loginBtn,
 body.loading #moderationQueue {
   display: none !important;
 }
+
+/* Make main result/status messages larger and clearer */
+#transitStatus {
+  font-size: 1.35rem !important;
+  line-height: 1.55 !important;
+  font-weight: 600 !important;
+  padding: 1.15rem 1.25rem !important;
+  background: #1b3347 !important;
+  border: 1px solid #3f6f91 !important;
+  border-radius: 16px !important;
+  color: #f8fafc !important;
+}
+
+#transitStatus a {
+  font-size: 1.35rem !important;
+  font-weight: 800 !important;
+  color: #fbbf24 !important;
+}
+
+#transitStatus span {
+  font-size: 1rem !important;
+}
+
+#transitStatus span[style*="Ignore"] {
+  font-size: 0.75rem !important;
+  color: #ef4444 !important;
+  margin-left: 10px !important;
+}
+
+#pauseResumeBtn {
+  font-size: 1rem !important;
+  padding: 0.55rem 0.9rem !important;
+}
