@@ -1,6 +1,7 @@
-/* Transit Chaser — Clean Readable Dark Theme
+/* Transit Chaser — Clean Readable Theme
    Replace your entire style.css with this.
-   Goal: clear first impression, calmer dark mode, readable text, compact layout.
+   Dark mode stays clear and calm.
+   Light mode uses warmer contrast with more noticeable cards/buttons.
 */
 
 :root {
@@ -23,6 +24,7 @@
 
   --button-bg: #2563eb;
   --button-hover-bg: #1d4ed8;
+  --button-border: transparent;
 
   --controls-gap: 0.55rem;
 
@@ -41,38 +43,39 @@
   --slider-max-width: 300px;
 }
 
-/* Light mode */
+/* Light mode — warmer, darker, less washed out */
 [data-theme="light"] {
-  --bg-color: #e9e4db;              /* darker base background */
-  --fg-color: #1f2937;
-  --muted-color: #6b7280;
+  --bg-color: #e5ded3;
+  --fg-color: #172033;
+  --muted-color: #667085;
 
-  --container-bg: #f3efe8;          /* main card */
-  --container-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+  --container-bg: #f1ece4;
+  --container-shadow: 0 14px 34px rgba(35, 31, 25, 0.13);
 
-  --heading-color: #111827;
-  --heading-accent: #b0892e;        /* gold accent */
+  --heading-color: #0f172a;
+  --heading-accent: #9a7626;
 
-  --data-bg: #ede7de;               /* darker sections (important) */
-  --data-border-color: #d6cfc4;
+  --data-bg: #ebe4da;
+  --data-border-color: #cbc0b2;
 
-  --input-bg: #ffffff;
+  --input-bg: #fffaf3;
   --input-fg: #111827;
-  --input-border-color: #cfc7bb;
+  --input-border-color: #bfb5a8;
 
-  --button-bg: #b0892e;             /* 🔥 main change (gold) */
+  --button-bg: #b0892e;
   --button-hover-bg: #926f22;
+  --button-border: #8a681f;
 
-  --tab-bg: #e7e1d8;
-  --tab-border-color: #d6cfc4;
-  --tab-active-bg: #f2eadf;
+  --tab-bg: #e1d8cb;
+  --tab-border-color: #c7bbac;
+  --tab-active-bg: #f3eadc;
   --tab-active-border-color: #b0892e;
 
-  --feedback-color: #6b7280;
-  --info-bg: #e6e0d7;
+  --feedback-color: #5f6875;
+  --info-bg: #ded4c6;
 
-  --footer-color: #6b7280;
-  --footer-link-color: #b0892e;
+  --footer-color: #68707c;
+  --footer-link-color: #8a681f;
 }
 
 /* Base */
@@ -93,6 +96,12 @@ body {
   font-size: 14px;
 }
 
+[data-theme="light"] body {
+  background:
+    radial-gradient(circle at top left, rgba(176, 137, 46, 0.13), transparent 30%),
+    linear-gradient(180deg, #d8d0c4 0%, var(--bg-color) 46%, #d7cfc3 100%);
+}
+
 /* Container */
 .container {
   max-width: 800px;
@@ -104,10 +113,18 @@ body {
   box-shadow: var(--container-shadow);
 }
 
+[data-theme="light"] .container {
+  border-color: #c8beaf;
+}
+
 /* Header */
 header {
   padding-bottom: 0.45rem;
   border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+[data-theme="light"] header {
+  border-bottom-color: #d1c6b8;
 }
 
 h1 {
@@ -133,7 +150,7 @@ a {
 .small-link {
   color: var(--footer-link-color) !important;
   font-size: 0.82rem !important;
-  opacity: 0.92;
+  opacity: 0.95;
 }
 
 /* Sections */
@@ -143,6 +160,10 @@ a {
   background: var(--data-bg);
   border-radius: 12px;
   border: 1px solid var(--data-border-color);
+}
+
+[data-theme="light"] .data {
+  box-shadow: 0 2px 7px rgba(35, 31, 25, 0.05);
 }
 
 details {
@@ -195,6 +216,12 @@ textarea:focus {
   box-shadow: 0 0 0 2px rgba(125, 211, 252, 0.16);
 }
 
+[data-theme="light"] select:focus,
+[data-theme="light"] input:focus,
+[data-theme="light"] textarea:focus {
+  box-shadow: 0 0 0 2px rgba(176, 137, 46, 0.18);
+}
+
 /* Buttons */
 button,
 .nav-btn,
@@ -202,19 +229,20 @@ button,
   cursor: pointer;
   background: var(--button-bg) !important;
   color: #ffffff !important;
-  border: none !important;
+  border: 1px solid var(--button-border) !important;
   border-radius: 8px !important;
   font-size: 0.9rem;
   font-weight: 500;
   box-shadow: none !important;
   text-shadow: none !important;
-  transition: background-color 0.15s ease, transform 0.12s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
 }
 
 button:hover,
 .nav-btn:hover,
 .header-link:hover {
   background: var(--button-hover-bg) !important;
+  border-color: var(--button-hover-bg) !important;
   transform: translateY(-1px);
 }
 
@@ -231,6 +259,7 @@ button:active {
 /* Specific header buttons */
 .donate-btn {
   background: #15803d !important;
+  border-color: #166534 !important;
 }
 
 .donate-btn:hover {
@@ -239,10 +268,27 @@ button:active {
 
 .theme-toggle {
   background: #334155 !important;
+  border-color: #273449 !important;
 }
 
 .theme-toggle:hover {
   background: #475569 !important;
+}
+
+/* Light mode header button tuning */
+[data-theme="light"] .theme-toggle {
+  background: #c8bda8 !important;
+  border-color: #b7aa94 !important;
+  color: #172033 !important;
+}
+
+[data-theme="light"] .theme-toggle:hover {
+  background: #b9aa91 !important;
+}
+
+[data-theme="light"] .donate-btn {
+  background: #15803d !important;
+  color: #ffffff !important;
 }
 
 /* Tabs */
@@ -285,11 +331,21 @@ button:active {
   font-weight: 500;
 }
 
+[data-theme="light"] #transitStatus {
+  background: #e8dfd1;
+  border-color: #cbbda8;
+}
+
 #transitStatus a,
 #transitStatus a.callsign {
   color: #fbbf24;
   text-decoration: none;
   font-weight: 600;
+}
+
+[data-theme="light"] #transitStatus a,
+[data-theme="light"] #transitStatus a.callsign {
+  color: #8a681f;
 }
 
 #transitStatus a:hover {
@@ -323,6 +379,10 @@ button:active {
   border: 1px solid rgba(255,255,255,0.06);
 }
 
+[data-theme="light"] .info-grid > div {
+  border-color: #c8beaf;
+}
+
 #marginSlider {
   width: var(--slider-width);
   max-width: var(--slider-max-width);
@@ -334,6 +394,11 @@ button:active {
   background: rgba(15, 23, 42, 0.35);
   border: 1px solid rgba(255,255,255,0.07);
   border-radius: 10px;
+}
+
+[data-theme="light"] #transitLogContainer {
+  background: #e2d8ca;
+  border-color: #c8beaf;
 }
 
 #transitLogList,
@@ -362,6 +427,11 @@ button:active {
   border-color: rgba(125, 211, 252, 0.16) !important;
 }
 
+[data-theme="light"] .watch-selection-summary {
+  background: #e6dccd !important;
+  border-color: #cbbda8 !important;
+}
+
 .watch-compass {
   width: 215px !important;
   height: 215px !important;
@@ -382,6 +452,18 @@ button:active {
   background: #2563eb !important;
   border-color: #7dd3fc !important;
   color: #ffffff !important;
+}
+
+[data-theme="light"] .watch-dir-btn {
+  background: #e1d8cb !important;
+  color: #172033 !important;
+  border-color: #c7bbac !important;
+}
+
+[data-theme="light"] .watch-dir-btn.active {
+  background: #b0892e !important;
+  color: #ffffff !important;
+  border-color: #8a681f !important;
 }
 
 /* Footer */
