@@ -880,5 +880,14 @@ document.getElementById('serviceFeedbackForm').addEventListener('submit', async 
     <img src="/public/gallery/thumb6.jpg" alt="Transit photo">
   </div>
 </aside>
+    <script>
+document.getElementById('photoDrawerToggle')?.addEventListener('click', () => {
+  document.getElementById('photoDrawer')?.classList.toggle('open');
+});
+
+document.getElementById('photoDrawerClose')?.addEventListener('click', () => {
+  document.getElementById('photoDrawer')?.classList.remove('open');
+});
+</script>
 </body>
 </html>
