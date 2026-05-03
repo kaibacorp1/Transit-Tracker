@@ -1,12 +1,13 @@
-/* Transit Chaser — Classic Photo Almanac Theme
+/* Transit Chaser — Compact Photo Almanac Theme
    Replace your entire style.css with this.
 
-   Direction:
-   - older pre-2010 / classic software feel
-   - flat, readable, compact
-   - no gold outlines, no glowy/3D buttons
-   - status/results area is the main focus
-   - muted controls, smaller data-source box
+   Changes included:
+   - Data Source can sit inside its own box with a small title row
+   - Transit Mode / Search Radius / Prediction / Auto Refresh stay on one line on desktop
+   - Countdown + pause timer sit beside each other and pause timer is more visible
+   - Less yellow/gold outlines
+   - Less 3D / less gradient feel
+   - Older, clean, compact web-app look
 */
 
 /* =========================
@@ -55,7 +56,7 @@
   --footer-color: #909aa7;
   --footer-link-color: #9fc3d5;
 
-  --controls-gap: 0.42rem;
+  --controls-gap: 0.38rem;
   --slider-width: 68%;
   --slider-max-width: 280px;
 }
@@ -116,15 +117,13 @@ body {
   padding: 0.7rem;
   font-family: Verdana, Geneva, Tahoma, sans-serif;
   color: var(--fg-color);
-  background:
-    linear-gradient(180deg, #172231 0%, var(--bg-color) 55%, #0c111a 100%);
+  background: linear-gradient(180deg, #172231 0%, var(--bg-color) 55%, #0c111a 100%);
   font-size: 13px;
   line-height: 1.35;
 }
 
 [data-theme="light"] body {
-  background:
-    linear-gradient(180deg, #bdb4a8 0%, var(--bg-color) 55%, #c5bcaf 100%);
+  background: linear-gradient(180deg, #bdb4a8 0%, var(--bg-color) 55%, #c5bcaf 100%);
 }
 
 .container {
@@ -181,7 +180,6 @@ header {
   border-bottom-color: #b9aea0;
 }
 
-/* calm top nav */
 .header-link,
 .nav-btn {
   padding: 0.28rem 0.5rem !important;
@@ -265,24 +263,37 @@ details summary {
   user-select: none;
 }
 
-/* Make the big source area smaller and quieter */
+/* Data source heading is now inside the card */
+.section-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 0.4rem;
+  font-size: 0.86rem;
+}
+
+.section-title-row strong {
+  color: var(--heading-color);
+}
+
+.data-source-card {
+  padding: 0.5rem !important;
+}
+
 #dataSourceToggle > summary {
   font-size: 0.86rem;
 }
 
-#dataSourceToggle .data {
-  padding: 0.5rem;
-}
-
 #adsboneTab,
 #adsbexTab {
-  padding: 0.5rem !important;
+  padding: 0.45rem !important;
 }
 
 #adsboneTab h2,
 #adsbexTab h2 {
-  font-size: 0.98rem;
-  margin-bottom: 0.35rem;
+  font-size: 0.95rem;
+  margin-bottom: 0.3rem;
 }
 
 #locationModeToggle > summary {
@@ -329,15 +340,38 @@ textarea:focus {
   border-color: var(--primary-button-border);
 }
 
-/* Compact control row: try to fit everything on one line */
-.controls label,
-.controls select,
-.controls button {
-  white-space: nowrap;
+/* Keep Transit Mode / Radius / Prediction / Auto Refresh in one compact row */
+.transit-control-row {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.45rem;
 }
 
-.controls select {
-  min-width: 88px;
+.transit-control-row label {
+  white-space: nowrap;
+  font-size: 0.82rem;
+}
+
+.transit-control-row select {
+  min-width: 78px;
+  max-width: 150px;
+}
+
+#bodyToggle {
+  max-width: 150px;
+}
+
+#radiusSelect {
+  max-width: 92px;
+}
+
+#predictToggle {
+  max-width: 105px;
+}
+
+#autoRefreshToggle {
+  max-width: 75px;
 }
 
 /* =========================
@@ -383,7 +417,6 @@ button:hover,
   background: var(--primary-button-hover-bg) !important;
 }
 
-/* Donate still visible, but not screaming */
 .donate-btn {
   background: #2f7d4b !important;
   border-color: #27643d !important;
@@ -393,7 +426,6 @@ button:hover,
   background: #27643d !important;
 }
 
-/* utility buttons muted */
 .theme-toggle,
 #muteToggleBtn,
 #testSoundBtn {
@@ -437,18 +469,32 @@ button:hover,
    Countdown / feedback
    ========================= */
 
+.timer-row {
+  margin-top: 0.38rem;
+  display: flex;
+  align-items: center;
+}
+
 #countdownTimer {
-  margin-top: 0.22rem;
+  margin-top: 0;
   color: var(--muted-color);
-  font-size: 0.74rem;
+  font-size: 0.78rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+#countdownTimer div {
+  display: inline;
 }
 
 #countdownTimer div:last-child {
-  color: #c2410c !important;
-  font-size: 0.68rem !important;
+  color: #ff6b35 !important;
+  font-size: 0.9rem !important;
+  font-weight: 700 !important;
 }
 
-/* make margin slider cleaner */
 #marginFeedback {
   margin-top: 0.2rem;
   color: var(--feedback-color);
@@ -575,6 +621,12 @@ footer a {
    Mobile
    ========================= */
 
+@media (max-width: 760px) {
+  .transit-control-row {
+    flex-wrap: wrap;
+  }
+}
+
 @media (max-width: 600px) {
   body {
     padding: 0.4rem;
@@ -603,6 +655,20 @@ footer a {
   .controls select,
   .controls button {
     width: 100%;
+  }
+
+  .transit-control-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .transit-control-row label {
+    width: auto;
+  }
+
+  .transit-control-row select {
+    width: auto;
   }
 
   .tab-buttons {
