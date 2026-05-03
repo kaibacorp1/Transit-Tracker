@@ -220,7 +220,7 @@ header {
 
 #transitStatus a,
 #transitStatus a.callsign {
-  color: #c27a1a !important;   /* warm golden tone */
+  color: #ab2020 !important;   /* warm golden tone */
   text-decoration: none;
   font-size: 1.25rem !important;
   font-weight: 700 !important;
@@ -234,7 +234,7 @@ header {
 #transitStatus span[style*="Ignore"],
 #transitStatus span[onclick*="ignoreFlight"] {
   font-size: 0.68rem !important;
-  color: #b91c1c !important;
+  color: #1c3eb9 !important;
   margin-left: 0.45rem !important;
 }
 
