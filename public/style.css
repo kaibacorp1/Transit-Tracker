@@ -115,11 +115,13 @@
 body {
   margin: 0;
   padding: 0.7rem;
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-weight: 400;
+  letter-spacing: 0;
   color: var(--fg-color);
   background: linear-gradient(180deg, #172231 0%, var(--bg-color) 55%, #0c111a 100%);
   font-size: 13px;
-  line-height: 1.35;
+  line-height: 1.45;
 }
 
 [data-theme="light"] body {
@@ -314,7 +316,11 @@ details summary {
 
 label {
   color: var(--fg-color);
-  font-weight: 600;
+  font-weight: 500;
+}
+
+strong {
+  font-weight: 550;
 }
 
 select,
@@ -330,7 +336,7 @@ textarea {
   border: 1px solid var(--input-border-color);
   border-radius: 5px;
   font-size: 0.84rem;
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  font-family: inherit;
   outline: none;
 }
 
@@ -470,29 +476,37 @@ button:hover,
    ========================= */
 
 .timer-row {
-  margin-top: 0.38rem;
-  display: flex;
-  align-items: center;
+  margin-top: 0.42rem;
+  display: block;
 }
 
 #countdownTimer {
   margin-top: 0;
+  width: 100%;
   color: var(--muted-color);
-  font-size: 0.78rem;
+  font-size: 1rem;
   display: flex;
+  justify-content: space-between;
   align-items: baseline;
-  gap: 0.65rem;
+  gap: 1rem;
   flex-wrap: wrap;
 }
 
-#countdownTimer div {
-  display: inline;
+/* Your existing JavaScript writes two divs inside #countdownTimer */
+#countdownTimer div:first-child {
+  color: #4ade80 !important;
+  font-size: 1.08rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em;
 }
 
 #countdownTimer div:last-child {
-  color: #ff6b35 !important;
-  font-size: 0.9rem !important;
-  font-weight: 700 !important;
+  margin-left: auto;
+  color: #ff7849 !important;
+  font-size: 0.82rem !important;
+  font-weight: 500 !important;
+  opacity: 0.95;
+  white-space: nowrap;
 }
 
 #marginFeedback {
@@ -706,6 +720,19 @@ footer a {
     font-size: 0.8rem;
   }
 
+  #countdownTimer {
+    align-items: flex-start;
+  }
+
+  #countdownTimer div:first-child {
+    font-size: 0.98rem !important;
+  }
+
+  #countdownTimer div:last-child {
+    margin-left: 0;
+    font-size: 0.78rem !important;
+  }
+
   #marginSlider {
     width: 100%;
   }
@@ -737,32 +764,4 @@ footer a {
 body.loading #loginBtn,
 body.loading #moderationQueue {
   display: none !important;
-}
-/* =========================
-   TIMER ROW (clean layout)
-   ========================= */
-
-.timer-row {
-  margin-top: 0.5rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-}
-
-/* LEFT — Countdown */
-.countdown {
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: #4ade80; /* soft green */
-  letter-spacing: 0.02em;
-}
-
-/* RIGHT — Pause timer */
-.pause-warning {
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: #ff7849;
-  opacity: 0.9;
-  white-space: nowrap;
 }
