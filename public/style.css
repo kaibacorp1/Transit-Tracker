@@ -738,3 +738,31 @@ body.loading #loginBtn,
 body.loading #moderationQueue {
   display: none !important;
 }
+/* =========================
+   TIMER ROW (clean layout)
+   ========================= */
+
+.timer-row {
+  margin-top: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* LEFT — Countdown */
+.countdown {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #4ade80; /* soft green */
+  letter-spacing: 0.02em;
+}
+
+/* RIGHT — Pause timer */
+.pause-warning {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #ff7849;
+  opacity: 0.9;
+  white-space: nowrap;
+}
