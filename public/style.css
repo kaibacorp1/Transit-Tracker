@@ -43,36 +43,36 @@
 
 /* Light mode */
 [data-theme="light"] {
-  --bg-color: #f4f1ea;              /* warm soft background */
+  --bg-color: #e9e4db;              /* darker base background */
   --fg-color: #1f2937;
   --muted-color: #6b7280;
 
-  --container-bg: #ffffff;
-  --container-shadow: 0 12px 28px rgba(30, 41, 59, 0.08);
+  --container-bg: #f3efe8;          /* main card */
+  --container-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
 
   --heading-color: #111827;
-  --heading-accent: #2563eb;
+  --heading-accent: #b0892e;        /* gold accent */
 
-  --data-bg: #faf7f2;               /* subtle warm card */
-  --data-border-color: #e5ddd2;
+  --data-bg: #ede7de;               /* darker sections (important) */
+  --data-border-color: #d6cfc4;
 
   --input-bg: #ffffff;
   --input-fg: #111827;
-  --input-border-color: #d6d3d1;
+  --input-border-color: #cfc7bb;
 
-  --button-bg: #2563eb;
-  --button-hover-bg: #1d4ed8;
+  --button-bg: #b0892e;             /* 🔥 main change (gold) */
+  --button-hover-bg: #926f22;
 
-  --tab-bg: #f8f5ef;
-  --tab-border-color: #e5ddd2;
-  --tab-active-bg: #e9f2ff;
-  --tab-active-border-color: #2563eb;
+  --tab-bg: #e7e1d8;
+  --tab-border-color: #d6cfc4;
+  --tab-active-bg: #f2eadf;
+  --tab-active-border-color: #b0892e;
 
   --feedback-color: #6b7280;
-  --info-bg: #f1ece6;
+  --info-bg: #e6e0d7;
 
   --footer-color: #6b7280;
-  --footer-link-color: #2563eb;
+  --footer-link-color: #b0892e;
 }
 
 /* Base */
