@@ -196,11 +196,13 @@ header {
 #transitStatus {
   margin: 0.6rem 0 0.48rem !important;
   padding: 0.9rem 1rem !important;
-  color: var(--status-fg) !important;
-  background: var(--status-bg) !important;
-  border: 2px solid var(--status-border) !important;
+
+  background: #dfe5e8 !important;   /* darker than before */
+  border: 2px solid #9fb4c0 !important;
   border-radius: 9px !important;
-  font-size: 1.22rem !important;
+
+  color: #1b2733 !important;
+  font-size: 1.15rem !important;
   line-height: 1.45 !important;
   font-weight: 600 !important;
 }
@@ -218,9 +220,9 @@ header {
 
 #transitStatus a,
 #transitStatus a.callsign {
-  color: #b45309 !important;
+  color: #c27a1a !important;   /* warm golden tone */
   text-decoration: none;
-  font-size: 1.28rem !important;
+  font-size: 1.25rem !important;
   font-weight: 700 !important;
 }
 
