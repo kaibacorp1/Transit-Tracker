@@ -268,7 +268,12 @@ details summary {
 /* Data source heading is now inside the card */
 .section-title-row {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 0.4rem;
+  font-size: 0.86rem;
+}
   align-items: baseline;
   gap: 0.75rem;
   margin-bottom: 0.4rem;
