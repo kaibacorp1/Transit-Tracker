@@ -1,126 +1,242 @@
-/* style.css – Dark and Light Themes for Celestial Transit Tracker */
+/* Transit Chaser — Classic Observatory Theme
+   Replace your entire style.css with this.
+   Direction: simple, older/classic web-app feel, readable, compact, no glow, no fake 3D.
+   Palette: ink/navy + parchment cards + amber action buttons.
+*/
 
-/* 1. Define all color variables; default (dark) matches exactly your current values */
+/* =========================
+   Theme Tokens
+   ========================= */
+
 :root {
-  --bg-color:               #0b0f1a;
-  --fg-color:               #e0e6ed;
-  --container-bg:           #121826;
-  --container-shadow:       0 0 20px rgba(0, 0, 0, 0.5);
-  --heading-color:          #00bfff;
-  --data-bg:                #1c2433;
-  --data-border-color:      #2c3748;
-  --input-bg:               #202b3a;
-  --input-fg:               #ffffff;
-  --input-border-color:     #3b4c63;
-  --button-bg:              #007acc;
-  --button-hover-bg:        #0097ff;
-  --controls-gap:           0.8rem;
-  --tab-bg:                 #202b3a;
-  --tab-border-color:       #3b4c63;
-  --tab-active-bg:          #2d3e56;
-  --tab-active-border-color:#00bfff;
-  --feedback-color:         #bbbbbb;
-  --info-bg:                #2a3548;
-  --footer-color:           #888;
-  --footer-link-color:      #aaa;
-  --slider-width:           70%;
-  --slider-max-width:       300px;
+  --bg-color: #0d1624;
+  --fg-color: #e8edf4;
+  --muted-color: #aab4c2;
+
+  --container-bg: #121d2d;
+  --container-border: #243247;
+  --container-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+
+  --heading-color: #f4f7fb;
+  --heading-accent: #d7a33a;
+
+  --data-bg: #182538;
+  --data-border-color: #2f4059;
+
+  --input-bg: #0f1827;
+  --input-fg: #f5f7fb;
+  --input-border-color: #40506a;
+
+  --button-bg: #b58222;
+  --button-hover-bg: #c8942f;
+  --button-border: #d0a04b;
+
+  --secondary-button-bg: #223149;
+  --secondary-button-hover-bg: #2b3d59;
+  --secondary-button-border: #3d5271;
+
+  --tab-bg: #121d2d;
+  --tab-border-color: #35465f;
+  --tab-active-bg: #202f45;
+  --tab-active-border-color: #d7a33a;
+
+  --status-bg: #173049;
+  --status-border: #426789;
+
+  --feedback-color: #a7b2c2;
+  --info-bg: #202e43;
+
+  --footer-color: #8994a5;
+  --footer-link-color: #d7a33a;
+
+  --controls-gap: 0.52rem;
+  --slider-width: 70%;
+  --slider-max-width: 300px;
 }
 
-/* 2. Light‐mode overrides */
+/* Warm, readable light mode */
 [data-theme="light"] {
-  --bg-color:               #e8e8e8;
-  --fg-color:               #222222;
-  --container-bg:           #ababab;
-  --container-shadow:       0 0 20px rgba(0, 0, 0, 0.1);
-  --heading-color:          #134464;
-  --data-bg:                #d1d1d1;
-  --data-border-color:      #212122;
-  --input-bg:               #8f8c8c;
-  --input-fg:               #222222;
-  --input-border-color:     #cccccc;
-  --button-bg:              #2e8dcd;
-  --button-hover-bg:        #2c72a8;
-  --controls-gap:           0.8rem;
-  --tab-bg:                 #9a9a9a;
-  --tab-border-color:       #dfdfdf;
-  --tab-active-bg:          #e0e0e0;
-  --tab-active-border-color:#3580b2;
-  --feedback-color:         #868686;
-  --info-bg:                #dddddd;
-  --footer-color:           #555555;
-  --footer-link-color:      #398fc8;
-  --slider-width:           70%;
-  --slider-max-width:       300px;
+  --bg-color: #d8d0c3;
+  --fg-color: #172033;
+  --muted-color: #5f6875;
+
+  --container-bg: #ede6dc;
+  --container-border: #c4b8a8;
+  --container-shadow: 0 12px 30px rgba(38, 33, 27, 0.14);
+
+  --heading-color: #111827;
+  --heading-accent: #8b651d;
+
+  --data-bg: #e5dccf;
+  --data-border-color: #c5b8a7;
+
+  --input-bg: #f8f3eb;
+  --input-fg: #111827;
+  --input-border-color: #b6ab9c;
+
+  --button-bg: #9d711f;
+  --button-hover-bg: #835c17;
+  --button-border: #775414;
+
+  --secondary-button-bg: #ded4c6;
+  --secondary-button-hover-bg: #d1c4b4;
+  --secondary-button-border: #b8aa99;
+
+  --tab-bg: #ded4c6;
+  --tab-border-color: #bfb1a0;
+  --tab-active-bg: #f3eadc;
+  --tab-active-border-color: #9d711f;
+
+  --status-bg: #dedfdc;
+  --status-border: #bdd4dc;
+
+  --feedback-color: #596371;
+  --info-bg: #d9cebf;
+
+  --footer-color: #68707c;
+  --footer-link-color: #775414;
 }
 
-/* 3. Apply the variables */
+/* =========================
+   Base Layout
+   ========================= */
+
+* {
+  box-sizing: border-box;
+}
+
 body {
-  font-family: 'Segoe UI', sans-serif;
-  background-color: var(--bg-color);
-  color: var(--fg-color);
   margin: 0;
-  padding: 1.5rem;
+  padding: 0.8rem;
+  font-family: Georgia, "Times New Roman", Times, serif;
+  color: var(--fg-color);
+  background:
+    radial-gradient(circle at top left, rgba(215, 163, 58, 0.07), transparent 28%),
+    linear-gradient(180deg, #101b2b 0%, var(--bg-color) 48%, #0a111d 100%);
+  font-size: 14px;
+  line-height: 1.4;
 }
 
-/* bright-orange transit callsigns, no underline */
-#transitStatus a.callsign {
-  color: #ff7d00;        /* vivid orange */
-  text-decoration: none; /* kill underline */
-  font-weight: 700;      /* optional—makes it pop */
-}
-
-#transitStatus a.callsign:hover {
-  text-decoration: underline; /* optional hover effect */
+[data-theme="light"] body {
+  background:
+    radial-gradient(circle at top left, rgba(157, 113, 31, 0.10), transparent 30%),
+    linear-gradient(180deg, #ccc2b4 0%, var(--bg-color) 50%, #cfc5b8 100%);
 }
 
 .container {
-  max-width: 760px;
-  margin: auto;
-  padding: 1.5rem;
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 0.95rem;
   background: var(--container-bg);
-  border-radius: 12px;
+  border: 1px solid var(--container-border);
+  border-radius: 14px;
   box-shadow: var(--container-shadow);
 }
 
-h1 {
-  color: var(--heading-color);
-  font-size: 1.8rem;
+/* =========================
+   Typography
+   ========================= */
+
+h1,
+h2,
+button,
+select,
+input,
+textarea,
+label,
+summary,
+.nav-btn,
+.header-link {
+  font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
 }
+
+h1 {
+  margin: 0 0 0.18rem;
+  color: var(--heading-color);
+  font-size: clamp(1.55rem, 3vw, 2rem);
+  font-weight: 650;
+  letter-spacing: -0.025em;
+  line-height: 1.08;
+}
+
+h1::first-letter {
+  color: var(--heading-accent);
+}
+
+h2 {
+  margin: 0.38rem 0 0.45rem;
+  color: var(--heading-color);
+  font-size: 1.12rem;
+  font-weight: 600;
+}
+
+a {
+  color: var(--footer-link-color);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.small-link {
+  color: var(--footer-link-color) !important;
+  font-size: 0.82rem !important;
+  opacity: 0.95;
+}
+
+/* =========================
+   Header / Top Navigation
+   ========================= */
+
+header {
+  padding-bottom: 0.42rem;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+[data-theme="light"] header {
+  border-bottom-color: #c9beae;
+}
+
+/* Make header links feel like a classic toolbar, not chunky CTA buttons */
+.header-link,
+.nav-btn {
+  padding: 0.32rem 0.62rem !important;
+  font-size: 0.82rem !important;
+  line-height: 1.1;
+}
+
+/* =========================
+   Cards / Sections
+   ========================= */
 
 .data {
-  margin-top: 1.2rem;
-  padding: 1.2rem;
+  margin-top: 0.62rem;
+  padding: 0.75rem;
   background: var(--data-bg);
-  border-radius: 10px;
   border: 1px solid var(--data-border-color);
+  border-radius: 12px;
 }
 
-select,
-button,
-input[type="number"],
-input[type="range"],
-input[type="text"],
-input[type="password"] {
-  padding: 0.4rem 0.8rem;
-  margin-top: 0.4rem;
-  background-color: var(--input-bg);
-  color: var(--input-fg);
-  border: 1px solid var(--input-border-color);
-  border-radius: 6px;
-  font-size: 0.95rem;
+[data-theme="light"] .data {
+  box-shadow: 0 2px 7px rgba(38, 33, 27, 0.05);
 }
 
-button {
+details {
+  margin-top: 0.58rem;
+}
+
+details summary {
   cursor: pointer;
-  background-color: var(--button-bg);
-  border: none;
-  transition: background-color 0.2s;
+  margin-bottom: 0.35rem;
+  color: var(--heading-color);
+  font-weight: 600;
+  user-select: none;
 }
 
-button:hover {
-  background-color: var(--button-hover-bg);
-}
+/* =========================
+   Forms / Controls
+   ========================= */
 
 .controls {
   display: flex;
@@ -129,80 +245,329 @@ button:hover {
   align-items: center;
 }
 
+label {
+  color: var(--fg-color);
+  font-weight: 500;
+}
+
+select,
+input[type="number"],
+input[type="range"],
+input[type="text"],
+input[type="password"],
+textarea {
+  margin-top: 0.24rem;
+  padding: 0.43rem 0.62rem;
+  color: var(--input-fg);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border-color);
+  border-radius: 7px;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+select:focus,
+input:focus,
+textarea:focus {
+  border-color: var(--heading-accent);
+  box-shadow: 0 0 0 2px rgba(215, 163, 58, 0.15);
+}
+
+/* =========================
+   Buttons
+   ========================= */
+
+button,
+.nav-btn,
+.header-link {
+  cursor: pointer;
+  color: #ffffff !important;
+  background: var(--button-bg) !important;
+  border: 1px solid var(--button-border) !important;
+  border-radius: 7px !important;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  transition: background-color 0.14s ease, border-color 0.14s ease, transform 0.1s ease;
+}
+
+button:hover,
+.nav-btn:hover,
+.header-link:hover {
+  background: var(--button-hover-bg) !important;
+  border-color: var(--button-hover-bg) !important;
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+/* Secondary utility buttons: mute/test/theme should not compete with main buttons */
+.theme-toggle,
+#muteToggleBtn,
+#testSoundBtn {
+  background: var(--secondary-button-bg) !important;
+  border-color: var(--secondary-button-border) !important;
+  color: var(--fg-color) !important;
+}
+
+.theme-toggle:hover,
+#muteToggleBtn:hover,
+#testSoundBtn:hover {
+  background: var(--secondary-button-hover-bg) !important;
+  border-color: var(--secondary-button-border) !important;
+}
+
+.donate-btn {
+  background: #12813b !important;
+  border-color: #0f6d31 !important;
+}
+
+.donate-btn:hover {
+  background: #0f6d31 !important;
+}
+
+/* =========================
+   Data Source Tabs
+   ========================= */
+
 .tab-buttons {
   display: flex;
   gap: var(--controls-gap);
-  margin-bottom: 1rem;
+  margin-bottom: 0.62rem;
 }
 
 .tab-buttons button {
   flex: 1;
-  background-color: var(--tab-bg);
-  border: 1px solid var(--tab-border-color);
-  font-weight: bold;
+  min-height: 38px;
+  color: var(--fg-color) !important;
+  background: var(--tab-bg) !important;
+  border: 1px solid var(--tab-border-color) !important;
+  border-radius: 9px !important;
+  font-weight: 600;
 }
 
-.tab-buttons button.active {
-  border-color: var(--tab-active-border-color);
-  background-color: var(--tab-active-bg);
+.tab-buttons button:hover {
+  background: var(--tab-active-bg) !important;
+  border-color: var(--tab-active-border-color) !important;
 }
 
-#marginFeedback {
-  margin-top: 0.4rem;
-  font-size: 0.85em;
-  color: var(--feedback-color);
+.tab-buttons button.active,
+.tab-buttons button[style*="00bfff"] {
+  background: var(--tab-active-bg) !important;
+  border-color: var(--tab-active-border-color) !important;
 }
+
+/* =========================
+   Main Status / Results
+   ========================= */
+
+#transitStatus {
+  margin: 0.72rem 0 !important;
+  padding: 0.95rem 1rem !important;
+  color: var(--heading-color) !important;
+  background: var(--status-bg) !important;
+  border: 1px solid var(--status-border) !important;
+  border-radius: 14px !important;
+  font-size: 1.18rem !important;
+  line-height: 1.45 !important;
+  font-weight: 600 !important;
+}
+
+#transitStatus a,
+#transitStatus a.callsign {
+  color: #f4b23a !important;
+  text-decoration: none;
+  font-weight: 700 !important;
+}
+
+#transitStatus a:hover {
+  text-decoration: underline;
+}
+
+#transitStatus span {
+  font-size: 0.95rem !important;
+  font-weight: 500 !important;
+}
+
+#transitStatus span[style*="Ignore"],
+#transitStatus span[onclick*="ignoreFlight"] {
+  font-size: 0.72rem !important;
+  color: #d95c5c !important;
+  margin-left: 0.45rem !important;
+}
+
+#pauseResumeBtn {
+  font-size: 0.9rem !important;
+  padding: 0.45rem 0.72rem !important;
+}
+
+/* Countdown */
+#countdownTimer {
+  margin-top: 0.25rem;
+  color: var(--muted-color);
+  font-size: 0.8rem;
+}
+
+#countdownTimer div:last-child {
+  color: #d95c5c !important;
+  font-size: 0.75rem !important;
+}
+
+/* =========================
+   Grids / Info
+   ========================= */
 
 .info-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: var(--controls-gap);
-  margin-top: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.6rem;
 }
 
 .info-grid > div {
-  background-color: var(--info-bg);
-  padding: 0.8rem;
-  border-radius: 8px;
+  padding: 0.65rem;
+  background: var(--info-bg);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
 }
 
-details summary {
-  cursor: pointer;
-  font-weight: bold;
-  margin-bottom: 0.4rem;
+[data-theme="light"] .info-grid > div {
+  border-color: #c9beae;
 }
+
+#marginFeedback {
+  margin-top: 0.25rem;
+  color: var(--feedback-color);
+  font-size: 0.8em;
+}
+
+#marginSlider {
+  width: var(--slider-width);
+  max-width: var(--slider-max-width);
+}
+
+/* =========================
+   Logs
+   ========================= */
+
+#transitLogContainer {
+  padding: 0.65rem 0.75rem;
+  background: rgba(0,0,0,0.16);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px;
+}
+
+[data-theme="light"] #transitLogContainer {
+  background: #ded4c6;
+  border-color: #c9beae;
+}
+
+#transitLogList,
+#extraLogList {
+  margin-top: 0.3rem;
+  margin-bottom: 0.3rem;
+}
+
+/* =========================
+   Plane Watch Compact Tweaks
+   ========================= */
+
+.watch-filter-grid {
+  gap: 0.65rem !important;
+}
+
+.watch-left-column {
+  gap: 0.55rem !important;
+}
+
+.watch-type-select {
+  min-height: 9rem !important;
+}
+
+.watch-selection-summary {
+  padding: 0.55rem 0.7rem !important;
+  font-size: 0.82rem !important;
+  background: rgba(215, 163, 58, 0.08) !important;
+  border-color: rgba(215, 163, 58, 0.18) !important;
+}
+
+.watch-compass {
+  width: 215px !important;
+  height: 215px !important;
+  border-color: rgba(215, 163, 58, 0.22) !important;
+}
+
+.watch-dir-btn {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 999px !important;
+  color: var(--fg-color) !important;
+  background: var(--secondary-button-bg) !important;
+  border: 1px solid var(--secondary-button-border) !important;
+  font-size: 0.63rem !important;
+}
+
+.watch-dir-btn.active {
+  color: #ffffff !important;
+  background: var(--button-bg) !important;
+  border-color: var(--button-border) !important;
+}
+
+/* =========================
+   Footer
+   ========================= */
 
 footer {
-  margin-top: 2rem;
+  margin-top: 1.1rem;
   text-align: center;
-  font-size: 0.85rem;
   color: var(--footer-color);
+  font-size: 0.78rem;
 }
 
 footer a {
+  margin: 0 0.28rem;
   color: var(--footer-link-color);
   text-decoration: none;
-  margin: 0 0.4rem;
 }
 
 footer a:hover {
   text-decoration: underline;
 }
 
-/* Make the Detection Margin slider span nearly the full container */
-#marginSlider {
-  width: var(--slider-width);
-  max-width: var(--slider-max-width);
+/* =========================
+   Modals
+   ========================= */
+
+#alertModal > div,
+#serviceUpdateModal > div {
+  border-radius: 14px !important;
 }
 
-
-/* for MOBILE */
+/* =========================
+   Mobile
+   ========================= */
 
 @media (max-width: 600px) {
+  body {
+    padding: 0.45rem;
+    font-size: 13px;
+  }
+
   .container {
-    padding: 1rem;
-    margin: 0 0.5rem;
-    border-radius: 8px;
+    padding: 0.72rem;
+    border-radius: 12px;
+  }
+
+  h1 {
+    font-size: 1.35rem;
+  }
+
+  .data {
+    margin-top: 0.55rem;
+    padding: 0.65rem;
   }
 
   .controls {
@@ -216,15 +581,33 @@ footer a:hover {
   }
 
   .tab-buttons {
-    flex-direction: column;
+    gap: 0.4rem;
   }
 
   .tab-buttons button {
-    width: 100%;
+    min-height: 36px;
+    font-size: 0.82rem;
+  }
+
+  #transitStatus {
+    font-size: 1.05rem !important;
+    padding: 0.8rem !important;
   }
 
   .info-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4rem;
+  }
+
+  select,
+  button,
+  input[type="number"],
+  input[type="range"],
+  input[type="text"],
+  input[type="password"],
+  textarea {
+    padding: 0.4rem 0.55rem;
+    font-size: 0.84rem;
   }
 
   #marginSlider {
@@ -233,11 +616,25 @@ footer a:hover {
 
   #alertModal > div {
     width: 90%;
-    font-size: 0.9rem;
+    font-size: 0.86rem;
+  }
+
+  .watch-filter-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .watch-compass {
+    width: 200px !important;
+    height: 200px !important;
+  }
+
+  .watch-dir-btn {
+    width: 34px !important;
+    height: 34px !important;
   }
 
   footer {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
   }
 }
 
@@ -245,4 +642,3 @@ body.loading #loginBtn,
 body.loading #moderationQueue {
   display: none !important;
 }
-
