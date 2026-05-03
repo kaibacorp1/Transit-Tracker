@@ -1,173 +1,99 @@
-/* Transit Chaser — Clean Readable Dark Theme
-   Replace your entire style.css with this.
-   Goal: clear first impression, calmer dark mode, readable text, compact layout.
-*/
+/* style.css – Dark and Light Themes for Celestial Transit Tracker */
 
+/* 1. Define all color variables; default (dark) matches exactly your current values */
 :root {
-  --bg-color: #101827;
-  --fg-color: #e7edf5;
-  --muted-color: #9aa8ba;
-
-  --container-bg: #151f2f;
-  --container-shadow: 0 14px 40px rgba(0, 0, 0, 0.32);
-
-  --heading-color: #f8fafc;
-  --heading-accent: #7dd3fc;
-
-  --data-bg: #1d293b;
-  --data-border-color: #2e3b4f;
-
-  --input-bg: #111827;
-  --input-fg: #f8fafc;
-  --input-border-color: #3c4a5f;
-
-  --button-bg: #2563eb;
-  --button-hover-bg: #1d4ed8;
-
-  --controls-gap: 0.55rem;
-
-  --tab-bg: #172234;
-  --tab-border-color: #354258;
-  --tab-active-bg: #22314a;
-  --tab-active-border-color: #7dd3fc;
-
-  --feedback-color: #a9b4c4;
-  --info-bg: #253247;
-
-  --footer-color: #8b97a8;
-  --footer-link-color: #7dd3fc;
-
-  --slider-width: 70%;
-  --slider-max-width: 300px;
+  --bg-color:               #0b0f1a;
+  --fg-color:               #e0e6ed;
+  --container-bg:           #121826;
+  --container-shadow:       0 0 20px rgba(0, 0, 0, 0.5);
+  --heading-color:          #00bfff;
+  --data-bg:                #1c2433;
+  --data-border-color:      #2c3748;
+  --input-bg:               #202b3a;
+  --input-fg:               #ffffff;
+  --input-border-color:     #3b4c63;
+  --button-bg:              #007acc;
+  --button-hover-bg:        #0097ff;
+  --controls-gap:           0.8rem;
+  --tab-bg:                 #202b3a;
+  --tab-border-color:       #3b4c63;
+  --tab-active-bg:          #2d3e56;
+  --tab-active-border-color:#00bfff;
+  --feedback-color:         #bbbbbb;
+  --info-bg:                #2a3548;
+  --footer-color:           #888;
+  --footer-link-color:      #aaa;
+  --slider-width:           70%;
+  --slider-max-width:       300px;
 }
 
-/* Light mode */
+/* 2. Light‐mode overrides */
 [data-theme="light"] {
-  --bg-color: #e9e4db;              /* darker base background */
-  --fg-color: #1f2937;
-  --muted-color: #6b7280;
-
-  --container-bg: #f3efe8;          /* main card */
-  --container-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
-
-  --heading-color: #111827;
-  --heading-accent: #b0892e;        /* gold accent */
-
-  --data-bg: #ede7de;               /* darker sections (important) */
-  --data-border-color: #d6cfc4;
-
-  --input-bg: #ffffff;
-  --input-fg: #111827;
-  --input-border-color: #cfc7bb;
-
-  --button-bg: #b0892e;             /* 🔥 main change (gold) */
-  --button-hover-bg: #926f22;
-
-  --tab-bg: #e7e1d8;
-  --tab-border-color: #d6cfc4;
-  --tab-active-bg: #f2eadf;
-  --tab-active-border-color: #b0892e;
-
-  --feedback-color: #6b7280;
-  --info-bg: #e6e0d7;
-
-  --footer-color: #6b7280;
-  --footer-link-color: #b0892e;
+  --bg-color:               #e8e8e8;
+  --fg-color:               #222222;
+  --container-bg:           #ababab;
+  --container-shadow:       0 0 20px rgba(0, 0, 0, 0.1);
+  --heading-color:          #134464;
+  --data-bg:                #d1d1d1;
+  --data-border-color:      #212122;
+  --input-bg:               #8f8c8c;
+  --input-fg:               #222222;
+  --input-border-color:     #cccccc;
+  --button-bg:              #2e8dcd;
+  --button-hover-bg:        #2c72a8;
+  --controls-gap:           0.8rem;
+  --tab-bg:                 #9a9a9a;
+  --tab-border-color:       #dfdfdf;
+  --tab-active-bg:          #e0e0e0;
+  --tab-active-border-color:#3580b2;
+  --feedback-color:         #868686;
+  --info-bg:                #dddddd;
+  --footer-color:           #555555;
+  --footer-link-color:      #398fc8;
+  --slider-width:           70%;
+  --slider-max-width:       300px;
 }
 
-/* Base */
-* {
-  box-sizing: border-box;
-}
-
+/* 3. Apply the variables */
 body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-  font-weight: 400;
-  background:
-    radial-gradient(circle at top left, rgba(125, 211, 252, 0.08), transparent 30%),
-    linear-gradient(180deg, #111827 0%, var(--bg-color) 45%, #0b1120 100%);
+  font-family: 'Segoe UI', sans-serif;
+  background-color: var(--bg-color);
   color: var(--fg-color);
   margin: 0;
-  padding: 0.8rem;
-  line-height: 1.42;
-  font-size: 14px;
+  padding: 1.5rem;
 }
 
-/* Container */
+/* bright-orange transit callsigns, no underline */
+#transitStatus a.callsign {
+  color: #ff7d00;        /* vivid orange */
+  text-decoration: none; /* kill underline */
+  font-weight: 700;      /* optional—makes it pop */
+}
+
+#transitStatus a.callsign:hover {
+  text-decoration: underline; /* optional hover effect */
+}
+
 .container {
-  max-width: 800px;
+  max-width: 760px;
   margin: auto;
-  padding: 1rem;
+  padding: 1.5rem;
   background: var(--container-bg);
-  border: 1px solid rgba(255,255,255,0.07);
-  border-radius: 16px;
+  border-radius: 12px;
   box-shadow: var(--container-shadow);
-}
-
-/* Header */
-header {
-  padding-bottom: 0.45rem;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 
 h1 {
   color: var(--heading-color);
-  font-size: clamp(1.55rem, 3vw, 1.95rem);
-  font-weight: 600;
-  letter-spacing: -0.03em;
-  line-height: 1.1;
-  margin: 0 0 0.2rem;
+  font-size: 1.8rem;
 }
 
-h2 {
-  color: var(--heading-color);
-  font-size: 1.12rem;
-  font-weight: 500;
-  margin: 0.4rem 0 0.45rem;
-}
-
-a {
-  color: var(--footer-link-color);
-}
-
-.small-link {
-  color: var(--footer-link-color) !important;
-  font-size: 0.82rem !important;
-  opacity: 0.92;
-}
-
-/* Sections */
 .data {
-  margin-top: 0.65rem;
-  padding: 0.75rem;
+  margin-top: 1.2rem;
+  padding: 1.2rem;
   background: var(--data-bg);
-  border-radius: 12px;
+  border-radius: 10px;
   border: 1px solid var(--data-border-color);
-}
-
-details {
-  margin-top: 0.6rem;
-}
-
-details summary {
-  cursor: pointer;
-  font-weight: 600;
-  margin-bottom: 0.35rem;
-  color: var(--heading-color);
-  user-select: none;
-}
-
-/* Form controls */
-.controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--controls-gap);
-  align-items: center;
-}
-
-label {
-  color: var(--fg-color);
-  font-weight: 500;
 }
 
 select,
@@ -175,258 +101,108 @@ button,
 input[type="number"],
 input[type="range"],
 input[type="text"],
-input[type="password"],
-textarea {
-  padding: 0.45rem 0.65rem;
-  margin-top: 0.25rem;
+input[type="password"] {
+  padding: 0.4rem 0.8rem;
+  margin-top: 0.4rem;
   background-color: var(--input-bg);
   color: var(--input-fg);
   border: 1px solid var(--input-border-color);
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-family: inherit;
-  outline: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
 }
 
-select:focus,
-input:focus,
-textarea:focus {
-  border-color: var(--heading-accent);
-  box-shadow: 0 0 0 2px rgba(125, 211, 252, 0.16);
-}
-
-/* Buttons */
-button,
-.nav-btn,
-.header-link {
+button {
   cursor: pointer;
-  background: var(--button-bg) !important;
-  color: #ffffff !important;
-  border: none !important;
-  border-radius: 8px !important;
-  font-size: 0.9rem;
-  font-weight: 500;
-  box-shadow: none !important;
-  text-shadow: none !important;
-  transition: background-color 0.15s ease, transform 0.12s ease;
+  background-color: var(--button-bg);
+  border: none;
+  transition: background-color 0.2s;
 }
 
-button:hover,
-.nav-btn:hover,
-.header-link:hover {
-  background: var(--button-hover-bg) !important;
-  transform: translateY(-1px);
+button:hover {
+  background-color: var(--button-hover-bg);
 }
 
-button:active {
-  transform: translateY(0);
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--controls-gap);
+  align-items: center;
 }
 
-.nav-btn,
-.header-link {
-  padding: 0.35rem 0.65rem !important;
-  font-size: 0.82rem !important;
-}
-
-/* Specific header buttons */
-.donate-btn {
-  background: #15803d !important;
-}
-
-.donate-btn:hover {
-  background: #166534 !important;
-}
-
-.theme-toggle {
-  background: #334155 !important;
-}
-
-.theme-toggle:hover {
-  background: #475569 !important;
-}
-
-/* Tabs */
 .tab-buttons {
   display: flex;
   gap: var(--controls-gap);
-  margin-bottom: 0.65rem;
+  margin-bottom: 1rem;
 }
 
 .tab-buttons button {
   flex: 1;
-  min-height: 40px;
-  background: var(--tab-bg) !important;
-  color: var(--fg-color) !important;
-  border: 1px solid var(--tab-border-color) !important;
-  border-radius: 9px !important;
-  font-weight: 500;
+  background-color: var(--tab-bg);
+  border: 1px solid var(--tab-border-color);
+  font-weight: bold;
 }
 
-.tab-buttons button:hover {
-  background: var(--tab-active-bg) !important;
-  border-color: var(--tab-active-border-color) !important;
-}
-
-.tab-buttons button.active,
-.tab-buttons button[style*="00bfff"] {
-  background: var(--tab-active-bg) !important;
-  border-color: var(--tab-active-border-color) !important;
-}
-
-/* Transit status */
-#transitStatus {
-  margin: 0.7rem 0 !important;
-  padding: 0.75rem 0.85rem !important;
-  border-radius: 12px;
-  background: rgba(125, 211, 252, 0.08);
-  border: 1px solid rgba(125, 211, 252, 0.18);
-  color: var(--heading-color);
-  font-size: 1rem !important;
-  font-weight: 500;
-}
-
-#transitStatus a,
-#transitStatus a.callsign {
-  color: #fbbf24;
-  text-decoration: none;
-  font-weight: 600;
-}
-
-#transitStatus a:hover {
-  text-decoration: underline;
-}
-
-#countdownTimer {
-  color: var(--muted-color);
-  font-size: 0.78rem;
-  margin-top: 0.25rem;
+.tab-buttons button.active {
+  border-color: var(--tab-active-border-color);
+  background-color: var(--tab-active-bg);
 }
 
 #marginFeedback {
-  margin-top: 0.25rem;
-  font-size: 0.8em;
+  margin-top: 0.4rem;
+  font-size: 0.85em;
   color: var(--feedback-color);
 }
 
-/* Info cards */
 .info-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 0.5rem;
-  margin-top: 0.6rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--controls-gap);
+  margin-top: 1rem;
 }
 
 .info-grid > div {
   background-color: var(--info-bg);
-  padding: 0.65rem;
-  border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.06);
+  padding: 0.8rem;
+  border-radius: 8px;
 }
 
-#marginSlider {
-  width: var(--slider-width);
-  max-width: var(--slider-max-width);
+details summary {
+  cursor: pointer;
+  font-weight: bold;
+  margin-bottom: 0.4rem;
 }
 
-/* Logs */
-#transitLogContainer {
-  padding: 0.65rem 0.75rem;
-  background: rgba(15, 23, 42, 0.35);
-  border: 1px solid rgba(255,255,255,0.07);
-  border-radius: 10px;
-}
-
-#transitLogList,
-#extraLogList {
-  margin-top: 0.3rem;
-  margin-bottom: 0.3rem;
-}
-
-/* Plane Watch compact tweaks */
-.watch-filter-grid {
-  gap: 0.65rem !important;
-}
-
-.watch-left-column {
-  gap: 0.55rem !important;
-}
-
-.watch-type-select {
-  min-height: 9rem !important;
-}
-
-.watch-selection-summary {
-  padding: 0.55rem 0.7rem !important;
-  font-size: 0.82rem !important;
-  background: rgba(125, 211, 252, 0.08) !important;
-  border-color: rgba(125, 211, 252, 0.16) !important;
-}
-
-.watch-compass {
-  width: 215px !important;
-  height: 215px !important;
-  border-color: rgba(125, 211, 252, 0.2) !important;
-}
-
-.watch-dir-btn {
-  width: 36px !important;
-  height: 36px !important;
-  border-radius: 999px !important;
-  background: #172234 !important;
-  border: 1px solid #334155 !important;
-  color: var(--fg-color) !important;
-  font-size: 0.63rem !important;
-}
-
-.watch-dir-btn.active {
-  background: #2563eb !important;
-  border-color: #7dd3fc !important;
-  color: #ffffff !important;
-}
-
-/* Footer */
 footer {
-  margin-top: 1.1rem;
+  margin-top: 2rem;
   text-align: center;
-  font-size: 0.78rem;
+  font-size: 0.85rem;
   color: var(--footer-color);
 }
 
 footer a {
   color: var(--footer-link-color);
   text-decoration: none;
-  margin: 0 0.28rem;
+  margin: 0 0.4rem;
 }
 
 footer a:hover {
   text-decoration: underline;
 }
 
-/* Modals */
-#alertModal > div,
-#serviceUpdateModal > div {
-  border-radius: 14px !important;
+/* Make the Detection Margin slider span nearly the full container */
+#marginSlider {
+  width: var(--slider-width);
+  max-width: var(--slider-max-width);
 }
 
-/* Mobile */
+
+/* for MOBILE */
+
 @media (max-width: 600px) {
-  body {
-    padding: 0.45rem;
-    font-size: 13px;
-  }
-
   .container {
-    padding: 0.7rem;
-    border-radius: 13px;
-  }
-
-  h1 {
-    font-size: 1.35rem;
-  }
-
-  .data {
-    margin-top: 0.55rem;
-    padding: 0.65rem;
+    padding: 1rem;
+    margin: 0 0.5rem;
+    border-radius: 8px;
   }
 
   .controls {
@@ -440,28 +216,15 @@ footer a:hover {
   }
 
   .tab-buttons {
-    gap: 0.4rem;
+    flex-direction: column;
   }
 
   .tab-buttons button {
-    min-height: 38px;
-    font-size: 0.82rem;
+    width: 100%;
   }
 
   .info-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 0.4rem;
-  }
-
-  select,
-  button,
-  input[type="number"],
-  input[type="range"],
-  input[type="text"],
-  input[type="password"],
-  textarea {
-    font-size: 0.84rem;
-    padding: 0.4rem 0.55rem;
+    grid-template-columns: 1fr;
   }
 
   #marginSlider {
@@ -470,25 +233,11 @@ footer a:hover {
 
   #alertModal > div {
     width: 90%;
-    font-size: 0.86rem;
-  }
-
-  .watch-filter-grid {
-    grid-template-columns: 1fr !important;
-  }
-
-  .watch-compass {
-    width: 200px !important;
-    height: 200px !important;
-  }
-
-  .watch-dir-btn {
-    width: 34px !important;
-    height: 34px !important;
+    font-size: 0.9rem;
   }
 
   footer {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
   }
 }
 
@@ -497,35 +246,3 @@ body.loading #moderationQueue {
   display: none !important;
 }
 
-/* Make main result/status messages larger and clearer */
-#transitStatus {
-  font-size: 1.35rem !important;
-  line-height: 1.55 !important;
-  font-weight: 600 !important;
-  padding: 1.15rem 1.25rem !important;
-  background: #1b3347 !important;
-  border: 1px solid #3f6f91 !important;
-  border-radius: 16px !important;
-  color: #f8fafc !important;
-}
-
-#transitStatus a {
-  font-size: 1.35rem !important;
-  font-weight: 800 !important;
-  color: #fbbf24 !important;
-}
-
-#transitStatus span {
-  font-size: 1rem !important;
-}
-
-#transitStatus span[style*="Ignore"] {
-  font-size: 0.75rem !important;
-  color: #ef4444 !important;
-  margin-left: 10px !important;
-}
-
-#pauseResumeBtn {
-  font-size: 1rem !important;
-  padding: 0.55rem 0.9rem !important;
-}
