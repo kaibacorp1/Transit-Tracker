@@ -835,3 +835,84 @@ body.loading #moderationQueue {
   border-radius: 6px;
   border: 1px solid #39495d;
 }
+
+/* Instagram side popup — non-blocking */
+.instagram-side-popup {
+  position: fixed;
+  left: 1rem;
+  top: 140px;
+  z-index: 8500;
+  width: 230px;
+  background: #f7f4ee;
+  color: #111827;
+  border: 1px solid #d9cec0;
+  border-radius: 14px;
+  padding: 1rem;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.28);
+  transform: translateX(-120%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.instagram-side-popup.show {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.instagram-popup-close {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.45rem;
+  background: transparent !important;
+  border: none !important;
+  color: #6b7280 !important;
+  font-size: 1.2rem;
+  padding: 0 !important;
+}
+
+.instagram-popup-icon {
+  font-size: 1.6rem;
+  margin-bottom: 0.3rem;
+}
+
+.instagram-side-popup strong {
+  display: block;
+  font-size: 1rem;
+  margin-bottom: 0.4rem;
+}
+
+.instagram-side-popup p {
+  font-size: 0.82rem;
+  line-height: 1.35;
+  color: #374151;
+  margin: 0 0 0.75rem;
+}
+
+.instagram-popup-button {
+  display: block;
+  text-align: center;
+  padding: 0.55rem 0.7rem;
+  background: #c13584;
+  color: white !important;
+  border-radius: 9px;
+  font-weight: 700;
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+
+.instagram-popup-later {
+  margin-top: 0.5rem;
+  width: 100%;
+  background: transparent !important;
+  border: none !important;
+  color: #6b7280 !important;
+  font-size: 0.75rem;
+}
+
+@media (max-width: 1000px) {
+  .instagram-side-popup {
+    display: none;
+  }
+}
