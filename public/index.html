@@ -873,89 +873,61 @@ document.getElementById('serviceFeedbackForm').addEventListener('submit', async 
 })();
 </script>
 
-/* Instagram side popup — non-blocking */
-.instagram-side-popup {
-  position: fixed;
-  left: 1rem;
-  top: 140px;
-  z-index: 8500;
-  width: 230px;
-  background: #f7f4ee;
-  color: #111827;
-  border: 1px solid #d9cec0;
-  border-radius: 14px;
-  padding: 1rem;
-  box-shadow: 0 12px 32px rgba(0,0,0,0.28);
-  transform: translateX(-120%);
-  opacity: 0;
-  pointer-events: none;
-  transition: transform 0.25s ease, opacity 0.25s ease;
-}
 
-.instagram-side-popup.show {
-  transform: translateX(0);
-  opacity: 1;
-  pointer-events: auto;
-}
+<!-- Instagram Community Side Popup -->
+<div id="instagramPopup" class="instagram-side-popup">
+  <button id="instagramPopupClose" class="instagram-popup-close" type="button">×</button>
 
-.instagram-popup-close {
-  position: absolute;
-  top: 0.35rem;
-  right: 0.45rem;
-  background: transparent !important;
-  border: none !important;
-  color: #6b7280 !important;
-  font-size: 1.2rem;
-  padding: 0 !important;
-}
+  <div class="instagram-popup-icon">📸</div>
+  <strong>Help grow Transit Chaser</strong>
 
-.instagram-popup-icon {
-  font-size: 1.6rem;
-  margin-bottom: 0.3rem;
-}
+  <p>
+    This is a free project. If the app has helped you, a follow on Instagram really helps get the word out.
+  </p>
 
-.instagram-side-popup strong {
-  display: block;
-  font-size: 1rem;
-  margin-bottom: 0.4rem;
-}
+  <a
+    href="https://www.instagram.com/clicksbyrey"
+    target="_blank"
+    rel="noopener noreferrer"
+    class="instagram-popup-button"
+  >
+    Follow @clicksbyrey
+  </a>
 
-.instagram-side-popup p {
-  font-size: 0.82rem;
-  line-height: 1.35;
-  color: #374151;
-  margin: 0 0 0.75rem;
-}
+  <button id="instagramPopupLater" class="instagram-popup-later" type="button">
+    Maybe later
+  </button>
+</div>
 
-.instagram-popup-button {
-  display: block;
-  text-align: center;
-  padding: 0.55rem 0.7rem;
-  background: #c13584;
-  color: white !important;
-  border-radius: 9px;
-  font-weight: 700;
-  text-decoration: none;
-  font-size: 0.85rem;
-}
+<script>
+(function () {
+  const popup = document.getElementById('instagramPopup');
+  const closeBtn = document.getElementById('instagramPopupClose');
+  const laterBtn = document.getElementById('instagramPopupLater');
 
-.instagram-popup-later {
-  margin-top: 0.5rem;
-  width: 100%;
-  background: transparent !important;
-  border: none !important;
-  color: #6b7280 !important;
-  font-size: 0.75rem;
-}
+  if (!popup) return;
 
-/* Hide on smaller screens so it doesn't cover the app */
-@media (max-width: 1000px) {
-  .instagram-side-popup {
-    display: none;
+  const key = 'transitChaserInstagramPopupLastShown';
+  const threeDays = 3 * 24 * 60 * 60 * 1000;
+  const delay = 5 * 60 * 1000; // 5 minutes
+  const lastShown = parseInt(localStorage.getItem(key), 10) || 0;
+
+  function closePopup() {
+    popup.classList.remove('show');
+    localStorage.setItem(key, Date.now().toString());
   }
-}
 
+  if (Date.now() - lastShown > threeDays) {
+    setTimeout(() => {
+      popup.classList.add('show');
+      localStorage.setItem(key, Date.now().toString());
+    }, delay);
+  }
 
-    
+  closeBtn?.addEventListener('click', closePopup);
+  laterBtn?.addEventListener('click', closePopup);
+})();
+</script>
+
 </body>
 </html>
