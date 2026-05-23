@@ -803,7 +803,13 @@ document.getElementById('serviceFeedbackForm').addEventListener('submit', async 
 
     if (response.ok) {
       localStorage.setItem('transitChaserFeedbackPopupLastShown', Date.now().toString());
-      alert('Thank you — your feedback really helps keep Transit Chaser going.');
+      alert('Thank you! your feedback really helps keep Transit Chaser going.');
+
+      window.open(
+  'https://buymeacoffee.com/transitchaser',
+  '_blank'
+);
+      
       document.getElementById('serviceUpdateModal').style.display = 'none';
       document.getElementById('alertModal').style.display = 'flex';
     } else {
