@@ -763,9 +763,16 @@
   </button>
 
   <button type="button" onclick="
-    localStorage.setItem('transitChaserFeedbackPopupLastShown', Date.now().toString());
-    document.getElementById('serviceUpdateModal').style.display='none';
-    document.getElementById('alertModal').style.display='flex';
+  localStorage.setItem('transitChaserFeedbackPopupLastShown', Date.now().toString());
+
+  window.open(
+    'https://buymeacoffee.com/transitchaser',
+    '_blank'
+  );
+
+  document.getElementById('serviceUpdateModal').style.display='none';
+  document.getElementById('alertModal').style.display='flex';
+"
   " style="
     padding:0.45rem 0.8rem;
     border:none;
