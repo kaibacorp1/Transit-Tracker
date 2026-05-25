@@ -789,6 +789,8 @@
 document.getElementById('serviceFeedbackForm').addEventListener('submit', async function(e) {
   e.preventDefault();
 
+  const donationTab = window.open('about:blank', '_blank');
+
   const form = e.target;
   const button = form.querySelector('button[type="submit"]');
   button.textContent = 'Sending...';
@@ -803,21 +805,23 @@ document.getElementById('serviceFeedbackForm').addEventListener('submit', async 
 
     if (response.ok) {
       localStorage.setItem('transitChaserFeedbackPopupLastShown', Date.now().toString());
-      alert('Thank you! your feedback really helps keep Transit Chaser going.');
 
-      window.open(
-  'https://buymeacoffee.com/transitchaser',
-  '_blank'
-);
- 
+      if (donationTab) {
+        donationTab.location.href = 'https://buymeacoffee.com/transitchaser';
+      }
+
+      alert('Thank you! Your feedback really helps keep Transit Chaser going.');
+
       document.getElementById('serviceUpdateModal').style.display = 'none';
       document.getElementById('alertModal').style.display = 'flex';
     } else {
+      if (donationTab) donationTab.close();
       alert('Could not send feedback right now. Please try again later.');
       button.textContent = 'Send feedback';
       button.disabled = false;
     }
   } catch (err) {
+    if (donationTab) donationTab.close();
     alert('Could not send feedback right now. Please try again later.');
     button.textContent = 'Send feedback';
     button.disabled = false;
