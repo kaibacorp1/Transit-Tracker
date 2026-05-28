@@ -820,7 +820,7 @@ document.getElementById('serviceFeedbackForm').addEventListener('submit', async 
       alert('Thank you! Your feedback really helps keep Transit Chaser going.');
 
       document.getElementById('serviceUpdateModal').style.display = 'none';
-      document.getElementById('alertModal').style.display = 'flex';
+      document.getElementById('instagramFollowModal').style.display = 'flex';
     } else {
       if (donationTab) donationTab.close();
       alert('Could not send feedback right now. Please try again later.');
@@ -917,6 +917,78 @@ document.getElementById('serviceFeedbackForm').addEventListener('submit', async 
   </button>
 </div>
 
+<!-- Instagram Follow Popup -->
+<div id="instagramFollowModal" style="
+  position: fixed;
+  z-index: 11000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.55);
+  display: none;
+  align-items: center;
+  justify-content: center;
+">
+  <div style="
+    background: #222;
+    color: #f2f2f2;
+    max-width: 420px;
+    width: 90%;
+    padding: 1.2rem;
+    border-radius: 14px;
+    border: 1px solid #444;
+    text-align: center;
+    box-shadow: 0 0 25px rgba(0,0,0,0.4);
+  ">
+
+    <h2 style="margin-top:0;">📸 One last thing</h2>
+
+    <p style="line-height:1.5; color:#ddd;">
+      We understand not everyone can donate — and that’s completely okay.
+      <br><br>
+      Transit Chaser has become very expensive to keep online due to the amount of traffic and flight-data usage.
+      <br><br>
+      If the app has helped you, please take 5 seconds to follow our photography Instagram. It genuinely helps spread the word and grow the community.
+    </p>
+
+    <a
+      href="https://www.instagram.com/clicksbyrey"
+      target="_blank"
+      style="
+        display:inline-block;
+        margin-top:0.7rem;
+        padding:0.7rem 1.2rem;
+        background:#c13584;
+        color:white;
+        text-decoration:none;
+        border-radius:10px;
+        font-weight:bold;
+      "
+    >
+      Follow @clicksbyrey
+    </a>
+
+    <br>
+
+    <button onclick="
+      document.getElementById('instagramFollowModal').style.display='none';
+    " style="
+      margin-top:0.9rem;
+      background:none;
+      border:none;
+      color:#aaa;
+      cursor:pointer;
+      font-size:0.85rem;
+    ">
+      Continue to app
+    </button>
+
+  </div>
+</div>
+
+
+    
 <script>
 (function () {
   const popup = document.getElementById('instagramPopup');
