@@ -300,6 +300,20 @@
   </style>
 </head>
 <body>
+
+
+            <div id="weeklyPhotoBanner" class="weekly-photo-banner" style="display:none;">
+  <img id="weeklyPhotoImg" alt="Photo of the week">
+  <div>
+    <div class="weekly-photo-label">Photo of the Week</div>
+    <div id="weeklyPhotoTitle">Community Transit Photo</div>
+    <a href="/public/gallery.html">View gallery</a>
+  </div>
+</div>
+
+
+
+     
   <div class="container">
     <header style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
       <h1 style="margin: 0;"><span id="trackerTitle">🌙 Moon</span> Transits</h1>
@@ -330,14 +344,7 @@
   </div>
 </div>
 
-            <div id="weeklyPhotoBanner" class="weekly-photo-banner" style="display:none;">
-  <img id="weeklyPhotoImg" alt="Photo of the week">
-  <div>
-    <div class="weekly-photo-label">Photo of the Week</div>
-    <div id="weeklyPhotoTitle">Community Transit Photo</div>
-    <a href="/public/gallery.html">View gallery</a>
-  </div>
-</div>
+
 
     <div class="highlight" id="transitStatus" style="margin: 1rem 0; font-size: 1.4rem; font-weight: bold;">
     Checking flights near the Moon...
@@ -1073,7 +1080,10 @@ function showWeeklyPhoto(photo) {
   document.getElementById('weeklyPhotoTitle').textContent =
     photo.title || 'Community Transit Photo';
 
-  document.getElementById('weeklyPhotoBanner').style.display = 'flex';
+  document.querySelector('.weekly-photo-bg').style.backgroundImage =
+    `url("${photo.url}")`;
+
+  document.getElementById('weeklyPhotoBanner').style.display = 'block';
 }
 
 async function loadWeeklyPhoto() {
