@@ -312,8 +312,12 @@
   Want your photo featured? <a href="https://transitchaser.com/public/upload.html">Upload one here</a>.
 </div>
       <div class="weekly-photo-label">Community Photo of the Week</div>
-      <div id="weeklyPhotoTitle">Community Transit Photo</div>
-      <a href="/public/gallery.html">View gallery</a>
+<div id="weeklyPhotoTitle">Community Transit Photo</div>
+
+<div id="weeklyPhotoCredit" class="weekly-photo-credit" style="display:none;"></div>
+<div id="weeklyPhotoSocial" class="weekly-photo-social" style="display:none;"></div>
+
+<a href="/public/gallery.html">View gallery</a>
     </div>
   </div>
 </div>
@@ -1086,6 +1090,31 @@ function showWeeklyPhoto(photo) {
   document.getElementById('weeklyPhotoTitle').textContent =
     photo.title || 'Community Transit Photo';
 
+  const creditEl = document.getElementById('weeklyPhotoCredit');
+  const socialEl = document.getElementById('weeklyPhotoSocial');
+
+  creditEl.style.display = 'none';
+  socialEl.style.display = 'none';
+  creditEl.textContent = '';
+  socialEl.textContent = '';
+
+  if (photo.photographerName) {
+    creditEl.textContent = `Photographer: ${photo.photographerName}`;
+    creditEl.style.display = 'block';
+  }
+
+  if (photo.photographerSocial) {
+    const social = photo.photographerSocial.trim();
+
+    if (social.startsWith('http://') || social.startsWith('https://')) {
+      socialEl.innerHTML = `Website: <a href="${social}" target="_blank" rel="noopener noreferrer">Visit</a>`;
+    } else {
+      socialEl.textContent = `Social: ${social}`;
+    }
+
+    socialEl.style.display = 'block';
+  }
+
   document.querySelector('.weekly-photo-bg').style.backgroundImage =
     `url("${photo.url}")`;
 
@@ -1135,13 +1164,15 @@ async function loadWeeklyPhoto() {
     const data = photoDoc.data();
     if (data.url) {
       photos.push({
-        id: photoDoc.id,
-        url: data.url,
-        title: data.title || '',
-        location: data.location || '',
-        weekKey,
-        selectedAt: Date.now()
-      });
+  id: photoDoc.id,
+  url: data.url,
+  title: data.title || '',
+  location: data.location || '',
+  photographerName: data.photographerName || '',
+  photographerSocial: data.photographerSocial || '',
+  weekKey,
+  selectedAt: Date.now()
+});
     }
   });
 
