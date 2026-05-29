@@ -923,8 +923,8 @@ body.loading #moderationQueue {
 
 .weekly-photo-banner {
   position: relative;
-  max-width: 1050px; /* Match app width */
-  width: calc(100% - 40px);
+  max-width: 850px; /* Match app width */
+  width: calc(100% - 1.4rem);
   margin: 0.5rem auto 0.75rem;
   min-height: 115px;
   border-radius: 12px;
