@@ -215,12 +215,33 @@
           if (data.dateTaken) {
             const d = document.createElement('div'); d.textContent = `Date: ${data.dateTaken}`; info.appendChild(d);
           }
-          if (data.location) {
-            const d = document.createElement('div'); d.textContent = `Location: ${data.location}`; info.appendChild(d);
-          }
-          if (data.equipment) {
-            const d = document.createElement('div'); d.textContent = `Equipment: ${data.equipment}`; info.appendChild(d);
-          }
+          if (data.photographerName) {
+  const d = document.createElement('div');
+  d.innerHTML = `<strong>Photographer:</strong> ${data.photographerName}`;
+  info.appendChild(d);
+}
+
+if (data.photographerSocial) {
+  const d = document.createElement('div');
+
+  const social = data.photographerSocial.trim();
+
+  if (
+    social.startsWith('http://') ||
+    social.startsWith('https://')
+  ) {
+    d.innerHTML = `
+      <strong>Website:</strong>
+      <a href="${social}" target="_blank" rel="noopener noreferrer">
+        Visit
+      </a>
+    `;
+  } else {
+    d.innerHTML = `<strong>Social:</strong> ${social}`;
+  }
+
+  info.appendChild(d);
+}
           
           if (data.description) {
             const d = document.createElement('div');
