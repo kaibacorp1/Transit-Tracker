@@ -253,8 +253,11 @@
 
     // Configure Cloudinary widget
     const widget = cloudinary.createUploadWidget({
-      cloudName: 'dotbgstrs',
-      uploadPreset: 'Transits'
+  cloudName: 'dotbgstrs',
+  uploadPreset: 'Transits',
+  resourceType: 'image',
+  clientAllowedFormats: ['jpg', 'jpeg', 'png', 'webp'],
+  maxFileSize: 10000000
     }, (err, result) => {
       const statusEl = document.getElementById('uploadStatus');
       if (err) {
