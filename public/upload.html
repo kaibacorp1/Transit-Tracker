@@ -152,11 +152,20 @@
         <input type="date" id="dateTaken">
       </label>
       <label for="location">Location
-        <input type="text" id="location" placeholder="">
-      </label>
-      <label for="equipment">Equipment
-        <input type="text" id="equipment" placeholder="Camera / lens">
-      </label>
+  <input type="text" id="location" placeholder="">
+</label>
+
+<label for="photographerName">Photographer name <span style="font-weight:normal; opacity:0.7;">(optional)</span>
+  <input type="text" id="photographerName" placeholder="Your name or display name">
+</label>
+
+<label for="photographerSocial">Social / website <span style="font-weight:normal; opacity:0.7;">(optional)</span>
+  <input type="text" id="photographerSocial" placeholder="@username or https://instagram.com/yourname">
+</label>
+
+<label for="equipment">Equipment
+  <input type="text" id="equipment" placeholder="Camera / lens">
+</label>
       <label for="description">Description
         <textarea id="description" placeholder="Tell us more about your photo…" maxlength="300"></textarea>
       </label>
@@ -243,20 +252,25 @@
         const url         = result.info.secure_url;
         const title       = document.getElementById('title').value;
         const dateTaken   = document.getElementById('dateTaken').value;
-        const location    = document.getElementById('location').value;
-        const equipment   = document.getElementById('equipment').value;
-        const description = document.getElementById('description').value;
+        const location           = document.getElementById('location').value.trim();
+const photographerName   = document.getElementById('photographerName').value.trim();
+const photographerSocial = document.getElementById('photographerSocial').value.trim();
+const equipment          = document.getElementById('equipment').value.trim();
+const description        = document.getElementById('description').value.trim();
 
         addDoc(collection(db, 'gallery'), {
-          url,
-          uploadedAt:  serverTimestamp(),
-          title,
-          dateTaken,
-          location,
-          equipment,
-          description,
-          status:      'pending'
-        })
+  url,
+  uploadedAt: serverTimestamp(),
+  title,
+  dateTaken,
+  location,
+  photographerName,
+  photographerSocial,
+  equipment,
+  description,
+  status: 'pending'
+})
+          
         .then(() => {
           statusEl.textContent = '✅ Uploaded and pending approval!';
         })
