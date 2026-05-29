@@ -1113,3 +1113,65 @@ body.loading #moderationQueue {
 .weekly-photo-right a {
   display: none;
 }
+
+/* Prevent long Photo of the Week text from breaking banner */
+.weekly-photo-right {
+  max-width: 260px;
+  overflow: hidden;
+}
+
+#weeklyPhotoTitle,
+#weeklyPhotoCredit,
+#weeklyPhotoSocial {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+/* Mobile banner fix */
+@media (max-width: 768px) {
+  .weekly-photo-banner {
+    min-height: 110px;
+  }
+
+  .weekly-photo-inner {
+    min-height: 110px;
+    align-items: center;
+  }
+
+  .weekly-photo-inner img {
+    width: 105px;
+    height: 68px;
+  }
+
+  .weekly-photo-content {
+    grid-template-columns: 1fr 120px;
+    gap: 0.6rem;
+  }
+
+  .weekly-photo-upload-note {
+    font-size: 0.62rem;
+    line-height: 1.2;
+  }
+
+  .weekly-photo-label {
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    line-height: 1.2;
+  }
+
+  .weekly-photo-right {
+    max-width: 120px;
+    min-width: 0;
+  }
+
+  #weeklyPhotoTitle {
+    font-size: 0.82rem;
+  }
+
+  #weeklyPhotoCredit,
+  #weeklyPhotoSocial {
+    font-size: 0.68rem;
+  }
+}
