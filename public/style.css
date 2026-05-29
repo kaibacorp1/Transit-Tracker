@@ -916,3 +916,39 @@ body.loading #moderationQueue {
     display: none;
   }
 }
+
+.weekly-photo-banner {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  margin: 0.7rem 0;
+  padding: 0.65rem;
+  background: #182434;
+  border: 1px solid #3a5268;
+  border-radius: 12px;
+}
+
+.weekly-photo-banner img {
+  width: 150px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.weekly-photo-label {
+  font-size: 0.72rem;
+  color: #9fb8c9;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+#weeklyPhotoTitle {
+  color: #fff;
+  font-weight: 600;
+  margin-top: 0.15rem;
+}
+
+.weekly-photo-banner a {
+  font-size: 0.78rem;
+  color: #9ccfe3;
+}
