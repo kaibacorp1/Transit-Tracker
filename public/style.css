@@ -918,37 +918,86 @@ body.loading #moderationQueue {
 }
 
 .weekly-photo-banner {
-  display: flex;
-  gap: 0.8rem;
-  align-items: center;
-  margin: 0.7rem 0;
-  padding: 0.65rem;
-  background: #182434;
+  position: relative;
+  max-width: 950px;
+  margin: 0.7rem auto;
+  min-height: 150px;
+  border-radius: 14px;
+  overflow: hidden;
   border: 1px solid #3a5268;
-  border-radius: 12px;
+  background: #111a26;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.35);
 }
 
-.weekly-photo-banner img {
-  width: 150px;
-  height: 80px;
+.weekly-photo-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: blur(18px);
+  transform: scale(1.12);
+  opacity: 0.55;
+}
+
+.weekly-photo-banner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 16, 25, 0.55);
+}
+
+.weekly-photo-inner {
+  position: relative;
+  z-index: 2;
+  min-height: 150px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.weekly-photo-inner img {
+  width: 210px;
+  height: 110px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 10px;
+  border: 2px solid rgba(255,255,255,0.25);
+  background: #0b111a;
 }
 
 .weekly-photo-label {
-  font-size: 0.72rem;
-  color: #9fb8c9;
+  color: #b8d4e4;
+  font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.12em;
+  font-weight: 700;
 }
 
 #weeklyPhotoTitle {
   color: #fff;
-  font-weight: 600;
-  margin-top: 0.15rem;
+  font-size: 1.25rem;
+  font-weight: 650;
+  margin-top: 0.25rem;
 }
 
 .weekly-photo-banner a {
-  font-size: 0.78rem;
-  color: #9ccfe3;
+  display: inline-block;
+  margin-top: 0.35rem;
+  color: #bde7ff;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 650px) {
+  .weekly-photo-inner {
+    align-items: flex-start;
+  }
+
+  .weekly-photo-inner img {
+    width: 120px;
+    height: 85px;
+  }
+
+  #weeklyPhotoTitle {
+    font-size: 1rem;
+  }
 }
