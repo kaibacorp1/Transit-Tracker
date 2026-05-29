@@ -1044,80 +1044,72 @@ body.loading #moderationQueue {
     font-size: 0.68rem;
   }
 }
+
 /* =====================================
    PHOTO OF THE WEEK CONTENT LAYOUT
    ===================================== */
 
 .weekly-photo-content {
-    flex: 1;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 2rem;
-    width: 100%;
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 220px;
+  align-items: center;
+  gap: 1.4rem;
+  width: 100%;
 }
 
 .weekly-photo-left {
-    flex: 1;
+  min-width: 0;
 }
 
 .weekly-photo-right {
-    min-width: 260px;
-    text-align: right;
+  text-align: right;
+  min-width: 200px;
 }
 
 .weekly-photo-upload-note {
-    color: #d4dde6;
-    font-size: 0.78rem;
-    margin-bottom: 0.35rem;
-}
-
-.weekly-photo-upload-note a {
-    color: #cdefff;
-    font-weight: 700;
-    text-decoration: none;
-}
-
-.weekly-photo-upload-note a:hover {
-    text-decoration: underline;
+  color: #d4dde6;
+  font-size: 0.78rem;
+  margin-bottom: 0.35rem;
 }
 
 .weekly-photo-label {
-    display: inline-block;
-    color: #ffd36a;
-    font-size: 0.95rem;
-    text-transform: uppercase;
-    letter-spacing: 0.18em;
-    font-weight: 800;
+  display: block;
+  color: #ffd36a;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-weight: 800;
+  margin-bottom: 0.25rem;
+}
+
+.weekly-photo-left a {
+  display: inline-block;
+  color: #bde7ff;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.weekly-photo-left a:hover {
+  text-decoration: underline;
 }
 
 #weeklyPhotoTitle {
-    color: #ffffff;
-    font-size: 1.8rem;
-    font-weight: 700;
-    line-height: 1.05;
-    margin-bottom: 0.45rem;
+  color: #ffffff;
+  font-size: 1.15rem;
+  font-weight: 650;
+  line-height: 1.15;
+  margin-bottom: 0.3rem;
 }
 
 #weeklyPhotoCredit,
 #weeklyPhotoSocial {
-    color: #dce6ef;
-    font-size: 1rem;
-    line-height: 1.4;
-}
-
-#weeklyPhotoSocial {
-    color: #9fd8ff;
+  color: #dce6ef;
+  font-size: 0.85rem;
+  line-height: 1.35;
+  margin-top: 0.08rem;
 }
 
 .weekly-photo-right a {
-    display: inline-block;
-    margin-top: 0.45rem;
-    color: #bde7ff;
-    font-weight: 600;
-    text-decoration: none;
-}
-
-.weekly-photo-right a:hover {
-    text-decoration: underline;
+  display: none;
 }
