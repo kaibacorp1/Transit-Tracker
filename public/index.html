@@ -1099,13 +1099,26 @@ async function loadWeeklyPhoto() {
   const currentSnap = await getDoc(featuredRef);
 
   if (currentSnap.exists()) {
-    const current = currentSnap.data();
+  const current = currentSnap.data();
+  const oneWeek = 7 * 24 * 60 * 60 * 1000;
 
-    if (current.weekKey === weekKey && current.url) {
-      showWeeklyPhoto(current);
-      return;
-    }
+  // If manually selected, keep it for 7 days from selection
+  if (
+    current.manual === true &&
+    current.url &&
+    current.selectedAt &&
+    Date.now() - current.selectedAt < oneWeek
+  ) {
+    showWeeklyPhoto(current);
+    return;
   }
+
+  // Otherwise use the normal weekly random photo
+  if (current.weekKey === weekKey && current.url) {
+    showWeeklyPhoto(current);
+    return;
+  }
+}
 
   const approvedQuery = query(
     collection(db, 'gallery'),
