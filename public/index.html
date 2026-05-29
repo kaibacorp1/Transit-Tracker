@@ -1034,5 +1034,98 @@ document.getElementById('serviceFeedbackForm').addEventListener('submit', async 
 })();
 </script>
 
+<script type="module">
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  getDoc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "YOUR_EXISTING_KEY",
+  authDomain: "transits-9c696.firebaseapp.com",
+  projectId: "transits-9c696",
+  storageBucket: "transits-9c696.firebasestorage.app",
+  messagingSenderId: "83794226858",
+  appId: "YOUR_EXISTING_APP_ID"
+};
+
+const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+function getWeekKey() {
+  const now = new Date();
+  const oneWeek = 7 * 24 * 60 * 60 * 1000;
+  return Math.floor(now.getTime() / oneWeek).toString();
+}
+
+function showWeeklyPhoto(photo) {
+  if (!photo?.url) return;
+
+  document.getElementById('weeklyPhotoImg').src = photo.url;
+  document.getElementById('weeklyPhotoTitle').textContent =
+    photo.title || 'Community Transit Photo';
+
+  document.getElementById('weeklyPhotoBanner').style.display = 'flex';
+}
+
+async function loadWeeklyPhoto() {
+  const weekKey = getWeekKey();
+  const featuredRef = doc(db, 'siteSettings', 'weeklyFeaturedPhoto');
+
+  const currentSnap = await getDoc(featuredRef);
+
+  if (currentSnap.exists()) {
+    const current = currentSnap.data();
+
+    if (current.weekKey === weekKey && current.url) {
+      showWeeklyPhoto(current);
+      return;
+    }
+  }
+
+  const approvedQuery = query(
+    collection(db, 'gallery'),
+    where('status', '==', 'approved')
+  );
+
+  const approvedSnap = await getDocs(approvedQuery);
+
+  if (approvedSnap.empty) return;
+
+  const photos = [];
+
+  approvedSnap.forEach(photoDoc => {
+    const data = photoDoc.data();
+    if (data.url) {
+      photos.push({
+        id: photoDoc.id,
+        url: data.url,
+        title: data.title || '',
+        location: data.location || '',
+        weekKey,
+        selectedAt: Date.now()
+      });
+    }
+  });
+
+  if (!photos.length) return;
+
+  const randomPhoto = photos[Math.floor(Math.random() * photos.length)];
+
+  await setDoc(featuredRef, randomPhoto);
+  showWeeklyPhoto(randomPhoto);
+}
+
+loadWeeklyPhoto().catch(console.error);
+</script>
+
+       
 </body>
 </html>
