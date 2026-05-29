@@ -196,6 +196,12 @@ serverTimestamp
           el.remove();
 
           } else if (e.target.classList.contains('delete')) {
+  const confirmed = confirm(
+    'Are you sure you want to delete this photo? This cannot be undone.'
+  );
+
+  if (!confirmed) return;
+
   await deleteDoc(doc(db, 'gallery', id));
   el.remove();
 
