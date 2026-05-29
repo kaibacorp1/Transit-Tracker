@@ -1044,3 +1044,80 @@ body.loading #moderationQueue {
     font-size: 0.68rem;
   }
 }
+/* =====================================
+   PHOTO OF THE WEEK CONTENT LAYOUT
+   ===================================== */
+
+.weekly-photo-content {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+    width: 100%;
+}
+
+.weekly-photo-left {
+    flex: 1;
+}
+
+.weekly-photo-right {
+    min-width: 260px;
+    text-align: right;
+}
+
+.weekly-photo-upload-note {
+    color: #d4dde6;
+    font-size: 0.78rem;
+    margin-bottom: 0.35rem;
+}
+
+.weekly-photo-upload-note a {
+    color: #cdefff;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.weekly-photo-upload-note a:hover {
+    text-decoration: underline;
+}
+
+.weekly-photo-label {
+    display: inline-block;
+    color: #ffd36a;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-weight: 800;
+}
+
+#weeklyPhotoTitle {
+    color: #ffffff;
+    font-size: 1.8rem;
+    font-weight: 700;
+    line-height: 1.05;
+    margin-bottom: 0.45rem;
+}
+
+#weeklyPhotoCredit,
+#weeklyPhotoSocial {
+    color: #dce6ef;
+    font-size: 1rem;
+    line-height: 1.4;
+}
+
+#weeklyPhotoSocial {
+    color: #9fd8ff;
+}
+
+.weekly-photo-right a {
+    display: inline-block;
+    margin-top: 0.45rem;
+    color: #bde7ff;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.weekly-photo-right a:hover {
+    text-decoration: underline;
+}
