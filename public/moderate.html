@@ -77,6 +77,9 @@
     .btn.delete {
       background: #6c757d;
     }
+    .btn.featured {
+  background: #198754;
+}
     body.loading #loginBtn,
     body.loading #moderationQueue {
       display: none !important;
@@ -98,8 +101,10 @@
       orderBy,
       getDocs,
       doc,
-      updateDoc,
-      deleteDoc
+updateDoc,
+deleteDoc,
+setDoc,
+serverTimestamp
     } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
     import {
       getAuth,
@@ -166,7 +171,9 @@
           </div>
           <div class="buttons">
             ${isApproved
-              ? `<button class="btn edit" data-id="${id}">✏️ Edit</button><button class="btn delete" data-id="${id}">🗑️ Delete</button>`
+              ? `<button class="btn featured" data-id="${id}">🌟 Photo of the Week</button>
+   <button class="btn edit" data-id="${id}">✏️ Edit</button>
+   <button class="btn delete" data-id="${id}">🗑️ Delete</button>`
               : `<button class="btn approve" data-id="${id}">Approve</button><button class="btn reject" data-id="${id}">Reject</button>`}
           </div>
         `;
@@ -187,10 +194,23 @@
         } else if (e.target.classList.contains('reject')) {
           await updateDoc(doc(db, 'gallery', id), { status: 'rejected' });
           el.remove();
-        } else if (e.target.classList.contains('delete')) {
-          await deleteDoc(doc(db, 'gallery', id));
-          el.remove();
-        } else if (e.target.classList.contains('edit')) {
+
+          } else if (e.target.classList.contains('delete')) {
+  await deleteDoc(doc(db, 'gallery', id));
+  el.remove();
+
+} else if (e.target.classList.contains('featured')) {
+  await setDoc(doc(db, 'siteSettings', 'weeklyFeaturedPhoto'), {
+    id,
+    url: el.querySelector('img').src,
+    title: el.querySelector('.meta strong')?.textContent || '',
+    selectedAt: Date.now(),
+    manual: true
+  });
+
+  alert('✅ This photo is now the Photo of the Week.');
+
+} else if (e.target.classList.contains('edit')) {
           const descDiv = el.querySelector('.desc');
           const newDesc = prompt('Edit description:', descDiv.textContent);
           if (newDesc !== null && newDesc.trim() !== descDiv.textContent.trim()) {
