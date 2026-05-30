@@ -57,14 +57,13 @@ function getEmailAlertSettings() {
   return {
     enabled: localStorage.getItem('emailAlertsEnabled') === 'true',
     email: (localStorage.getItem('emailAlertsAddress') || '').trim(),
-    target: localStorage.getItem('emailAlertsTarget') || 'moon'
+    target: selectedBody === 'sun' ? 'sun' : 'moon'
   };
 }
 
 function saveEmailAlertSettings() {
   const enabledEl = document.getElementById('emailAlertsEnabled');
   const emailEl = document.getElementById('emailAlertsAddress');
-  const targetEl = document.getElementById('emailAlertsTarget');
 
   if (enabledEl) {
     localStorage.setItem('emailAlertsEnabled', enabledEl.checked ? 'true' : 'false');
@@ -73,26 +72,19 @@ function saveEmailAlertSettings() {
   if (emailEl) {
     localStorage.setItem('emailAlertsAddress', emailEl.value.trim());
   }
-
-  if (targetEl) {
-    localStorage.setItem('emailAlertsTarget', targetEl.value);
-  }
 }
 
 function initEmailAlertControls() {
   const enabledEl = document.getElementById('emailAlertsEnabled');
   const emailEl = document.getElementById('emailAlertsAddress');
-  const targetEl = document.getElementById('emailAlertsTarget');
 
   const settings = getEmailAlertSettings();
 
   if (enabledEl) enabledEl.checked = settings.enabled;
   if (emailEl) emailEl.value = settings.email;
-  if (targetEl) targetEl.value = settings.target;
 
   enabledEl?.addEventListener('change', saveEmailAlertSettings);
   emailEl?.addEventListener('change', saveEmailAlertSettings);
-  targetEl?.addEventListener('change', saveEmailAlertSettings);
 }
 
 function isValidEmailAddress(email) {
