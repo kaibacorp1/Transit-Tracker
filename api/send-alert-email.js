@@ -91,16 +91,24 @@ export default async function handler(req, res) {
     ].join('\n');
 
     const result = await resend.emails.send({
-      from: process.env.ALERT_FROM_EMAIL || 'Transit Chaser <onboarding@resend.dev>',
-      to: email,
-      subject,
-      text
-    });
+  from: process.env.ALERT_FROM_EMAIL || 'Transit Chaser <alerts@transitchaser.com>',
+  to: email,
+  subject,
+  text
+});
 
-    return res.status(200).json({
-      ok: true,
-      id: result?.data?.id || null
-    });
+if (result?.error) {
+  console.error('Resend rejected email:', result.error);
+  return res.status(502).json({
+    ok: false,
+    error: result.error.message || 'Resend rejected the email'
+  });
+}
+
+return res.status(200).json({
+  ok: true,
+  id: result?.data?.id || null
+});
   } catch (error) {
     console.error('send-alert-email failed:', error);
     return res.status(500).json({
