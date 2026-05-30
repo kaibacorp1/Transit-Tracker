@@ -26,34 +26,15 @@ function isFiniteNumber(value) {
   return typeof value === 'number' && Number.isFinite(value);
 }
 
-function formatNumber(value, decimals = 1, fallback = 'Unknown') {
-  return isFiniteNumber(value) ? value.toFixed(decimals) : fallback;
-}
-
 function normalizeAlert(raw = {}, fallbackTarget = 'Moon') {
-  const target = cleanText(raw.target || fallbackTarget, fallbackTarget);
-  const callsign = cleanText(raw.callsign, 'Unknown aircraft');
-  const aircraftType = cleanText(raw.aircraftType, 'Unknown type');
-
-  const secondsUntilTransit = isFiniteNumber(raw.secondsUntilTransit)
-    ? Math.max(0, Math.round(raw.secondsUntilTransit))
-    : null;
-
-  const altitude = isFiniteNumber(raw.altitude)
-    ? Math.round(raw.altitude)
-    : null;
-
-  const angularSeparation = isFiniteNumber(raw.angularSeparation)
-    ? raw.angularSeparation
-    : null;
-
   return {
-    target,
-    callsign,
-    aircraftType,
-    secondsUntilTransit,
-    altitude,
-    angularSeparation
+    target: cleanText(raw.target || fallbackTarget, fallbackTarget),
+    callsign: cleanText(raw.callsign, 'Unknown aircraft'),
+    lookDirection: cleanText(raw.lookDirection, 'the target direction'),
+    headingDirection: cleanText(raw.headingDirection, 'unknown heading'),
+    secondsUntilTransit: isFiniteNumber(raw.secondsUntilTransit)
+      ? Math.max(0, Math.round(raw.secondsUntilTransit))
+      : null
   };
 }
 
@@ -68,7 +49,6 @@ export default async function handler(req, res) {
     }
 
     const body = req.body || {};
-
     const email = cleanText(body.email, '');
 
     if (!isValidEmail(email)) {
@@ -103,24 +83,11 @@ export default async function handler(req, res) {
         ? `within about ${alert.secondsUntilTransit} seconds`
         : `soon`;
 
-      const altitudeText = alert.altitude !== null
-        ? `${alert.altitude.toLocaleString()} ft`
-        : `Unknown altitude`;
-
-      const separationText = alert.angularSeparation !== null
-        ? `${formatNumber(alert.angularSeparation, 3)}°`
-        : `Unknown separation`;
-
-      return [
-        `${index + 1}. ${alert.callsign} — ${secondsText}`,
-        `   Type: ${alert.aircraftType}`,
-        `   Altitude: ${altitudeText}`,
-        `   Angular separation: ${separationText}`
-      ].join('\n');
-    }).join('\n\n');
+      return `${index + 1}. ${alert.callsign} — look up ${alert.lookDirection}, ✈️ heading ${alert.headingDirection} — ${secondsText}`;
+    }).join('\n');
 
     const text = [
-      `Transit Chaser alert`,
+      `🔭 Transit Chaser alert`,
       ``,
       count === 1
         ? `${alerts[0].callsign} may transit the ${alerts[0].target} soon.`
