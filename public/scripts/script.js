@@ -118,7 +118,7 @@ async function sendEmailAlertTest() {
       body: JSON.stringify({
         email: settings.email,
         test: true,
-        target: selectedBody === 'sun' ? 'Sun' : 'Moon',
+        target: selectedBody || 'moon',
         alertTime: new Date().toLocaleString(),
         locationLabel: window.userCoords
           ? `${window.userCoords.lat.toFixed(4)}, ${window.userCoords.lon.toFixed(4)}`
