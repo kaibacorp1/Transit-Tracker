@@ -125,22 +125,25 @@ function emailTargetAllowed(selectedTarget, actualTarget) {
   return false;
 }
 
-async function maybeSendTransitEmailAlert(alert) {
+async function maybeSendTransitEmailAlertBatch(alerts = []) {
   const settings = getEmailAlertSettings();
   const statusEl = document.getElementById('emailAlertsStatus');
 
   if (!settings.enabled) return;
+
   if (!isValidEmailAddress(settings.email)) {
     if (statusEl) statusEl.textContent = 'Email alerts are on, but the email address is not valid.';
     return;
   }
 
-  if (!emailTargetAllowed(settings.target, alert.target)) return;
+  const cleanedAlerts = alerts
+    .filter(alert => alert && emailTargetAllowed(settings.target, alert.target))
+    .filter(alert => {
+      const sentKey = getEmailAlertAircraftKey(alert);
+      return localStorage.getItem(sentKey) !== 'true';
+    });
 
-  const sentKey = getEmailAlertAircraftKey(alert);
-  if (localStorage.getItem(sentKey) === 'true') {
-    return;
-  }
+  if (!cleanedAlerts.length) return;
 
   const dailyCountKey = getEmailAlertDailyCountKey();
   const dailyCount = Number(localStorage.getItem(dailyCountKey) || 0);
@@ -155,17 +158,19 @@ async function maybeSendTransitEmailAlert(alert) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        secret: window.TRANSIT_ALERT_SECRET || '',
         email: settings.email,
-        target: alert.target,
-        callsign: alert.callsign,
-        hex: alert.hex,
-        aircraftType: alert.aircraftType,
-        altitude: alert.altitude,
-        secondsUntilTransit: alert.secondsUntilTransit,
-        angularSeparation: alert.angularSeparation,
-        alertTime: alert.alertTime || new Date().toLocaleString(),
-        locationLabel: alert.locationLabel || 'your selected location'
+        target: cleanedAlerts[0].target || 'Moon',
+        alertTime: new Date().toLocaleString(),
+        locationLabel: cleanedAlerts[0].locationLabel || 'your selected location',
+        alerts: cleanedAlerts.map(alert => ({
+          target: alert.target,
+          callsign: alert.callsign,
+          hex: alert.hex,
+          aircraftType: alert.aircraftType,
+          altitude: alert.altitude,
+          secondsUntilTransit: alert.secondsUntilTransit,
+          angularSeparation: alert.angularSeparation
+        }))
       })
     });
 
@@ -175,11 +180,18 @@ async function maybeSendTransitEmailAlert(alert) {
       return;
     }
 
-    localStorage.setItem(sentKey, 'true');
+    cleanedAlerts.forEach(alert => {
+      localStorage.setItem(getEmailAlertAircraftKey(alert), 'true');
+    });
+
     localStorage.setItem(dailyCountKey, String(dailyCount + 1));
 
     if (statusEl) {
-      statusEl.textContent = `Email alert sent for ${alert.callsign || 'aircraft'} near the ${alert.target}.`;
+      const count = cleanedAlerts.length;
+      statusEl.textContent =
+        count === 1
+          ? `Email alert sent for ${cleanedAlerts[0].callsign || 'aircraft'} near the ${cleanedAlerts[0].target}.`
+          : `Email alert sent for ${count} aircraft near the ${cleanedAlerts[0].target}.`;
     }
   } catch (error) {
     console.warn('Email alert error:', error);
