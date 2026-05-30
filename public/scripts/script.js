@@ -57,7 +57,7 @@ function getEmailAlertSettings() {
   return {
     enabled: localStorage.getItem('emailAlertsEnabled') === 'true',
     email: (localStorage.getItem('emailAlertsAddress') || '').trim(),
-    target: selectedBody === 'sun' ? 'sun' : 'moon'
+    target: selectedBody || 'moon'
   };
 }
 
@@ -171,14 +171,15 @@ function getEmailAlertDailyCountKey() {
   return `emailAlertDailyCount:${getTodayDateKey()}`;
 }
 
+function normalizeEmailMode(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function emailTargetAllowed(selectedTarget, actualTarget) {
-  const target = String(actualTarget || '').toLowerCase();
-
-  if (selectedTarget === 'both') return target === 'moon' || target === 'sun';
-  if (selectedTarget === 'moon') return target === 'moon';
-  if (selectedTarget === 'sun') return target === 'sun';
-
-  return false;
+  return normalizeEmailMode(selectedTarget) === normalizeEmailMode(actualTarget);
 }
 
 async function maybeSendTransitEmailAlertBatch(alerts = []) {
@@ -224,7 +225,12 @@ async function maybeSendTransitEmailAlertBatch(alerts = []) {
   hex: alert.hex,
   secondsUntilTransit: alert.secondsUntilTransit,
   lookDirection: alert.lookDirection,
-  headingDirection: alert.headingDirection
+  headingDirection: alert.headingDirection,
+  altitudeText: alert.altitudeText,
+  distanceText: alert.distanceText,
+  aircraftType: alert.aircraftType,
+  pairText: alert.pairText,
+  separationText: alert.separationText
 }))
       })
     });
@@ -609,6 +615,25 @@ function checkContrailFlights(lat, lon, elev) {
     };
 
     lastStatusRender();
+
+          maybeSendTransitEmailAlertBatch(
+        visibleContrails.map(f => {
+          const az = calculateAzimuth(userCoords.lat, userCoords.lon, f.latitude, f.longitude);
+          const lookDirection = verbalizeCardinal(toCardinal(az));
+          const altitudeKm = Number.isFinite(f.altitude) ? (f.altitude / 1000).toFixed(1) : null;
+
+          return {
+            target: 'plane contrails',
+            callsign: f.callsign || 'Unknown aircraft',
+            hex: f.hex || f.icao || f.callsign || '',
+            lookDirection,
+            altitudeText: altitudeKm ? `${altitudeKm} km altitude` : 'high altitude',
+            locationLabel: window.userCoords
+              ? `${window.userCoords.lat.toFixed(4)}, ${window.userCoords.lon.toFixed(4)}`
+              : 'your selected location'
+          };
+        })
+      );
     logContainer.style.display = 'block';
   };
 
@@ -1403,7 +1428,7 @@ lastStatusRender();  // Render it immediately
       document.getElementById('alertSound').play().catch(()=>{});
     }
 
-// 📧 Send email alerts for Moon/Sun transit detections
+// 📧 Send email alerts for Moon/Sun and Plane-on-plane detections
 if (selectedBody === 'moon' || selectedBody === 'sun') {
   maybeSendTransitEmailAlertBatch(
     matches.map(m => {
@@ -1411,7 +1436,7 @@ if (selectedBody === 'moon' || selectedBody === 'sun') {
       const headingDirection = verbalizeCardinal(toCardinal(m.track));
 
       return {
-        target: selectedBody === 'sun' ? 'Sun' : 'Moon',
+        target: selectedBody,
         callsign: m.callsign || 'Unknown aircraft',
         hex: m.hex || m.icao || m.callsign || '',
         secondsUntilTransit:
@@ -1427,6 +1452,33 @@ if (selectedBody === 'moon' || selectedBody === 'sun') {
           : 'your selected location'
       };
     })
+  );
+}
+
+if (selectedBody === 'plane on plane') {
+  maybeSendTransitEmailAlertBatch(
+    matches
+      .filter(m => m.pair?.length === 2)
+      .map(m => {
+        const [f1, f2] = m.pair;
+        const azimuth = calculateAzimuth(f1.latitude, f1.longitude, f2.latitude, f2.longitude);
+        const lookDirection = verbalizeCardinal(toCardinal(azimuth));
+        const pairText = `${f1.callsign || 'Aircraft 1'} vs ${f2.callsign || 'Aircraft 2'}`;
+
+        return {
+          target: 'plane on plane',
+          callsign: pairText,
+          hex: pairText,
+          pairText,
+          lookDirection,
+          separationText: Number.isFinite(m.angularSeparation)
+            ? `${m.angularSeparation.toFixed(1)}° apart`
+            : 'close together',
+          locationLabel: window.userCoords
+            ? `${window.userCoords.lat.toFixed(4)}, ${window.userCoords.lon.toFixed(4)}`
+            : 'your selected location'
+        };
+      })
   );
 }
 
@@ -2033,8 +2085,30 @@ function runPlaneWatch(flights, userLat, userLon) {
     document.getElementById('readMoreBtn').style.display = extraItems.length > 0 ? 'inline-block' : 'none';
     logContainer.style.display = 'block';
     notifyPlaneWatch(freshMatches);
-  }
-}
+      maybeSendTransitEmailAlertBatch(
+    freshMatches.map(f => {
+      const distanceKm = Number.isFinite(f.distanceMeters)
+        ? (f.distanceMeters / 1000).toFixed(1)
+        : null;
+
+      const altFt = Number.isFinite(f.altitudeFt)
+        ? Math.round(f.altitudeFt).toLocaleString()
+        : null;
+
+      return {
+        target: 'plane watch',
+        callsign: f.callsign || 'Unknown aircraft',
+        hex: f.hex || f.icao || f.callsign || `${f.aircraftType || 'aircraft'}-${f.direction || 'direction'}`,
+        aircraftType: f.aircraftType || 'Unknown type',
+        lookDirection: f.directionFull || verbalizeCardinal(toCardinal(f.azimuth)),
+        distanceText: distanceKm ? `${distanceKm} km away` : 'nearby',
+        altitudeText: altFt ? `${altFt} ft` : 'unknown altitude',
+        locationLabel: window.userCoords
+          ? `${window.userCoords.lat.toFixed(4)}, ${window.userCoords.lon.toFixed(4)}`
+          : 'your selected location'
+      };
+    })
+  );
 
 
 function altitudeFtIsInRange(altitudeFt) {
