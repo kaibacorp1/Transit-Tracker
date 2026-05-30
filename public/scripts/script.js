@@ -163,14 +163,13 @@ async function maybeSendTransitEmailAlertBatch(alerts = []) {
         alertTime: new Date().toLocaleString(),
         locationLabel: cleanedAlerts[0].locationLabel || 'your selected location',
         alerts: cleanedAlerts.map(alert => ({
-          target: alert.target,
-          callsign: alert.callsign,
-          hex: alert.hex,
-          aircraftType: alert.aircraftType,
-          altitude: alert.altitude,
-          secondsUntilTransit: alert.secondsUntilTransit,
-          angularSeparation: alert.angularSeparation
-        }))
+  target: alert.target,
+  callsign: alert.callsign,
+  hex: alert.hex,
+  secondsUntilTransit: alert.secondsUntilTransit,
+  lookDirection: alert.lookDirection,
+  headingDirection: alert.headingDirection
+}))
       })
     });
 
@@ -1354,55 +1353,21 @@ lastStatusRender();  // Render it immediately
 if (selectedBody === 'moon' || selectedBody === 'sun') {
   maybeSendTransitEmailAlertBatch(
     matches.map(m => {
-      const flight = m.flight || m.aircraft || m.plane || m;
+      const lookDirection = verbalizeCardinal(toCardinal(m.azimuth));
+      const headingDirection = verbalizeCardinal(toCardinal(m.track));
 
       return {
         target: selectedBody === 'sun' ? 'Sun' : 'Moon',
-
-        callsign:
-          flight.callsign ||
-          m.callsign ||
-          'Unknown aircraft',
-
-        hex:
-          flight.hex ||
-          flight.icao ||
-          m.hex ||
-          m.icao ||
-          flight.callsign ||
-          m.callsign ||
-          '',
-
-        aircraftType:
-          flight.aircraftType ||
-          flight.icaoType ||
-          flight.typeCode ||
-          flight.t ||
-          m.aircraftType ||
-          'Unknown type',
-
-        altitude:
-          flight.altitudeFt ||
-          flight.altitude_ft ||
-          m.altitudeFt ||
-          m.altitude_ft ||
-          null,
-
+        callsign: m.callsign || 'Unknown aircraft',
+        hex: m.hex || m.icao || m.callsign || '',
         secondsUntilTransit:
           m.secondsUntilTransit ??
           m.timeUntilTransit ??
           m.predictionSeconds ??
           predictSeconds ??
           null,
-
-        angularSeparation:
-          m.angularSeparation ??
-          m.separation ??
-          m.separationDeg ??
-          m.angularDistance ??
-          m.distanceDeg ??
-          null,
-
+        lookDirection,
+        headingDirection,
         locationLabel: window.userCoords
           ? `${window.userCoords.lat.toFixed(4)}, ${window.userCoords.lon.toFixed(4)}`
           : 'your selected location'
