@@ -695,6 +695,45 @@
       </p>
     </footer>
 
+
+<section class="control-card email-alerts-card">
+  <h3>Get notified by email</h3>
+
+  <label class="setting-row">
+    <input type="checkbox" id="emailAlertsEnabled">
+    <span>Send me email alerts</span>
+  </label>
+
+  <label class="setting-row">
+    <span>Email address</span>
+    <input
+      type="email"
+      id="emailAlertsAddress"
+      placeholder="you@example.com"
+      autocomplete="email"
+    >
+  </label>
+
+  <label class="setting-row">
+    <span>Notify me for</span>
+    <select id="emailAlertsTarget">
+      <option value="moon">Moon transits only</option>
+      <option value="sun">Sun transits only</option>
+      <option value="both">Moon + Sun transits</option>
+    </select>
+  </label>
+
+  <p class="small-note">
+    Email alerts are experimental. This page must stay open for alerts to send.
+    To avoid spam, only one email is sent per aircraft per target per day.
+  </p>
+
+  <p id="emailAlertsStatus" class="small-note"></p>
+</section>
+
+
+
+       
 <!-- Service Update Modal -->
 <div id="serviceUpdateModal" style="
   position: fixed;
