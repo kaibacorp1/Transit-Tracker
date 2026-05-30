@@ -30,6 +30,33 @@ function formatNumber(value, decimals = 1, fallback = 'Unknown') {
   return isFiniteNumber(value) ? value.toFixed(decimals) : fallback;
 }
 
+function normalizeAlert(raw = {}, fallbackTarget = 'Moon') {
+  const target = cleanText(raw.target || fallbackTarget, fallbackTarget);
+  const callsign = cleanText(raw.callsign, 'Unknown aircraft');
+  const aircraftType = cleanText(raw.aircraftType, 'Unknown type');
+
+  const secondsUntilTransit = isFiniteNumber(raw.secondsUntilTransit)
+    ? Math.max(0, Math.round(raw.secondsUntilTransit))
+    : null;
+
+  const altitude = isFiniteNumber(raw.altitude)
+    ? Math.round(raw.altitude)
+    : null;
+
+  const angularSeparation = isFiniteNumber(raw.angularSeparation)
+    ? raw.angularSeparation
+    : null;
+
+  return {
+    target,
+    callsign,
+    aircraftType,
+    secondsUntilTransit,
+    altitude,
+    angularSeparation
+  };
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ ok: false, error: 'Method not allowed' });
@@ -42,10 +69,6 @@ export default async function handler(req, res) {
 
     const body = req.body || {};
 
-    if (process.env.ALERT_SECRET && body.secret !== process.env.ALERT_SECRET) {
-      return res.status(401).json({ ok: false, error: 'Unauthorized' });
-    }
-
     const email = cleanText(body.email, '');
 
     if (!isValidEmail(email)) {
@@ -53,37 +76,60 @@ export default async function handler(req, res) {
     }
 
     const target = cleanText(body.target, 'Moon');
-    const callsign = cleanText(body.callsign, 'Unknown aircraft');
-    const aircraftType = cleanText(body.aircraftType, 'Unknown type');
     const alertTime = cleanText(body.alertTime, new Date().toISOString());
     const locationLabel = cleanText(body.locationLabel, 'your selected location');
 
-    const secondsUntilTransit = isFiniteNumber(body.secondsUntilTransit)
-      ? Math.max(0, Math.round(body.secondsUntilTransit))
-      : null;
+    const alertsInput = Array.isArray(body.alerts) && body.alerts.length
+      ? body.alerts
+      : [body];
 
-    const altitude = isFiniteNumber(body.altitude)
-      ? Math.round(body.altitude)
-      : null;
+    const alerts = alertsInput
+      .slice(0, 10)
+      .map(alert => normalizeAlert(alert, target));
 
-    const angularSeparation = isFiniteNumber(body.angularSeparation)
-      ? body.angularSeparation
-      : null;
+    if (!alerts.length) {
+      return res.status(400).json({ ok: false, error: 'No alerts to send' });
+    }
 
-    const subject = `Transit alert: ${callsign} may cross the ${target}`;
+    const count = alerts.length;
+
+    const subject =
+      count === 1
+        ? `Transit alert: ${alerts[0].callsign} may cross the ${alerts[0].target}`
+        : `Transit alert: ${count} aircraft may cross the ${target}`;
+
+    const alertLines = alerts.map((alert, index) => {
+      const secondsText = alert.secondsUntilTransit !== null
+        ? `within about ${alert.secondsUntilTransit} seconds`
+        : `soon`;
+
+      const altitudeText = alert.altitude !== null
+        ? `${alert.altitude.toLocaleString()} ft`
+        : `Unknown altitude`;
+
+      const separationText = alert.angularSeparation !== null
+        ? `${formatNumber(alert.angularSeparation, 3)}°`
+        : `Unknown separation`;
+
+      return [
+        `${index + 1}. ${alert.callsign} — ${secondsText}`,
+        `   Type: ${alert.aircraftType}`,
+        `   Altitude: ${altitudeText}`,
+        `   Angular separation: ${separationText}`
+      ].join('\n');
+    }).join('\n\n');
 
     const text = [
       `Transit Chaser alert`,
       ``,
-      `${callsign} may transit the ${target}${secondsUntilTransit !== null ? ` within about ${secondsUntilTransit} seconds` : ''}.`,
+      count === 1
+        ? `${alerts[0].callsign} may transit the ${alerts[0].target} soon.`
+        : `${count} aircraft may transit the ${target} soon.`,
       ``,
-      `Target: ${target}`,
-      `Aircraft: ${callsign}`,
-      `Aircraft type: ${aircraftType}`,
-      `Altitude: ${altitude !== null ? `${altitude.toLocaleString()} ft` : 'Unknown'}`,
+      alertLines,
+      ``,
       `Approximate alert time: ${alertTime}`,
       `Observer location: ${locationLabel}`,
-      `Angular separation: ${angularSeparation !== null ? `${formatNumber(angularSeparation, 3)}°` : 'Unknown'}`,
       ``,
       `Look up and be ready with your camera.`,
       ``,
@@ -91,29 +137,30 @@ export default async function handler(req, res) {
     ].join('\n');
 
     const result = await resend.emails.send({
-  from: process.env.ALERT_FROM_EMAIL || 'Transit Chaser <alerts@transitchaser.com>',
-  to: email,
-  subject,
-  text
-});
+      from: process.env.ALERT_FROM_EMAIL || 'Transit Chaser <alerts@transitchaser.com>',
+      to: email,
+      subject,
+      text
+    });
 
-if (result?.error) {
-  console.error('Resend rejected email:', result.error);
-  return res.status(502).json({
-    ok: false,
-    error: result.error.message || 'Resend rejected the email'
-  });
-}
+    if (result?.error) {
+      console.error('Resend rejected email:', result.error);
+      return res.status(502).json({
+        ok: false,
+        error: result.error.message || 'Resend rejected the email'
+      });
+    }
 
-return res.status(200).json({
-  ok: true,
-  id: result?.data?.id || null
-});
+    return res.status(200).json({
+      ok: true,
+      id: result?.data?.id || null,
+      count
+    });
   } catch (error) {
     console.error('send-alert-email failed:', error);
     return res.status(500).json({
       ok: false,
-      error: 'Failed to send email'
+      error: error?.message || 'Failed to send email'
     });
   }
 }
