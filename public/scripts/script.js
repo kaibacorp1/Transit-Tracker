@@ -527,111 +527,109 @@ function checkContrailFlights(lat, lon, elev) {
   const statusEl = document.getElementById('transitStatus');
   statusEl.textContent = '🔍 Looking for high-altitude contrails...';
 
-  fetchAdsbOne({ lat, lon, radiusKm })
-    .then(data => {
-      const contrailFlights = data.filter(f => f.altitude > 8000); // meters (~26,000 ft)
-const visibleContrails = contrailFlights.filter(f => !ignoredFlights.has(f.callsign));
+  const handleContrailData = (data, providerLabel = 'flight data') => {
+    const contrailFlights = data.filter(f => f.altitude > 8000); // meters (~26,000 ft)
+    const visibleContrails = contrailFlights.filter(f => !ignoredFlights.has(f.callsign));
 
-if (visibleContrails.length === 0) {
-  statusEl.textContent = 'No visible contrail aircraft in your area.';
-  return;
-}
+    if (visibleContrails.length === 0) {
+      statusEl.textContent = `No visible contrail aircraft in your area.`;
+      return;
+    }
 
+    // 🎵 Play alert sound
+    if (!isMuted) {
+      document.getElementById('alertSound')?.play().catch(() => {});
+    }
 
-      if (contrailFlights.length === 0) {
-        statusEl.textContent = 'No visible contrail aircraft in your area.';
-        return;
-      }
+    const timeStr = new Date().toLocaleTimeString('en-GB', { hour12: false });
 
-      // 🎵 Play alert sound
-      if (!isMuted) {
-        document.getElementById('alertSound')?.play().catch(() => {});
-      }
+    const msg = visibleContrails.map(f => {
+      const az = calculateAzimuth(userCoords.lat, userCoords.lon, f.latitude, f.longitude);
+      const dir = verbalizeCardinal(toCardinal(az));
+      const altitudeKm = (f.altitude / 1000).toFixed(1);
 
-      // 🧠 Build list of detections
-      const timeStr = new Date().toLocaleTimeString('en-GB', { hour12: false });
-      
-      const msg = visibleContrails.map(f => {
-  const az = calculateAzimuth(userCoords.lat, userCoords.lon, f.latitude, f.longitude);
-  const dir = verbalizeCardinal(toCardinal(az));
-  
-  const displayLine = `
+      const displayLine = `
 ✈️ <a href="https://www.flightradar24.com/${f.callsign}" target="_blank" style="color: orange; text-decoration: none;">
-  ${f.callsign}
+  ${f.callsign || 'Unknown aircraft'}
 </a>
 <span style="font-size: 0.75em; font-weight: normal;">
-  — look up ${dir} ${(f.altitude / 1000).toFixed(1)} km away
+  — look up ${dir}, altitude about ${altitudeKm} km
 </span>
 <span onclick="ignoreFlight('${f.callsign}')" style="color:rgb(171, 57, 57);cursor:pointer;font-size:0.45em; margin-left:6px;">
   Ignore
 </span>`;
 
+      const logLine = `✈️ <a href="https://www.flightradar24.com/${f.callsign}" target="_blank">${f.callsign || 'Unknown aircraft'}</a> at ${altitudeKm} km altitude`;
 
-  const logLine = `✈️ <a href="https://www.flightradar24.com/${f.callsign}" target="_blank">${f.callsign}</a> at ${(f.altitude / 1000).toFixed(1)} km`;
+      const li = document.createElement('li');
+      li.innerHTML = `${logLine} ${timeStr}`;
+      transitLog.unshift(li);
 
-  // Append to visual log (only logLine in log!)
-  const li = document.createElement('li');
-  li.innerHTML = `${logLine} ${timeStr}`;
-  transitLog.unshift(li);
+      logDetectionLocally(`Contrail detected: ${f.callsign}`, {
+        callsign: f.callsign,
+        altitude: f.altitude,
+        azimuth: az,
+        altitudeAngle: 90,
+        body: 'plane contrails',
+        predictionSeconds: 0,
+        margin
+      });
 
-        // Append new logs to UI (like other detections)
-  logListEl.innerHTML = '';
-  transitLog.slice(0, 5).forEach(el => logListEl.appendChild(el));
+      return displayLine;
+    }).join('<br>');
 
-  const extraItems = transitLog.slice(5);
-  const extraList = document.getElementById('extraLogList');
-  extraList.innerHTML = '';
-  extraItems.forEach(el => extraList.appendChild(el));
+    logListEl.innerHTML = '';
+    transitLog.slice(0, 5).forEach(el => logListEl.appendChild(el));
 
-  document.getElementById('readMoreBtn').style.display =
-    extraItems.length > 0 ? 'inline-block' : 'none';
+    const extraItems = transitLog.slice(5);
+    const extraList = document.getElementById('extraLogList');
+    extraList.innerHTML = '';
+    extraItems.forEach(el => extraList.appendChild(el));
 
-  // Save locally
-  logDetectionLocally(`Contrail detected: ${f.callsign}`, {
-  callsign: f.callsign,
-  altitude: f.altitude,
-  azimuth: 0,                // dummy value to avoid undefined
-  altitudeAngle: 90,         // dummy value; contrail = overhead
-  body: 'plane contrails',
-  predictionSeconds: 0,
-  margin
-});
+    document.getElementById('readMoreBtn').style.display =
+      extraItems.length > 0 ? 'inline-block' : 'none';
 
+    lastStatusRender = () => {
+      const pauseBtn = `<button id="pauseResumeBtn" onclick="toggleAutoRefresh()" style="
+        float: right;
+        margin-left: 10px;
+        font-size: 0.75em;
+        padding: 3px 6px;
+        border: none;
+        border-radius: 4px;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+        background-color: ${autoRefresh ? '#66252f' : '#285431'};
+      ">
+        ${autoRefresh ? '🔴 Pause' : '🟢 Resume'}
+      </button>`;
 
+      statusEl.innerHTML = `👀 Contrail flights detected using ${providerLabel}: ${pauseBtn}<br>${msg}`;
+    };
 
-  return displayLine;
-}).join('<br>');
+    lastStatusRender();
+    logContainer.style.display = 'block';
+  };
 
-
-      // ✅ Update status panel
-      lastStatusRender = () => {
-  const pauseBtn = `<button id="pauseResumeBtn" onclick="toggleAutoRefresh()" style="
-  float: right;
-  margin-left: 10px;
-  font-size: 0.75em;
-  padding: 3px 6px;
-  border: none;
-  border-radius: 4px;
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
-  background-color: ${autoRefresh ? '#66252f' : '#285431'};
-">
-  ${autoRefresh ? '🔴 Pause' : '🟢 Resume'}
-</button>`;
-
-  statusEl.innerHTML = `👀 Contrail flights detected: ${pauseBtn}<br>${msg}`;
-};
-
-lastStatusRender();  // draw it
-
-      logContainer.style.display = 'block';
+  fetchAdsbOne({ lat, lon, radiusKm })
+    .then(data => {
+      adsbOneFailCount = 0;
+      handleContrailData(data, 'ADSB-One');
     })
-    .catch(err => {
-      statusEl.textContent = `🚫 Error finding contrails: ${err.message}`;
+    .catch(async err => {
+      console.warn('ADSB-One contrails failed, trying Airplanes.live...', err);
+
+      try {
+        const fallbackData = await fetchAirplanesLive({ lat, lon, radiusKm });
+        console.log('✅ Airplanes.live contrail fallback worked:', fallbackData.length);
+        handleContrailData(fallbackData, 'Airplanes.live');
+      } catch (fallbackErr) {
+        console.warn('Airplanes.live contrails also failed:', fallbackErr);
+        statusEl.textContent = `🚫 Error finding contrails: ${fallbackErr.message}`;
+      }
     });
 }
-
 
 
 // ——————————————————————————
