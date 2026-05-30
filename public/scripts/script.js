@@ -51,7 +51,141 @@ function toggleAutoRefresh() {
 //useZenithLogic: document.getElementById('toggleZenithLogic')?.checked || false,
 
 //________ennaced ________
+const EMAIL_ALERT_DAILY_LIMIT = 20;
 
+function getEmailAlertSettings() {
+  return {
+    enabled: localStorage.getItem('emailAlertsEnabled') === 'true',
+    email: (localStorage.getItem('emailAlertsAddress') || '').trim(),
+    target: localStorage.getItem('emailAlertsTarget') || 'moon'
+  };
+}
+
+function saveEmailAlertSettings() {
+  const enabledEl = document.getElementById('emailAlertsEnabled');
+  const emailEl = document.getElementById('emailAlertsAddress');
+  const targetEl = document.getElementById('emailAlertsTarget');
+
+  if (enabledEl) {
+    localStorage.setItem('emailAlertsEnabled', enabledEl.checked ? 'true' : 'false');
+  }
+
+  if (emailEl) {
+    localStorage.setItem('emailAlertsAddress', emailEl.value.trim());
+  }
+
+  if (targetEl) {
+    localStorage.setItem('emailAlertsTarget', targetEl.value);
+  }
+}
+
+function initEmailAlertControls() {
+  const enabledEl = document.getElementById('emailAlertsEnabled');
+  const emailEl = document.getElementById('emailAlertsAddress');
+  const targetEl = document.getElementById('emailAlertsTarget');
+
+  const settings = getEmailAlertSettings();
+
+  if (enabledEl) enabledEl.checked = settings.enabled;
+  if (emailEl) emailEl.value = settings.email;
+  if (targetEl) targetEl.value = settings.target;
+
+  enabledEl?.addEventListener('change', saveEmailAlertSettings);
+  emailEl?.addEventListener('change', saveEmailAlertSettings);
+  targetEl?.addEventListener('change', saveEmailAlertSettings);
+}
+
+function isValidEmailAddress(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function getTodayDateKey() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function getEmailAlertAircraftKey(alert) {
+  const dateKey = getTodayDateKey();
+  const aircraftId = alert.hex || alert.icao || alert.callsign || 'unknown-aircraft';
+  const target = alert.target || 'Moon';
+
+  return `emailAlertSent:${dateKey}:${aircraftId}:${target}`;
+}
+
+function getEmailAlertDailyCountKey() {
+  return `emailAlertDailyCount:${getTodayDateKey()}`;
+}
+
+function emailTargetAllowed(selectedTarget, actualTarget) {
+  const target = String(actualTarget || '').toLowerCase();
+
+  if (selectedTarget === 'both') return target === 'moon' || target === 'sun';
+  if (selectedTarget === 'moon') return target === 'moon';
+  if (selectedTarget === 'sun') return target === 'sun';
+
+  return false;
+}
+
+async function maybeSendTransitEmailAlert(alert) {
+  const settings = getEmailAlertSettings();
+  const statusEl = document.getElementById('emailAlertsStatus');
+
+  if (!settings.enabled) return;
+  if (!isValidEmailAddress(settings.email)) {
+    if (statusEl) statusEl.textContent = 'Email alerts are on, but the email address is not valid.';
+    return;
+  }
+
+  if (!emailTargetAllowed(settings.target, alert.target)) return;
+
+  const sentKey = getEmailAlertAircraftKey(alert);
+  if (localStorage.getItem(sentKey) === 'true') {
+    return;
+  }
+
+  const dailyCountKey = getEmailAlertDailyCountKey();
+  const dailyCount = Number(localStorage.getItem(dailyCountKey) || 0);
+
+  if (dailyCount >= EMAIL_ALERT_DAILY_LIMIT) {
+    if (statusEl) statusEl.textContent = 'Daily email alert limit reached for this browser.';
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/send-alert-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        secret: window.TRANSIT_ALERT_SECRET || '',
+        email: settings.email,
+        target: alert.target,
+        callsign: alert.callsign,
+        hex: alert.hex,
+        aircraftType: alert.aircraftType,
+        altitude: alert.altitude,
+        secondsUntilTransit: alert.secondsUntilTransit,
+        angularSeparation: alert.angularSeparation,
+        alertTime: alert.alertTime || new Date().toLocaleString(),
+        locationLabel: alert.locationLabel || 'your selected location'
+      })
+    });
+
+    if (!response.ok) {
+      console.warn('Email alert failed:', await response.text());
+      if (statusEl) statusEl.textContent = 'Email alert failed to send.';
+      return;
+    }
+
+    localStorage.setItem(sentKey, 'true');
+    localStorage.setItem(dailyCountKey, String(dailyCount + 1));
+
+    if (statusEl) {
+      statusEl.textContent = `Email alert sent for ${alert.callsign || 'aircraft'} near the ${alert.target}.`;
+    }
+  } catch (error) {
+    console.warn('Email alert error:', error);
+    if (statusEl) statusEl.textContent = 'Email alert failed because of a network error.';
+  }
+}
 
 // --- Mode Flags ---
 window.useAdsbexchange = false;
