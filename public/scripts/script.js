@@ -691,6 +691,9 @@ async function fetchRadarBox({ minLat, maxLat, minLon, maxLon }) {
 
 // --- DOMContent Loaded Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
+  // ✅ Initialize email alert controls
+  initEmailAlertControls();
+
   // Prompt for location
   navigator.geolocation.getCurrentPosition(success, error);
 
@@ -1335,6 +1338,24 @@ lastStatusRender();  // Render it immediately
       document.getElementById('alertSound').play().catch(()=>{});
     }
 
+      // 📧 Send email alerts for Moon/Sun transit detections
+if (selectedBody === 'moon' || selectedBody === 'sun') {
+  matches.forEach(m => {
+    maybeSendTransitEmailAlert({
+      target: selectedBody === 'sun' ? 'Sun' : 'Moon',
+      callsign: m.callsign || 'Unknown aircraft',
+      hex: m.hex || m.icao || m.callsign || '',
+      aircraftType: m.aircraftType || m.type || 'Unknown type',
+      altitude: m.altitudeFt || m.altitude || null,
+      secondsUntilTransit: m.secondsUntilTransit ?? m.predictionSeconds ?? predictSeconds ?? null,
+      angularSeparation: m.angularSeparation ?? m.separation ?? null,
+      alertTime: new Date().toLocaleString(),
+      locationLabel: window.userCoords
+        ? `${window.userCoords.lat.toFixed(4)}, ${window.userCoords.lon.toFixed(4)}`
+        : 'your selected location'
+    });
+  });
+}
 
   // 2) Append all new hits to the log
   matches.forEach(m => {
