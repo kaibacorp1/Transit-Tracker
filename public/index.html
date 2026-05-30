@@ -654,6 +654,39 @@
       </div>
     </div>
 
+    <div class="data email-alerts-card" id="emailAlertsCard">
+      <strong>📧 Get notified by email</strong>
+
+      <div class="info-grid" style="margin-top:0.6rem;">
+        <div>
+          <label style="display:flex; align-items:center; gap:0.45rem;">
+            <input type="checkbox" id="emailAlertsEnabled">
+            <span>Send me email alerts</span>
+          </label>
+        </div>
+
+        <div>
+          <label for="emailAlertsAddress"><strong>Email address:</strong></label><br>
+          <input
+            type="email"
+            id="emailAlertsAddress"
+            placeholder="you@example.com"
+            autocomplete="email"
+            style="width:100%; max-width:360px;"
+          >
+        </div>
+      </div>
+
+      <p class="small-note" style="margin:0.65rem 0 0; color:var(--muted-color);">
+        Email alerts follow the selected Transit Mode. This page must stay open for alerts to send.
+        To avoid spam, only one email is sent per aircraft per target per day.
+      </p>
+
+      <p id="emailAlertsStatus" class="small-note" style="margin:0.35rem 0 0; color:var(--heading-accent);"></p>
+    </div>
+
+
+       
     <div class="data">
       <details>
         <summary><strong>⚙️ Advanced Settings</strong></summary><br>
@@ -696,33 +729,7 @@
     </footer>
 
 
-<section class="control-card email-alerts-card">
-  <h3>Get notified by email</h3>
 
-  <label class="setting-row">
-    <input type="checkbox" id="emailAlertsEnabled">
-    <span>Send me email alerts</span>
-  </label>
-
-  <label class="setting-row">
-    <span>Email address</span>
-    <input
-      type="email"
-      id="emailAlertsAddress"
-      placeholder="you@example.com"
-      autocomplete="email"
-    >
-  </label>
-
-  
-
-  <p class="small-note">
-    Email alerts are experimental. This page must stay open for alerts to send.
-    To avoid spam, only one email is sent per aircraft per target per day.
-  </p>
-
-  <p id="emailAlertsStatus" class="small-note"></p>
-</section>
 
 
 
