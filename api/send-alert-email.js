@@ -56,12 +56,54 @@ export default async function handler(req, res) {
     }
 
     const target = cleanText(body.target, 'Moon');
-    const alertTime = cleanText(body.alertTime, new Date().toISOString());
-    const locationLabel = cleanText(body.locationLabel, 'your selected location');
+const alertTime = cleanText(body.alertTime, new Date().toISOString());
+const locationLabel = cleanText(body.locationLabel, 'your selected location');
 
-    const alertsInput = Array.isArray(body.alerts) && body.alerts.length
-      ? body.alerts
-      : [body];
+if (body.test === true) {
+  const subject = `Transit Chaser email alerts are enabled`;
+
+  const text = [
+    `🔭 Transit Chaser email alerts are ready.`,
+    ``,
+    `You will start receiving email alerts when possible ${target} aircraft transits are detected while your Transit Chaser page is open.`,
+    ``,
+    `Current alert mode: ${target}`,
+    `Observer location: ${locationLabel}`,
+    `Setup time: ${alertTime}`,
+    ``,
+    `When an aircraft is detected, your alert email will look similar to this:`,
+    ``,
+    `1. EXAMPLE123 — look up South, ✈️ heading North East — within about 120 seconds`,
+    ``,
+    `All the best,`,
+    `Transit Chaser`
+  ].join('\n');
+
+  const result = await resend.emails.send({
+    from: process.env.ALERT_FROM_EMAIL || 'Transit Chaser <alerts@transitchaser.com>',
+    to: email,
+    subject,
+    text
+  });
+
+  if (result?.error) {
+    console.error('Resend rejected test email:', result.error);
+    return res.status(502).json({
+      ok: false,
+      error: result.error.message || 'Resend rejected the test email'
+    });
+  }
+
+  return res.status(200).json({
+    ok: true,
+    test: true,
+    id: result?.data?.id || null
+  });
+}
+
+const alertsInput = Array.isArray(body.alerts) && body.alerts.length
+  ? body.alerts
+  : [body];
 
     const alerts = alertsInput
       .slice(0, 10)
