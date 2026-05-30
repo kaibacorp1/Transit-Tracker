@@ -654,46 +654,48 @@
       </div>
     </div>
 
-<details id="emailAlertsToggle">
-  <summary><strong>📧 Get notified by email</strong></summary>
+<div class="data email-alerts-shell">
+  <details id="emailAlertsToggle">
+    <summary><strong>📧 Get notified by email</strong></summary>
 
-  <div class="data email-alerts-card" id="emailAlertsCard">
-    <div class="info-grid" style="margin-top:0.2rem;">
-      <div>
-        <label style="display:flex; align-items:center; gap:0.45rem;">
-          <input type="checkbox" id="emailAlertsEnabled">
-          <span>Send me email alerts when aircraft are detected</span>
-        </label>
+    <div class="email-alerts-card" id="emailAlertsCard">
+      <div class="info-grid" style="margin-top:0.6rem;">
+        <div>
+          <label style="display:flex; align-items:center; gap:0.45rem;">
+            <input type="checkbox" id="emailAlertsEnabled">
+            <span>Send me email alerts when aircraft are detected</span>
+          </label>
 
-        <button
-          id="emailAlertsTestBtn"
-          type="button"
-          style="margin-top:0.65rem;"
-        >
-          Go / Send test email
-        </button>
+          <button
+            id="emailAlertsTestBtn"
+            type="button"
+            style="margin-top:0.65rem;"
+          >
+            Go / Send test email
+          </button>
+        </div>
+
+        <div>
+          <label for="emailAlertsAddress"><strong>Email address:</strong></label><br>
+          <input
+            type="email"
+            id="emailAlertsAddress"
+            placeholder="you@example.com"
+            autocomplete="email"
+            style="width:100%; max-width:360px;"
+          >
+        </div>
       </div>
 
-      <div>
-        <label for="emailAlertsAddress"><strong>Email address:</strong></label><br>
-        <input
-          type="email"
-          id="emailAlertsAddress"
-          placeholder="you@example.com"
-          autocomplete="email"
-          style="width:100%; max-width:360px;"
-        >
-      </div>
+      <p class="small-note" style="margin:0.65rem 0 0; color:var(--muted-color);">
+        Email alerts follow the selected Transit Mode. This page must stay open for alerts to send.
+        To avoid spam, alerts are grouped into one email when multiple aircraft are detected at once.
+      </p>
+
+      <p id="emailAlertsStatus" class="small-note" style="margin:0.35rem 0 0; color:var(--heading-accent);"></p>
     </div>
-
-    <p class="small-note" style="margin:0.65rem 0 0; color:var(--muted-color);">
-      Email alerts follow the selected Transit Mode. This page must stay open for alerts to send.
-      To avoid spam, alerts are grouped into one email when multiple aircraft are detected at once.
-    </p>
-
-    <p id="emailAlertsStatus" class="small-note" style="margin:0.35rem 0 0; color:var(--heading-accent);"></p>
-  </div>
-</details>
+  </details>
+</div>
 
     <div class="data">
       <details>
