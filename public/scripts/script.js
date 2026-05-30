@@ -77,6 +77,7 @@ function saveEmailAlertSettings() {
 function initEmailAlertControls() {
   const enabledEl = document.getElementById('emailAlertsEnabled');
   const emailEl = document.getElementById('emailAlertsAddress');
+  const testBtn = document.getElementById('emailAlertsTestBtn');
 
   const settings = getEmailAlertSettings();
 
@@ -85,6 +86,69 @@ function initEmailAlertControls() {
 
   enabledEl?.addEventListener('change', saveEmailAlertSettings);
   emailEl?.addEventListener('change', saveEmailAlertSettings);
+
+  testBtn?.addEventListener('click', sendEmailAlertTest);
+}
+
+async function sendEmailAlertTest() {
+  saveEmailAlertSettings();
+
+  const settings = getEmailAlertSettings();
+  const statusEl = document.getElementById('emailAlertsStatus');
+  const testBtn = document.getElementById('emailAlertsTestBtn');
+
+  if (!isValidEmailAddress(settings.email)) {
+    if (statusEl) statusEl.textContent = 'Please enter a valid email address first.';
+    return;
+  }
+
+  try {
+    if (testBtn) {
+      testBtn.disabled = true;
+      testBtn.textContent = 'Sending...';
+    }
+
+    if (statusEl) {
+      statusEl.textContent = 'Sending test email...';
+    }
+
+    const response = await fetch('/api/send-alert-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: settings.email,
+        test: true,
+        target: selectedBody === 'sun' ? 'Sun' : 'Moon',
+        alertTime: new Date().toLocaleString(),
+        locationLabel: window.userCoords
+          ? `${window.userCoords.lat.toFixed(4)}, ${window.userCoords.lon.toFixed(4)}`
+          : 'your selected location'
+      })
+    });
+
+    if (!response.ok) {
+      console.warn('Test email failed:', await response.text());
+      if (statusEl) statusEl.textContent = 'Test email failed to send.';
+      return;
+    }
+
+    localStorage.setItem('emailAlertsEnabled', 'true');
+    if (document.getElementById('emailAlertsEnabled')) {
+      document.getElementById('emailAlertsEnabled').checked = true;
+    }
+
+    if (statusEl) {
+      statusEl.textContent = 'Test email sent. Email alerts are now enabled.';
+    }
+  } catch (error) {
+    console.warn('Test email error:', error);
+    if (statusEl) statusEl.textContent = 'Test email failed because of a network error.';
+  } finally {
+    if (testBtn) {
+      testBtn.disabled = false;
+      testBtn.textContent = 'Go / Send test email';
+    }
+  }
 }
 
 function isValidEmailAddress(email) {
