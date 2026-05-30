@@ -2085,31 +2085,33 @@ function runPlaneWatch(flights, userLat, userLon) {
     document.getElementById('readMoreBtn').style.display = extraItems.length > 0 ? 'inline-block' : 'none';
     logContainer.style.display = 'block';
     notifyPlaneWatch(freshMatches);
-      maybeSendTransitEmailAlertBatch(
-    freshMatches.map(f => {
-      const distanceKm = Number.isFinite(f.distanceMeters)
-        ? (f.distanceMeters / 1000).toFixed(1)
-        : null;
+      
+        maybeSendTransitEmailAlertBatch(
+      freshMatches.map(f => {
+        const distanceKm = Number.isFinite(f.distanceMeters)
+          ? (f.distanceMeters / 1000).toFixed(1)
+          : null;
 
-      const altFt = Number.isFinite(f.altitudeFt)
-        ? Math.round(f.altitudeFt).toLocaleString()
-        : null;
+        const altFt = Number.isFinite(f.altitudeFt)
+          ? Math.round(f.altitudeFt).toLocaleString()
+          : null;
 
-      return {
-        target: 'plane watch',
-        callsign: f.callsign || 'Unknown aircraft',
-        hex: f.hex || f.icao || f.callsign || `${f.aircraftType || 'aircraft'}-${f.direction || 'direction'}`,
-        aircraftType: f.aircraftType || 'Unknown type',
-        lookDirection: f.directionFull || verbalizeCardinal(toCardinal(f.azimuth)),
-        distanceText: distanceKm ? `${distanceKm} km away` : 'nearby',
-        altitudeText: altFt ? `${altFt} ft` : 'unknown altitude',
-        locationLabel: window.userCoords
-          ? `${window.userCoords.lat.toFixed(4)}, ${window.userCoords.lon.toFixed(4)}`
-          : 'your selected location'
-      };
-    })
-  );
-
+        return {
+          target: 'plane watch',
+          callsign: f.callsign || 'Unknown aircraft',
+          hex: f.hex || f.icao || f.callsign || `${f.aircraftType || 'aircraft'}-${f.direction || 'direction'}`,
+          aircraftType: f.aircraftType || 'Unknown type',
+          lookDirection: f.directionFull || verbalizeCardinal(toCardinal(f.azimuth)),
+          distanceText: distanceKm ? `${distanceKm} km away` : 'nearby',
+          altitudeText: altFt ? `${altFt} ft` : 'unknown altitude',
+          locationLabel: window.userCoords
+            ? `${window.userCoords.lat.toFixed(4)}, ${window.userCoords.lon.toFixed(4)}`
+            : 'your selected location'
+        };
+      })
+    );
+  }
+}
 
 function altitudeFtIsInRange(altitudeFt) {
   return altitudeFt >= planeWatchConfig.minAltitudeFt && altitudeFt <= planeWatchConfig.maxAltitudeFt;
