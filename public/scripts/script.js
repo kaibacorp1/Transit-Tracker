@@ -1350,21 +1350,64 @@ lastStatusRender();  // Render it immediately
       document.getElementById('alertSound').play().catch(()=>{});
     }
 
-      // 📧 Send email alerts for Moon/Sun transit detections
+// 📧 Send email alerts for Moon/Sun transit detections
 if (selectedBody === 'moon' || selectedBody === 'sun') {
   maybeSendTransitEmailAlertBatch(
-    matches.map(m => ({
-      target: selectedBody === 'sun' ? 'Sun' : 'Moon',
-      callsign: m.callsign || 'Unknown aircraft',
-      hex: m.hex || m.icao || m.callsign || '',
-      aircraftType: m.aircraftType || m.type || 'Unknown type',
-      altitude: m.altitudeFt || m.altitude || null,
-      secondsUntilTransit: m.secondsUntilTransit ?? m.predictionSeconds ?? predictSeconds ?? null,
-      angularSeparation: m.angularSeparation ?? m.separation ?? null,
-      locationLabel: window.userCoords
-        ? `${window.userCoords.lat.toFixed(4)}, ${window.userCoords.lon.toFixed(4)}`
-        : 'your selected location'
-    }))
+    matches.map(m => {
+      const flight = m.flight || m.aircraft || m.plane || m;
+
+      return {
+        target: selectedBody === 'sun' ? 'Sun' : 'Moon',
+
+        callsign:
+          flight.callsign ||
+          m.callsign ||
+          'Unknown aircraft',
+
+        hex:
+          flight.hex ||
+          flight.icao ||
+          m.hex ||
+          m.icao ||
+          flight.callsign ||
+          m.callsign ||
+          '',
+
+        aircraftType:
+          flight.aircraftType ||
+          flight.icaoType ||
+          flight.typeCode ||
+          flight.t ||
+          m.aircraftType ||
+          'Unknown type',
+
+        altitude:
+          flight.altitudeFt ||
+          flight.altitude_ft ||
+          m.altitudeFt ||
+          m.altitude_ft ||
+          null,
+
+        secondsUntilTransit:
+          m.secondsUntilTransit ??
+          m.timeUntilTransit ??
+          m.predictionSeconds ??
+          predictSeconds ??
+          null,
+
+        angularSeparation:
+          m.angularSeparation ??
+          m.separation ??
+          m.separationDeg ??
+          m.angularDistance ??
+          m.distanceDeg ??
+          null,
+
+        locationLabel: window.userCoords
+          ? `${window.userCoords.lat.toFixed(4)}, ${window.userCoords.lon.toFixed(4)}`
+          : 'your selected location'
+      };
+    })
   );
 }
 
