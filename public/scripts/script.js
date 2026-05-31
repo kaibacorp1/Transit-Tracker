@@ -426,6 +426,129 @@ console.log('Filtered big departures:', departures);
   }
 }
 
+// --- Persistent User Settings ---
+const USER_SETTINGS_KEY = 'transitChaserUserSettingsV1';
+
+function getSettingElValue(id, fallback = '') {
+  const el = document.getElementById(id);
+  return el ? el.value : fallback;
+}
+
+function setSettingElValue(id, value) {
+  const el = document.getElementById(id);
+  if (!el || value === undefined || value === null || value === '') return;
+  el.value = value;
+}
+
+function getSavedUserSettings() {
+  try {
+    return JSON.parse(localStorage.getItem(USER_SETTINGS_KEY) || '{}');
+  } catch (error) {
+    console.warn('Could not read saved user settings:', error);
+    return {};
+  }
+}
+
+function saveUserSettings() {
+  const settings = {
+    selectedBody: getSettingElValue('bodyToggle', selectedBody),
+    radius: getSettingElValue('radiusSelect', '30'),
+    prediction: getSettingElValue('predictToggle', '120'),
+    autoRefresh: getSettingElValue('autoRefreshToggle', 'on'),
+    refreshInterval: getSettingElValue('refreshIntervalInput', '15'),
+    margin: getSettingElValue('marginSlider', '2.5'),
+    locationMode: getSettingElValue('locationMode', 'auto'),
+    manualLat: getSettingElValue('manualLat', ''),
+    manualLon: getSettingElValue('manualLon', ''),
+    manualElev: getSettingElValue('manualElev', '10')
+  };
+
+  localStorage.setItem(USER_SETTINGS_KEY, JSON.stringify(settings));
+}
+
+function updateSelectedBodyLabels() {
+  const title = document.getElementById('trackerTitle');
+  const label = document.getElementById('bodyLabel');
+
+  if (!title || !label) return;
+
+  if (selectedBody === 'moon') {
+    title.textContent = '🌙 Moon';
+    label.textContent = 'Moon';
+  } else if (selectedBody === 'sun') {
+    title.textContent = '☀️ Sun';
+    label.textContent = 'Sun';
+  } else if (selectedBody === 'plane watch') {
+    title.textContent = '👀 Plane Watch';
+    label.textContent = 'Plane Watch';
+  } else if (selectedBody === 'plane contrails') {
+    title.textContent = '✈️ Contrail';
+    label.textContent = 'Contrails';
+  } else if (selectedBody === 'plane on plane') {
+    title.textContent = '✈️ Plane vs Plane';
+    label.textContent = 'Plane on Plane';
+  } else if (selectedBody === 'big planes') {
+    title.textContent = '🛫 Big Planes';
+    label.textContent = 'Big Planes';
+  }
+}
+
+function applySavedUserSettings() {
+  const settings = getSavedUserSettings();
+
+  setSettingElValue('bodyToggle', settings.selectedBody);
+  setSettingElValue('radiusSelect', settings.radius);
+  setSettingElValue('predictToggle', settings.prediction);
+  setSettingElValue('autoRefreshToggle', settings.autoRefresh);
+  setSettingElValue('refreshIntervalInput', settings.refreshInterval);
+  setSettingElValue('marginSlider', settings.margin);
+  setSettingElValue('locationMode', settings.locationMode);
+  setSettingElValue('manualLat', settings.manualLat);
+  setSettingElValue('manualLon', settings.manualLon);
+  setSettingElValue('manualElev', settings.manualElev);
+
+  selectedBody = getSettingElValue('bodyToggle', selectedBody);
+  predictSeconds = parseInt(getSettingElValue('predictToggle', '0'), 10) || 0;
+  autoRefresh = getSettingElValue('autoRefreshToggle', 'on') === 'on';
+  locationMode = getSettingElValue('locationMode', 'auto');
+  margin = parseFloat(getSettingElValue('marginSlider', '2.5')) || 2.5;
+
+  updateSelectedBodyLabels();
+
+  const marginValueEl = document.getElementById('marginValue');
+  if (marginValueEl) {
+    marginValueEl.textContent = `${margin.toFixed(1)}°`;
+  }
+
+  const manualFields = document.getElementById('manualLocationFields');
+  if (manualFields) {
+    manualFields.style.display = locationMode === 'manual' ? 'block' : 'none';
+  }
+}
+
+function attachUserSettingsPersistence() {
+  [
+    'bodyToggle',
+    'radiusSelect',
+    'predictToggle',
+    'autoRefreshToggle',
+    'refreshIntervalInput',
+    'marginSlider',
+    'locationMode',
+    'manualLat',
+    'manualLon',
+    'manualElev'
+  ].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    el.addEventListener('change', saveUserSettings);
+    el.addEventListener('input', saveUserSettings);
+  });
+}
+
+
+
 // --- Utility & Storage Helpers ---
 function getAviationstackKey() {
   return sessionStorage.getItem('aviationstackKey');
@@ -781,16 +904,19 @@ async function fetchRadarBox({ minLat, maxLat, minLon, maxLon }) {
 
 // --- DOMContent Loaded Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
+  // ✅ Restore saved user settings before the app starts running
+  applySavedUserSettings();
+
+  // ✅ Start saving future setting changes
+  attachUserSettingsPersistence();
+
   // ✅ Initialize email alert controls
   initEmailAlertControls();
-
-  // Prompt for location
-  navigator.geolocation.getCurrentPosition(success, error);
 
   // Initialize first tab
   showTab('adsboneTab');
 
-  // Read initial prediction setting from the dropdown
+  // Read prediction setting from the restored dropdown
   predictSeconds = parseInt(document.getElementById('predictToggle').value, 10) || 0;
 
   updateContrailModeUI();
@@ -799,6 +925,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const bigPlaneDateInput = document.getElementById('bigPlaneDate');
   if (bigPlaneDateInput && !bigPlaneDateInput.value) {
     bigPlaneDateInput.value = getLocalDateYYYYMMDD();
+  }
+
+  // Start using the restored location mode
+  if (locationMode === 'auto') {
+    navigator.geolocation.getCurrentPosition(success, error);
+  } else {
+    getCurrentLocationAndRun();
+    if (autoRefresh) startAutoRefresh();
   }
 });
 
@@ -832,42 +966,43 @@ document.getElementById('bodyToggle').addEventListener('change', e => {
 
 
   updateContrailModeUI();  // NEW
+saveUserSettings();
+getCurrentLocationAndRun();
+
+
+document.getElementById('radiusSelect').addEventListener('change', () => {
+  saveUserSettings();
   getCurrentLocationAndRun();
 });
-
-
-
-// 👇 This is the safe add-on — handles custom labels for new options
-//document.getElementById('bodyToggle').addEventListener('change', e => {
-//  const trackerTitle = document.getElementById('trackerTitle');
-//  const bodyLabel    = document.getElementById('bodyLabel');
-
-//  if (e.target.value === 'plane on plane') {
-//    trackerTitle.textContent = 'Plane on Plane coming soon!';
-//    bodyLabel.textContent = 'Plane';
-//  } else if (e.target.value === 'plane contrails') {
-//    trackerTitle.textContent = 'Plane Contrails prediction Coming soon!';
-//    bodyLabel.textContent = 'Contrails';
-//  }
-//}); 
-
-document.getElementById('radiusSelect').addEventListener('change', getCurrentLocationAndRun);
-document.getElementById('predictToggle').addEventListener('change', e => {
+  document.getElementById('predictToggle').addEventListener('change', e => {
+  predictSeconds = parseInt(e.target.value) || 0;
+  saveUserSettings();
+});
   predictSeconds = parseInt(e.target.value) || 0;
 });
 document.getElementById('autoRefreshToggle').addEventListener('change', e => {
+  autoRefresh = e.target.value === 'on';
+  saveUserSettings();
+  autoRefresh ? startAutoRefresh() : stopAutoRefresh();
+});
   autoRefresh = e.target.value === 'on';
   autoRefresh ? startAutoRefresh() : stopAutoRefresh();
 });
 
 // Restart auto-refresh when interval input changes
 document.getElementById('refreshIntervalInput').addEventListener('change', () => {
+  saveUserSettings();
+  if (autoRefresh) {
+    startAutoRefresh();
+  }
+});
   if (autoRefresh) {
     startAutoRefresh();
   }
 });
 document.getElementById('locationMode').addEventListener('change', e => {
   locationMode = e.target.value;
+  saveUserSettings();
   document.getElementById('manualLocationFields').style.display =
     locationMode === 'manual' ? 'block' : 'none';
     if (locationMode === 'auto') {
@@ -905,6 +1040,7 @@ document.getElementById('marginSlider').addEventListener('input', e => {
     margin <= 15  ? "📡 Visual tracking zone" :
                     "🛑 Too loose — radar sweep only";
   document.getElementById('marginFeedback').textContent = feedback;
+saveUserSettings();
 });
 
 document.getElementById('viewLogBtn').addEventListener('click', () => {
@@ -2207,6 +2343,7 @@ function showMap() {
       // Update input fields
       document.getElementById("manualLat").value = lat.toFixed(6);
       document.getElementById("manualLon").value = lng.toFixed(6);
+      saveUserSettings();
 
       // Use OpenElevation API (free) to auto-fill elevation
       fetch(
@@ -2216,6 +2353,7 @@ function showMap() {
         .then((data) => {
           const elevation = data.results[0].elevation;
           document.getElementById("manualElev").value = elevation;
+          saveUserSettings();
         })
         .catch((err) => console.error("Elevation fetch failed:", err));
     });
