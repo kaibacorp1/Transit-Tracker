@@ -277,6 +277,9 @@ let lastStatusRender = null;
 let adsbOneFailCount = 0;
 let forceAirplanesLive = false;
 
+// Test mode: use direct browser requests to Airplanes.live first
+const PREFER_DIRECT_AIRPLANES_LIVE = true;
+
 // ✅ Add this here:
 const ignoredFlights = new Set();
 const watchNotifiedFlights = new Map();
@@ -1257,6 +1260,33 @@ if (window.useAdsbOne) {
   const statusEl = document.getElementById('transitStatus');
   const radiusKm = parseInt(document.getElementById('radiusSelect').value, 10);
 
+  if (PREFER_DIRECT_AIRPLANES_LIVE) {
+    statusEl.textContent = 'Checking Airplanes.live flights…';
+
+    fetchAirplanesLive({ lat: uLat, lon: uLon, radiusKm })
+      .then(data => {
+        console.log('✅ Direct Airplanes.live fetched', data.length, 'flights:', data);
+        callTransitAPI(data, uLat, uLon, uElev, bodyAz, bodyAlt);
+      })
+      .catch(err => {
+        console.warn('Direct Airplanes.live failed, trying ADSB-One...', err);
+
+        fetchAdsbOne({ lat: uLat, lon: uLon, radiusKm })
+          .then(data => {
+            adsbOneFailCount = 0;
+            console.log('ℹ️ ADSB-One fallback fetched', data.length, 'flights:', data);
+            callTransitAPI(data, uLat, uLon, uElev, bodyAz, bodyAlt);
+          })
+          .catch(adsbErr => {
+            console.warn('ADSB-One fallback also failed:', adsbErr);
+            statusEl.textContent = '🚫 All flight data sources failed.';
+          });
+      });
+
+    return;
+  }
+
+  
   if (forceAirplanesLive) {
     statusEl.textContent = 'Checking Airplanes.live flights…';
 
