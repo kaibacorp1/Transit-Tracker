@@ -1113,7 +1113,7 @@ function success(position) {
     window.userCoords = { lat, lon, elev };
     updateLocationUI(lat, lon, elev);
     getCelestialPosition(lat, lon, elev);
-    startAutoRefresh();
+    if (autoRefresh) startAutoRefresh();
   };
 
   const cacheKey = `elev_${lat.toFixed(3)}_${lon.toFixed(3)}`;
@@ -1124,7 +1124,7 @@ function success(position) {
     window.userCoords = { lat, lon, elev };
     updateLocationUI(lat, lon, elev);
     getCelestialPosition(lat, lon, elev);
-    startAutoRefresh();
+    if (autoRefresh) startAutoRefresh();
     return;
   }
 
@@ -1137,7 +1137,7 @@ function success(position) {
       window.userCoords = { lat, lon, elev };
       updateLocationUI(lat, lon, elev);
       getCelestialPosition(lat, lon, elev);
-      startAutoRefresh();
+      if (autoRefresh) startAutoRefresh();
     })
     .catch(() => {
       fallback(); // safe fallback to 10m
