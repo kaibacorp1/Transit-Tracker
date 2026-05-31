@@ -426,6 +426,128 @@ console.log('Filtered big departures:', departures);
   }
 }
 
+// --- Persistent User Settings ---
+const USER_SETTINGS_KEY = 'transitChaserUserSettingsV1';
+
+function getSettingValue(id, fallback = '') {
+  const el = document.getElementById(id);
+  return el ? el.value : fallback;
+}
+
+function setSettingValue(id, value) {
+  const el = document.getElementById(id);
+  if (!el || value === undefined || value === null || value === '') return;
+  el.value = value;
+}
+
+function getSavedUserSettings() {
+  try {
+    return JSON.parse(localStorage.getItem(USER_SETTINGS_KEY) || '{}');
+  } catch (error) {
+    console.warn('Could not read saved user settings:', error);
+    return {};
+  }
+}
+
+function saveUserSettings() {
+  const settings = {
+    selectedBody: getSettingValue('bodyToggle', selectedBody),
+    radius: getSettingValue('radiusSelect', '30'),
+    prediction: getSettingValue('predictToggle', '120'),
+    autoRefresh: getSettingValue('autoRefreshToggle', 'on'),
+    refreshInterval: getSettingValue('refreshIntervalInput', '15'),
+    margin: getSettingValue('marginSlider', '2.5'),
+    locationMode: getSettingValue('locationMode', 'auto'),
+    manualLat: getSettingValue('manualLat', ''),
+    manualLon: getSettingValue('manualLon', ''),
+    manualElev: getSettingValue('manualElev', '10')
+  };
+
+  localStorage.setItem(USER_SETTINGS_KEY, JSON.stringify(settings));
+}
+
+function applySavedUserSettings() {
+  const settings = getSavedUserSettings();
+
+  setSettingValue('bodyToggle', settings.selectedBody);
+  setSettingValue('radiusSelect', settings.radius);
+  setSettingValue('predictToggle', settings.prediction);
+  setSettingValue('autoRefreshToggle', settings.autoRefresh);
+  setSettingValue('refreshIntervalInput', settings.refreshInterval);
+  setSettingValue('marginSlider', settings.margin);
+  setSettingValue('locationMode', settings.locationMode);
+  setSettingValue('manualLat', settings.manualLat);
+  setSettingValue('manualLon', settings.manualLon);
+  setSettingValue('manualElev', settings.manualElev);
+
+  selectedBody = getSettingValue('bodyToggle', selectedBody);
+  predictSeconds = parseInt(getSettingValue('predictToggle', '0'), 10) || 0;
+  autoRefresh = getSettingValue('autoRefreshToggle', 'on') === 'on';
+  locationMode = getSettingValue('locationMode', 'auto');
+  margin = parseFloat(getSettingValue('marginSlider', '2.5')) || 2.5;
+
+  const title = document.getElementById('trackerTitle');
+  const label = document.getElementById('bodyLabel');
+
+  if (title && label) {
+    if (selectedBody === 'moon') {
+      title.textContent = '🌙 Moon';
+      label.textContent = 'Moon';
+    } else if (selectedBody === 'sun') {
+      title.textContent = '☀️ Sun';
+      label.textContent = 'Sun';
+    } else if (selectedBody === 'plane watch') {
+      title.textContent = '👀 Plane Watch';
+      label.textContent = 'Plane Watch';
+    } else if (selectedBody === 'plane contrails') {
+      title.textContent = '✈️ Contrail';
+      label.textContent = 'Contrails';
+    } else if (selectedBody === 'plane on plane') {
+      title.textContent = '✈️ Plane vs Plane';
+      label.textContent = 'Plane on Plane';
+    } else if (selectedBody === 'big planes') {
+      title.textContent = '🛫 Big Planes';
+      label.textContent = 'Big Planes';
+    }
+  }
+
+  const marginValueEl = document.getElementById('marginValue');
+  if (marginValueEl) {
+    marginValueEl.textContent = `${margin.toFixed(1)}°`;
+  }
+
+  const marginFeedbackEl = document.getElementById('marginFeedback');
+  if (marginFeedbackEl && typeof getMarginFeedback === 'function') {
+    marginFeedbackEl.textContent = getMarginFeedback(margin);
+  }
+
+  const manualFields = document.getElementById('manualLocationFields');
+  if (manualFields) {
+    manualFields.style.display = locationMode === 'manual' ? 'block' : 'none';
+  }
+}
+
+function attachUserSettingsPersistence() {
+  [
+    'bodyToggle',
+    'radiusSelect',
+    'predictToggle',
+    'autoRefreshToggle',
+    'refreshIntervalInput',
+    'marginSlider',
+    'locationMode',
+    'manualLat',
+    'manualLon',
+    'manualElev'
+  ].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    el.addEventListener('change', saveUserSettings);
+    el.addEventListener('input', saveUserSettings);
+  });
+}
+
 // --- Utility & Storage Helpers ---
 function getAviationstackKey() {
   return sessionStorage.getItem('aviationstackKey');
@@ -781,16 +903,19 @@ async function fetchRadarBox({ minLat, maxLat, minLon, maxLon }) {
 
 // --- DOMContent Loaded Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
+  // Restore saved user settings before the first flight check starts
+  applySavedUserSettings();
+
+  // Start saving future changes
+  attachUserSettingsPersistence();
+
   // ✅ Initialize email alert controls
   initEmailAlertControls();
-
-  // Prompt for location
-  navigator.geolocation.getCurrentPosition(success, error);
 
   // Initialize first tab
   showTab('adsboneTab');
 
-  // Read initial prediction setting from the dropdown
+  // Read prediction setting from the restored dropdown
   predictSeconds = parseInt(document.getElementById('predictToggle').value, 10) || 0;
 
   updateContrailModeUI();
@@ -799,6 +924,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const bigPlaneDateInput = document.getElementById('bigPlaneDate');
   if (bigPlaneDateInput && !bigPlaneDateInput.value) {
     bigPlaneDateInput.value = getLocalDateYYYYMMDD();
+  }
+
+  // Start using the restored location mode
+  if (locationMode === 'auto') {
+    navigator.geolocation.getCurrentPosition(success, error);
+  } else {
+    getCurrentLocationAndRun();
+    if (autoRefresh) startAutoRefresh();
   }
 });
 
