@@ -2339,7 +2339,8 @@ function showMap() {
 
       // Update input fields
       document.getElementById("manualLat").value = lat.toFixed(6);
-      document.getElementById("manualLon").value = lng.toFixed(6);
+document.getElementById("manualLon").value = lng.toFixed(6);
+saveUserSettings();
 
       // Use OpenElevation API (free) to auto-fill elevation
       fetch(
@@ -2349,6 +2350,7 @@ function showMap() {
         .then((data) => {
           const elevation = data.results[0].elevation;
           document.getElementById("manualElev").value = elevation;
+saveUserSettings();
         })
         .catch((err) => console.error("Elevation fetch failed:", err));
     });
