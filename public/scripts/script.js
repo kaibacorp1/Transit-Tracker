@@ -762,23 +762,45 @@ function checkContrailFlights(lat, lon, elev) {
     logContainer.style.display = 'block';
   };
 
-  fetchAdsbOne({ lat, lon, radiusKm })
+ if (PREFER_DIRECT_AIRPLANES_LIVE) {
+  fetchAirplanesLive({ lat, lon, radiusKm })
     .then(data => {
-      adsbOneFailCount = 0;
-      handleContrailData(data, 'ADSB-One');
+      console.log('✅ Direct Airplanes.live contrails fetched:', data.length);
+      handleContrailData(data, 'Airplanes.live');
     })
     .catch(async err => {
-      console.warn('ADSB-One contrails failed, trying Airplanes.live...', err);
+      console.warn('Direct Airplanes.live contrails failed, trying ADSB-One...', err);
 
       try {
-        const fallbackData = await fetchAirplanesLive({ lat, lon, radiusKm });
-        console.log('✅ Airplanes.live contrail fallback worked:', fallbackData.length);
-        handleContrailData(fallbackData, 'Airplanes.live');
+        const fallbackData = await fetchAdsbOne({ lat, lon, radiusKm });
+        adsbOneFailCount = 0;
+        handleContrailData(fallbackData, 'ADSB-One fallback');
       } catch (fallbackErr) {
-        console.warn('Airplanes.live contrails also failed:', fallbackErr);
+        console.warn('ADSB-One contrails fallback also failed:', fallbackErr);
         statusEl.textContent = `🚫 Error finding contrails: ${fallbackErr.message}`;
       }
     });
+
+  return;
+}
+
+fetchAdsbOne({ lat, lon, radiusKm })
+  .then(data => {
+    adsbOneFailCount = 0;
+    handleContrailData(data, 'ADSB-One');
+  })
+  .catch(async err => {
+    console.warn('ADSB-One contrails failed, trying Airplanes.live...', err);
+
+    try {
+      const fallbackData = await fetchAirplanesLive({ lat, lon, radiusKm });
+      console.log('✅ Airplanes.live contrail fallback worked:', fallbackData.length);
+      handleContrailData(fallbackData, 'Airplanes.live');
+    } catch (fallbackErr) {
+      console.warn('Airplanes.live contrails also failed:', fallbackErr);
+      statusEl.textContent = `🚫 Error finding contrails: ${fallbackErr.message}`;
+    }
+  });
 }
 
 
